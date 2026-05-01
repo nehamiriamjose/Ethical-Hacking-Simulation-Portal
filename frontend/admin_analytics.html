@@ -1,0 +1,1194 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Analytics</title>
+    <link rel="stylesheet" href="/static/css/base.css">
+    <link rel="stylesheet" href="/static/css/dashboard.css">
+    <link rel="stylesheet" href="/static/css/admin_dashboard.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        .dashboard-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+            padding: 20px;
+            border-bottom: 1px solid rgba(20, 241, 178, 0.1);
+        }
+
+        .topbar h2 {
+            color: #14f1b2;
+            margin: 0;
+        }
+
+        .analytics-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            padding: 20px;
+            gap: 20px;
+        }
+
+        /* STATS SUMMARY */
+        .stats-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 18px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, rgba(20, 241, 178, 0.08), rgba(20, 241, 178, 0.03));
+            border: 1px solid rgba(20, 241, 178, 0.25);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            border-color: rgba(20, 241, 178, 0.4);
+            box-shadow: 0 6px 20px rgba(20, 241, 178, 0.1);
+        }
+
+        .stat-label {
+            color: #777;
+            font-size: 12px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 500;
+        }
+
+        .stat-value {
+            color: #14f1b2;
+            font-size: 28px;
+            font-weight: 700;
+            display: flex;
+            align-items: baseline;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .stat-trend {
+            font-size: 12px;
+            font-weight: 600;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .stat-trend.positive {
+            color: #14f1b2;
+            background: rgba(20, 241, 178, 0.1);
+        }
+
+        .stat-trend.negative {
+            color: #ff6464;
+            background: rgba(255, 100, 100, 0.1);
+        }
+
+        /* CHARTS GRID */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 20px;
+        }
+
+        .chart-card {
+            background: rgba(10, 15, 20, 0.4);
+            border: 1px solid rgba(20, 241, 178, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            min-height: 350px;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+        }
+
+        .chart-card:hover {
+            border-color: rgba(20, 241, 178, 0.3);
+            box-shadow: 0 8px 32px rgba(20, 241, 178, 0.05);
+        }
+
+        .chart-card h3 {
+            color: #14f1b2;
+            margin: 0 0 16px 0;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            font-weight: 600;
+        }
+
+        .chart-wrapper {
+            flex: 1;
+            position: relative;
+            min-height: 250px;
+        }
+
+        /* DETAILED METRICS */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 18px;
+        }
+
+        .metric-card {
+            background: linear-gradient(135deg, rgba(20, 241, 178, 0.08), rgba(20, 241, 178, 0.03));
+            border: 1px solid rgba(20, 241, 178, 0.25);
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .metric-card:hover {
+            border-color: rgba(20, 241, 178, 0.4);
+            box-shadow: 0 6px 20px rgba(20, 241, 178, 0.1);
+        }
+
+        .metric-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .metric-title {
+            color: #14f1b2;
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .metric-icon {
+            color: #14f1b2;
+            opacity: 0.6;
+        }
+
+        .metric-value {
+            color: #fff;
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .metric-change {
+            font-size: 12px;
+            color: #888;
+        }
+
+        .metric-change.positive {
+            color: #14f1b2;
+        }
+
+        .metric-change.negative {
+            color: #ff6464;
+        }
+
+        /* LOADING */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(5, 7, 11, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        .loading-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(0, 234, 255, 0.2);
+            border-top-color: #00eaff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* NOTIFICATIONS */
+        .notification-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-width: 420px;
+        }
+
+        .notification {
+            background: linear-gradient(135deg, rgba(20, 241, 178, 0.12) 0%, rgba(10, 13, 18, 0.98) 100%);
+            border: 1px solid rgba(20, 241, 178, 0.35);
+            border-radius: 12px;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6);
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .notification.removing {
+            animation: slideOut 0.3s ease-out forwards;
+        }
+
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+
+            to {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+        }
+
+        .notification-icon {
+            flex-shrink: 0;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .notification-content {
+            flex: 1;
+        }
+
+        .notification-title {
+            color: #14f1b2;
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 2px;
+        }
+
+        .notification-message {
+            color: #ccc;
+            font-size: 13px;
+        }
+
+        .notification.error {
+            border-left: 4px solid #ff6464;
+        }
+
+        .notification.error .notification-title {
+            color: #ff6464;
+        }
+
+        @media (max-width: 1280px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* TABLES */
+        .table-card {
+            background: rgba(10, 15, 20, 0.4);
+            border: 1px solid rgba(20, 241, 178, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+            overflow-x: auto;
+        }
+
+        .table-card h3 {
+            color: #14f1b2;
+            margin: 0 0 16px 0;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            font-weight: 600;
+        }
+
+        .analytics-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .analytics-table thead {
+            background: rgba(20, 241, 178, 0.08);
+        }
+
+        .analytics-table th {
+            color: #14f1b2;
+            padding: 12px 16px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 12px;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid rgba(20, 241, 178, 0.25);
+            text-transform: uppercase;
+        }
+
+        .analytics-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid rgba(20, 241, 178, 0.08);
+            color: #ccc;
+            font-size: 13px;
+        }
+
+        .analytics-table tbody tr:hover {
+            background: rgba(20, 241, 178, 0.05);
+        }
+
+        .rank-badge {
+            display: inline-block;
+            width: 32px;
+            height: 32px;
+            background: rgba(20, 241, 178, 0.2);
+            color: #14f1b2;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+
+        .progress-bar {
+            display: inline-block;
+            width: 100px;
+            height: 6px;
+            background: rgba(20, 241, 178, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #14f1b2;
+            border-radius: 3px;
+        }
+
+        .rate-good {
+            color: #14f1b2;
+        }
+
+        .rate-warning {
+            color: #ffb82e;
+        }
+
+        .rate-low {
+            color: #ff6464;
+        }
+    </style>
+</head>
+
+<body class="dashboard-body">
+
+    <!-- LOADING OVERLAY -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="brand">
+            <span class="shield">
+                <i data-lucide="shield"></i>
+            </span>
+            <div>
+                <h2>Hacker Portal</h2>
+                <p>Learn & Conquer</p>
+            </div>
+        </div>
+
+        <nav class="menu">
+            <a href="/admin/dashboard"><i data-lucide="layout-grid"></i> Dashboard</a>
+            <a href="/admin/users"><i data-lucide="users"></i> User Management</a>
+            <a href="/admin/challenges"><i data-lucide="target"></i> Challenges</a>
+            <a href="/admin/tutorials"><i data-lucide="book-open"></i> Tutorials</a>
+            <a href="/admin/quizzes"><i data-lucide="help-circle"></i> Quizzes</a>
+            <a href="/admin/leaderboard"><i data-lucide="trophy"></i> Leaderboard</a>
+            <a href="/admin/sandbox"><i data-lucide="cpu"></i> Sandbox Monitor</a>
+            <a href="/admin/notifications"><i data-lucide="bell"></i> Notifications</a>
+            <a href="/admin/analytics" class="active"><i data-lucide="bar-chart-2"></i> Analytics</a>
+        </nav>
+
+        <a class="logout" href="/">
+            <i data-lucide="log-out"></i> Logout
+        </a>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="dashboard-main">
+        <header class="topbar">
+            <h2>Analytics</h2>
+        </header>
+
+        <div class="analytics-container">
+            <!-- STATS SUMMARY -->
+            <div class="stats-summary">
+                <div class="stat-card">
+                    <div class="stat-label">Total Users</div>
+                    <div class="stat-value" id="totalUsers">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Active Users</div>
+                    <div class="stat-value" id="activeUsers">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Avg Points</div>
+                    <div class="stat-value" id="avgPoints">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Challenges Solved</div>
+                    <div class="stat-value" id="challengesSolved">0</div>
+                </div>
+            </div>
+
+            <!-- DETAILED METRICS -->
+            <div style="margin-top: 10px;">
+                <h3
+                    style="color: #14f1b2; font-size: 14px; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 16px;">
+                    Detailed Metrics</h3>
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <div class="metric-title">Banned Users</div>
+                            <i data-lucide="ban" class="metric-icon"></i>
+                        </div>
+                        <div class="metric-value" id="bannedUsers">0</div>
+                        <div class="metric-change">Restricted accounts</div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <div class="metric-title">Locked Users</div>
+                            <i data-lucide="lock" class="metric-icon"></i>
+                        </div>
+                        <div class="metric-value" id="lockedUsers">0</div>
+                        <div class="metric-change">Account locks</div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <div class="metric-title">Signups Today</div>
+                            <i data-lucide="user-plus" class="metric-icon"></i>
+                        </div>
+                        <div class="metric-value" id="signupsToday">0</div>
+                        <div class="metric-change">New registrations</div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <div class="metric-title">Logins Today</div>
+                            <i data-lucide="log-in" class="metric-icon"></i>
+                        </div>
+                        <div class="metric-value" id="loginsToday">0</div>
+                        <div class="metric-change">Active sessions</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TOP ACTIVE USERS -->
+            <div style="margin-top: 10px;">
+                <h3
+                    style="color: #14f1b2; font-size: 14px; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 16px;">
+                    Top Active Users</h3>
+                <div class="table-card">
+                    <table class="analytics-table">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Points</th>
+                                <th>Challenges</th>
+                                <th>Last Active</th>
+                            </tr>
+                        </thead>
+                        <tbody id="topUsersTable">
+                            <tr>
+                                <td colspan="6" style="text-align: center; color: #888;">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- RETENTION METRICS -->
+            <div style="margin-top: 10px;">
+                <h3
+                    style="color: #14f1b2; font-size: 14px; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 16px;">
+                    User Retention</h3>
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <div class="metric-title">New Users (30d)</div>
+                            <i data-lucide="user-check" class="metric-icon"></i>
+                        </div>
+                        <div class="metric-value" id="newUsers30d">0</div>
+                        <div class="metric-change">Last 30 days</div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <div class="metric-title">Retention Rate</div>
+                            <i data-lucide="trending-up" class="metric-icon"></i>
+                        </div>
+                        <div class="metric-value" id="retentionRate">0%</div>
+                        <div class="metric-change">Returning users</div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <div class="metric-title">Weekly Active</div>
+                            <i data-lucide="activity" class="metric-icon"></i>
+                        </div>
+                        <div class="metric-value" id="weeklyActive">0</div>
+                        <div class="metric-change">Last 7 days</div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <div class="metric-title">Monthly Active</div>
+                            <i data-lucide="calendar" class="metric-icon"></i>
+                        </div>
+                        <div class="metric-value" id="monthlyActive">0</div>
+                        <div class="metric-change">Last 30 days</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SYSTEM HEALTH -->
+            <div style="margin-top: 10px;">
+                <h3
+                    style="color: #14f1b2; font-size: 14px; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 16px;">
+                    System Health</h3>
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <div class="metric-title">Total Score</div>
+                            <i data-lucide="zap" class="metric-icon"></i>
+                        </div>
+                        <div class="metric-value" id="totalXp">0</div>
+                        <div class="metric-change">Score distributed</div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <div class="metric-title">Avg User Level</div>
+                            <i data-lucide="award" class="metric-icon"></i>
+                        </div>
+                        <div class="metric-value" id="avgLevel">0</div>
+                        <div class="metric-change">Platform average</div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <div class="metric-title">Tutorials</div>
+                            <i data-lucide="book" class="metric-icon"></i>
+                        </div>
+                        <div class="metric-value" id="totalTutorials">0</div>
+                        <div class="metric-change">Available content</div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <div class="metric-title">Uptime</div>
+                            <i data-lucide="check-circle" class="metric-icon"></i>
+                        </div>
+                        <div class="metric-value" id="uptime">0%</div>
+                        <div class="metric-change">System status</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CONTENT STATISTICS -->
+            <div style="margin-top: 10px;">
+                <h3
+                    style="color: #14f1b2; font-size: 14px; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 16px;">
+                    Content Statistics</h3>
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <div class="metric-title">Total Challenges</div>
+                            <i data-lucide="target" class="metric-icon"></i>
+                        </div>
+                        <div class="metric-value" id="totalChallenges">0</div>
+                        <div class="metric-change">Available challenges</div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <div class="metric-title">Total Tutorials</div>
+                            <i data-lucide="book-open" class="metric-icon"></i>
+                        </div>
+                        <div class="metric-value" id="totalTutorialsContent">0</div>
+                        <div class="metric-change">Learning resources</div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <div class="metric-title">Top Challenge</div>
+                            <i data-lucide="trending-up" class="metric-icon"></i>
+                        </div>
+                        <div class="metric-value" id="topChallengeName">N/A</div>
+                        <div class="metric-change" id="topChallengeCount">0 completions</div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <div class="metric-title">Top Tutorial</div>
+                            <i data-lucide="star" class="metric-icon"></i>
+                        </div>
+                        <div class="metric-value" id="topTutorialName">N/A</div>
+                        <div class="metric-change" id="topTutorialViews">0 views</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- NOTIFICATION CONTAINER -->
+    <div id="notificationContainer" class="notification-container"></div>
+
+    <script>
+
+        let growthChart = null;
+        let statusChart = null;
+        let challengePerformanceChart = null;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadAnalytics();
+            loadTopUsers();
+            loadTrendData();
+            loadRetentionMetrics();
+            loadSystemHealth();
+            loadDifficultyAnalysis();
+            loadEngagementMetrics();
+            loadContentStats();
+            // Auto-refresh every 30 seconds
+            setInterval(() => {
+                loadAnalytics();
+                loadTrendData();
+                loadRetentionMetrics();
+                loadSystemHealth();
+                loadEngagementMetrics();
+                loadContentStats();
+            }, 30000);
+        });
+
+        // Initialize Lucide icons after page loads
+        window.addEventListener('load', () => {
+            if (window.lucide) {
+                lucide.createIcons();
+            }
+        });
+
+        async function loadAnalytics() {
+            try {
+                showLoadingOverlay(true);
+                const res = await fetch('/admin/api/analytics/summary');
+                const data = await res.json();
+
+                if (data.success) {
+                    const stats = data.analytics;
+
+                    // Update stats
+                    updateText('totalUsers', stats.total_users);
+                    updateText('activeUsers', stats.active_users);
+                    updateText('avgPoints', stats.avg_xp);
+                    updateText('challengesSolved', stats.total_challenges);
+                    updateText('bannedUsers', stats.banned_users);
+                    updateText('lockedUsers', stats.locked_users);
+                    updateText('signupsToday', stats.today_signups);
+                    updateText('loginsToday', stats.today_logins);
+
+                    // Render charts
+                    renderGrowthChart(stats.growth_labels, stats.growth_data);
+                    renderStatusChart(stats.status_dist);
+                }
+            } catch (error) {
+                showNotification('Error', 'Failed to load analytics: ' + error.message, 'error');
+            } finally {
+                showLoadingOverlay(false);
+            }
+        }
+
+        async function loadTopUsers() {
+            try {
+                const res = await fetch('/admin/api/analytics/top-users?limit=10');
+                const data = await res.json();
+
+                if (data.success) {
+                    const tbody = document.getElementById('topUsersTable');
+                    if (data.users && data.users.length > 0) {
+                        tbody.innerHTML = data.users.map((user, idx) => `
+                            <tr>
+                                <td><div class="rank-badge">${idx + 1}</div></td>
+                                <td><strong>${user.name}</strong></td>
+                                <td>${user.email}</td>
+                                <td><strong style="color: #14f1b2;">${user.points}</strong></td>
+                                <td>${user.challenges}</td>
+                                <td>${user.last_login ? new Date(user.last_login).toLocaleDateString() : 'Never'}</td>
+                            </tr>
+                        `).join('');
+                    } else {
+                        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #888;">No users found</td></tr>';
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading top users:', error);
+            }
+        }
+
+        async function loadChallengePerformance() {
+            try {
+                const res = await fetch('/admin/api/analytics/challenge-performance');
+                const data = await res.json();
+
+                if (data.success) {
+                    const tbody = document.getElementById('challengeTable');
+                    if (data.challenges && data.challenges.length > 0) {
+                        tbody.innerHTML = data.challenges.map((challenge) => {
+                            let rateClass = 'rate-good';
+                            if (challenge.completion_rate < 25) rateClass = 'rate-low';
+                            else if (challenge.completion_rate < 50) rateClass = 'rate-warning';
+
+                            return `
+                                <tr>
+                                    <td><strong>${challenge.name}</strong></td>
+                                    <td>${challenge.attempts}</td>
+                                    <td>${challenge.completions}</td>
+                                    <td>
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <div class="progress-bar">
+                                                <div class="progress-fill" style="width: ${challenge.completion_rate}%;"></div>
+                                            </div>
+                                            <span class="${rateClass}"><strong>${challenge.completion_rate}%</strong></span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            `;
+                        }).join('');
+
+                        // Render the performance chart
+                        renderChallengePerformanceChart(data.challenges);
+                    } else {
+                        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #888;">No challenges found</td></tr>';
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading challenges:', error);
+            }
+        }
+
+        function renderChallengePerformanceChart(challenges) {
+            const canvas = document.getElementById('challengePerformanceChart');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            if (challengePerformanceChart) challengePerformanceChart.destroy();
+
+            const labels = challenges.map(c => c.name);
+            const data = challenges.map(c => c.completion_rate);
+            
+            // Generate colors for each challenge
+            const colors = [
+                'rgba(76, 175, 80, 0.8)',
+                'rgba(33, 150, 243, 0.8)',
+                'rgba(255, 193, 7, 0.8)',
+                'rgba(233, 30, 99, 0.8)',
+                'rgba(156, 39, 176, 0.8)',
+                'rgba(76, 175, 80, 0.8)',
+                'rgba(33, 150, 243, 0.8)',
+                'rgba(255, 193, 7, 0.8)'
+            ];
+
+            const borderColors = [
+                'rgba(76, 175, 80, 1)',
+                'rgba(33, 150, 243, 1)',
+                'rgba(255, 193, 7, 1)',
+                'rgba(233, 30, 99, 1)',
+                'rgba(156, 39, 176, 1)',
+                'rgba(76, 175, 80, 1)',
+                'rgba(33, 150, 243, 1)',
+                'rgba(255, 193, 7, 1)'
+            ];
+
+            challengePerformanceChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Completion Rate (%)',
+                        data: data,
+                        backgroundColor: colors.slice(0, labels.length),
+                        borderColor: borderColors.slice(0, labels.length),
+                        borderWidth: 2,
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    animation: {
+                        duration: 750
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            labels: {
+                                color: '#14f1b2',
+                                font: { size: 12, weight: 'bold' }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: {
+                                color: '#14f1b2',
+                                font: { size: 11 },
+                                callback: function(value) {
+                                    return value + '%';
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(20, 241, 178, 0.1)'
+                            }
+                        },
+                        y: {
+                            ticks: {
+                                color: '#14f1b2',
+                                font: { size: 12, weight: 'bold' }
+                            },
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        async function loadTrendData() {
+            try {
+                const res = await fetch('/admin/api/analytics/trends?days=7');
+                const data = await res.json();
+
+                if (data.success) {
+                    const trends = data.trends;
+
+                    // Add trend indicators to stat cards
+                    addTrendIndicator('activeUsers', trends.daily_active.trend);
+                    addTrendIndicator('signupsToday', trends.signups.trend);
+                }
+            } catch (error) {
+                console.error('Error loading trends:', error);
+            }
+        }
+
+        function addTrendIndicator(elementId, trendPercent) {
+            const el = document.getElementById(elementId);
+            if (!el) return;
+
+            const parentCard = el.closest('.stat-card') || el.parentElement;
+            let trendEl = parentCard.querySelector('.trend-indicator');
+
+            if (!trendEl) {
+                trendEl = document.createElement('div');
+                trendEl.className = 'stat-trend';
+                el.appendChild(trendEl);
+            }
+
+            const trendClass = trendPercent >= 0 ? 'positive' : 'negative';
+            const trendSign = trendPercent >= 0 ? '+' : '';
+            trendEl.className = `stat-trend ${trendClass}`;
+            trendEl.textContent = `${trendSign}${trendPercent}%`;
+        }
+
+        async function loadRetentionMetrics() {
+            try {
+                const res = await fetch('/admin/api/analytics/retention');
+                const data = await res.json();
+
+                if (data.success) {
+                    const retention = data.retention;
+                    updateText('newUsers30d', retention.new_users_30d);
+                    updateText('retentionRate', retention.retention_rate + '%');
+                    updateText('weeklyActive', retention.weekly_active);
+                    updateText('monthlyActive', retention.monthly_active);
+                }
+            } catch (error) {
+                console.error('Error loading retention:', error);
+            }
+        }
+
+        async function loadSystemHealth() {
+            try {
+                const res = await fetch('/admin/api/analytics/system-health');
+                const data = await res.json();
+
+                if (data.success) {
+                    const health = data.health;
+                    updateText('totalXp', health.total_xp.toLocaleString());
+                    updateText('avgLevel', health.avg_level);
+                    updateText('totalTutorials', health.total_tutorials);
+                    updateText('uptime', health.uptime.toFixed(1) + '%');
+                }
+            } catch (error) {
+                console.error('Error loading system health:', error);
+            }
+        }
+
+        async function loadDifficultyAnalysis() {
+            try {
+                const res = await fetch('/admin/api/analytics/difficulty-analysis');
+                const data = await res.json();
+
+                if (data.success) {
+                    const tbody = document.getElementById('difficultyTable');
+                    if (data.difficulties && data.difficulties.length > 0) {
+                        tbody.innerHTML = data.difficulties.map((challenge) => `
+                            <tr>
+                                <td><strong>${challenge.name}</strong></td>
+                                <td>
+                                    <span style="padding: 4px 8px; border-radius: 4px; background: rgba(20, 241, 178, 0.1); color: #14f1b2; font-size: 11px; font-weight: 600;">
+                                        ${challenge.difficulty}
+                                    </span>
+                                </td>
+                                <td>${challenge.attempts}</td>
+                                <td>${challenge.avg_time}</td>
+                                <td>${challenge.min_time} / ${challenge.max_time}</td>
+                            </tr>
+                        `).join('');
+                    } else {
+                        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #888;">No data available</td></tr>';
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading difficulty analysis:', error);
+            }
+        }
+
+        function updateText(id, val) {
+            const el = document.getElementById(id);
+            if (el) el.textContent = val;
+        }
+
+        function renderGrowthChart(labels, data) {
+            const canvas = document.getElementById('growthChart');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            if (growthChart) growthChart.destroy();
+
+            growthChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'New Users',
+                        data: data,
+                        borderColor: '#14f1b2',
+                        backgroundColor: 'rgba(20, 241, 178, 0.08)',
+                        borderWidth: 2.5,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 5,
+                        pointBackgroundColor: '#14f1b2',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointHoverRadius: 7,
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: '#14f1b2'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: Math.max(...data) + 1,
+                            ticks: { color: '#888', font: { size: 11 } },
+                            grid: { color: 'rgba(255, 255, 255, 0.03)', drawBorder: false }
+                        },
+                        x: {
+                            ticks: { color: '#888', font: { size: 11 } },
+                            grid: { display: false, drawBorder: false }
+                        }
+                    },
+                    plugins: {
+                        filler: { propagate: true },
+                        legend: { display: false }
+                    }
+                }
+            });
+        }
+
+        function renderStatusChart(dist) {
+            const canvas = document.getElementById('statusChart');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            if (statusChart) statusChart.destroy();
+
+            const colorMap = {
+                'Active': '#14f1b2',
+                'Inactive': '#888888',
+                'Banned': '#ff3e3e',
+                'Locked': '#ffb82e'
+            };
+
+            const labels = Object.keys(dist);
+            const colors = labels.map(label => colorMap[label] || '#7000ff');
+
+            statusChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: Object.values(dist),
+                        backgroundColor: colors,
+                        borderWidth: 0,
+                        borderColor: 'rgba(10, 15, 20, 0.5)',
+                        hoverOffset: 12
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: '#aaa',
+                                font: { size: 11, weight: '500' },
+                                padding: 12,
+                                boxWidth: 12
+                            }
+                        }
+                    },
+                    cutout: '68%'
+                }
+            });
+        }
+
+        function showLoadingOverlay(show) {
+            const overlay = document.getElementById('loadingOverlay');
+            if (show) {
+                overlay.classList.add('active');
+            } else {
+                overlay.classList.remove('active');
+            }
+        }
+
+        function showNotification(title, message, type = 'success') {
+            const container = document.getElementById('notificationContainer');
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.innerHTML = `
+                <div class="notification-icon">${type === 'error' ? '✕' : '✓'}</div>
+                <div class="notification-content">
+                    <div class="notification-title">${title}</div>
+                    <div class="notification-message">${message}</div>
+                </div>
+            `;
+            container.appendChild(notification);
+
+            setTimeout(() => {
+                notification.classList.add('removing');
+                setTimeout(() => notification.remove(), 300);
+            }, 4000);
+        }
+
+        async function loadEngagementMetrics() {
+            try {
+                const res = await fetch('/admin/api/analytics/engagement-metrics');
+                const data = await res.json();
+
+                if (data.success) {
+                    const engagement = data.engagement;
+                    updateText('usersCompleted', engagement.users_completed);
+                    updateText('avgPerUser', engagement.avg_per_user);
+                    updateText('avgSession', engagement.avg_session_min + ' min');
+                }
+            } catch (error) {
+                console.error('Error loading engagement metrics:', error);
+            }
+        }
+
+        async function loadContentStats() {
+            try {
+                const res = await fetch('/admin/api/analytics/content-stats');
+                const data = await res.json();
+
+                if (data.success) {
+                    const content = data.content;
+                    updateText('totalChallenges', content.total_challenges);
+                    updateText('totalTutorialsContent', content.total_tutorials);
+
+                    if (content.top_challenge) {
+                        updateText('topChallengeName', content.top_challenge.name);
+                        updateText('topChallengeCount', content.top_challenge.completions + ' completions');
+                    }
+
+                    if (content.top_tutorial) {
+                        updateText('topTutorialName', content.top_tutorial.name);
+                        updateText('topTutorialViews', content.top_tutorial.views + ' views');
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading content stats:', error);
+            }
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ page }} | DocuViewer Professional</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <div class="background-blobs">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+    </div>
+
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <nav class="glass-sidebar animate-left">
+            <div class="sidebar-logo">
+                <div class="logo-box">DV</div>
+                <span>DocuViewer</span>
+            </div>
+            <div class="nav-items">
+                <a href="?page=home.html" class="nav-item {{ 'active' if page == 'home.html' else '' }}">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                    </svg>
+                    <span>Home</span>
+                </a>
+                <a href="?page=about.html" class="nav-item {{ 'active' if page == 'about.html' else '' }}">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="16" x2="12" y2="12"></line>
+                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                    </svg>
+                    <span>About Us</span>
+                </a>
+            </div>
+            <div class="sidebar-footer">
+                <div class="node-status">
+                    <div class="status-dot"></div>
+                    <span>Node: DOC-PROD-05</span>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Simulated Browser Bar -->
+            <div class="browser-bar animate-up">
+                <div class="browser-controls">
+                    <div class="dot dot-red"></div>
+                    <div class="dot dot-yellow"></div>
+                    <div class="dot dot-green"></div>
+                </div>
+                <div class="url-input-container">
+                    <span class="url-prefix">https://docuviewer.io/?page=</span>
+                    <input type="text" id="urlInput" class="url-input" value="{{ page }}" placeholder="filename.html">
+                </div>
+            </div>
+
+            <header class="content-header animate-up" style="animation-delay: 0.1s;">
+                <div class="breadcrumb">PORTAL / DOCUMENTS / {{ page.upper() }}</div>
+                <button class="intel-toggle-btn" onclick="toggleIntel()">
+                    <span class="intel-icon-small">⚡</span> Mission Intel
+                </button>
+            </header>
+
+            <div class="document-container animate-up" style="animation-delay: 0.2s;">
+                <div class="glass-card document-card">
+                    <div class="document-header">
+                        <h1>Viewing: {{ page }}</h1>
+                        <div class="document-info">System verified document • Read-only access</div>
+                    </div>
+                    <div class="document-body">
+                        <pre>{{ content }}</pre>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Mission Intel Panel -->
+        <aside id="intelPanel" class="intel-sidebar">
+            <div class="intel-card glass-card">
+                <div class="intel-header">
+                    <div class="intel-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path
+                                d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z">
+                            </path>
+                            <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                            <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                        </svg>
+                    </div>
+                    <h3>Mission Intel</h3>
+                    <button class="close-intel" onclick="toggleIntel()">&times;</button>
+                </div>
+
+                <div class="intel-body">
+                    <section class="intel-section">
+                        <h4><span class="step-num">01</span> Introduction</h4>
+                        <p>This application uses a <code>page</code> parameter to fetch and display local files. This is
+                            a common pattern for documentation sites, but it's highly dangerous if not sanitized.</p>
+                    </section>
+
+                    <section class="intel-section">
+                        <h4><span class="step-num">02</span> The Vulnerability</h4>
+                        <p><strong>Local File Inclusion (LFI)</strong> occurs when an application includes a file from
+                            the local file system without proper validation. Attackers can use <code>../</code>
+                            sequences to navigate outside the intended directory.</p>
+                    </section>
+
+                    <section class="intel-section">
+                        <h4><span class="step-num">03</span> Tactical Execution</h4>
+                        <p>Try to read sensitive system files. Use path traversal in the address bar:
+                            <code>../../../../etc/flag.txt</code>. The <code>../</code> jumps up one directory level.
+                        </p>
+                    </section>
+
+                    <section class="intel-section">
+                        <h4><span class="step-num">04</span> Flag Acquisition</h4>
+                        <p>Once you successfully access <code>/etc/flag.txt</code>, the system will detect the
+                            unauthorized read and reveal the system flag via the compromise modal.</p>
+                    </section>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <!-- Success Modal -->
+    <div id="successModal" class="modal-overlay">
+        <div class="modal-content glass-card animate-scale">
+            <div class="modal-glow"></div>
+            <div class="success-header">
+                <div class="success-orb">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="3">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                </div>
+                <h2>System Compromised</h2>
+                <p>Unauthorized file access detected. System secrets intercepted.</p>
+            </div>
+
+            <div class="flag-section">
+                <label>ENCRYPTED FLAG</label>
+                <div class="flag-text" id="flagText"></div>
+            </div>
+
+            <button class="action-btn" onclick="closeModal()">Secure Transmission</button>
+        </div>
+    </div>
+
+    <script>
+        const content = `{{ content }}`;
+
+        // Detect flag in content
+        if (content.includes('FLAG{') || content.includes('This is the flag')) {
+            document.getElementById('flagText').innerText = content.trim();
+            setTimeout(() => {
+                document.getElementById('successModal').style.display = 'flex';
+            }, 600);
+        }
+
+        function toggleIntel() {
+            const panel = document.getElementById('intelPanel');
+            panel.classList.toggle('active');
+        }
+
+        function closeModal() {
+            document.getElementById('successModal').classList.add('fade-out');
+            setTimeout(() => {
+                document.getElementById('successModal').style.display = 'none';
+                document.getElementById('successModal').classList.remove('fade-out');
+            }, 400);
+        }
+
+        // Simulated Browser Hook
+        document.getElementById('urlInput').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                const newPage = this.value.trim();
+                if (newPage) {
+                    window.location.href = '/?page=' + encodeURIComponent(newPage);
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Progress Graph</title>
+
+  <link rel="stylesheet" href="/static/css/base.css">
+  <link rel="stylesheet" href="/static/css/dashboard.css">
+
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  <style>
+    /* ========== PROGRESS CARDS ========== */
+    .progress-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 22px;
+      margin-top: 30px;
+      margin-bottom: 40px;
+    }
+
+    .progress-card {
+      background: linear-gradient(135deg, #081818, #040808);
+      border-radius: 18px;
+      padding: 24px;
+      border: 1px solid rgba(0, 255, 200, 0.3);
+      box-shadow: 0 0 20px rgba(0, 255, 200, 0.15);
+      transition: all 0.3s ease;
+      animation: slideUp 0.6s ease-out;
+    }
+
+    .progress-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 0 30px rgba(0, 255, 200, 0.25);
+      border-color: rgba(0, 255, 200, 0.5);
+    }
+
+    .progress-card h4 {
+      color: #9ff;
+      font-weight: 500;
+      margin-bottom: 12px;
+      font-size: 14px;
+    }
+
+    .progress-value {
+      font-size: 36px;
+      font-weight: 700;
+      color: #fff;
+      animation: countUp 1s ease-out;
+    }
+
+    .progress-sub {
+      font-size: 13px;
+      margin-top: 6px;
+      color: #8ff;
+      opacity: 0.8;
+    }
+
+    /* ========== FILTERS & CONTROLS ========== */
+    .controls-section {
+      background: linear-gradient(135deg, #0a2020, #050f0f);
+      border-radius: 15px;
+      padding: 20px;
+      margin-bottom: 30px;
+      border: 1px solid rgba(0, 255, 200, 0.2);
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .date-picker-group {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .date-picker-group label {
+      color: #9ff;
+      font-weight: 500;
+      font-size: 13px;
+    }
+
+    .date-input, .select-input {
+      background: rgba(0, 255, 200, 0.1);
+      border: 1px solid rgba(0, 255, 200, 0.3);
+      color: #fff;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .date-input:focus, .select-input:focus {
+      outline: none;
+      border-color: #0ff;
+      box-shadow: 0 0 10px rgba(0, 255, 200, 0.3);
+    }
+
+    .quick-filters {
+      display: flex;
+      gap: 10px;
+      margin-left: auto;
+      flex-wrap: wrap;
+    }
+
+    .filter-btn {
+      background: rgba(0, 255, 200, 0.15);
+      border: 1px solid rgba(0, 255, 200, 0.3);
+      color: #9ff;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: all 0.3s ease;
+      white-space: nowrap;
+    }
+
+    .filter-btn:hover, .filter-btn.active {
+      background: rgba(0, 255, 200, 0.3);
+      border-color: #0ff;
+      color: #0ff;
+    }
+
+    /* ========== CHARTS SECTION ========== */
+    .charts-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+      gap: 25px;
+      margin-bottom: 40px;
+    }
+
+    .chart-card {
+      background: linear-gradient(135deg, #081818, #040808);
+      border-radius: 18px;
+      padding: 25px;
+      border: 1px solid rgba(0, 255, 200, 0.3);
+      box-shadow: 0 0 20px rgba(0, 255, 200, 0.15);
+    }
+
+    .chart-card h3 {
+      color: #9ff;
+      margin-bottom: 20px;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .chart-wrapper {
+      position: relative;
+      height: 300px;
+    }
+
+    /* ========== METRICS GRID ========== */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-bottom: 40px;
+    }
+
+    .metric-box {
+      background: linear-gradient(135deg, #0a2020, #050f0f);
+      border-radius: 12px;
+      padding: 18px;
+      border: 1px solid rgba(0, 255, 200, 0.2);
+      text-align: center;
+      animation: slideUp 0.6s ease-out 0.2s both;
+    }
+
+    .metric-label {
+      color: #8ff;
+      font-size: 12px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      opacity: 0.8;
+    }
+
+    .metric-value {
+      font-size: 28px;
+      font-weight: 700;
+      color: #0ff;
+      margin-bottom: 5px;
+    }
+
+    .metric-sub {
+      font-size: 12px;
+      color: #9ff;
+    }
+
+    /* ========== MILESTONES ========== */
+    .milestones-section {
+      background: linear-gradient(135deg, #081818, #040808);
+      border-radius: 18px;
+      padding: 25px;
+      border: 1px solid rgba(0, 255, 200, 0.3);
+      margin-bottom: 40px;
+    }
+
+    .milestones-section h3 {
+      color: #9ff;
+      margin-bottom: 20px;
+      font-size: 16px;
+    }
+
+    .milestone-item {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      padding: 15px;
+      background: rgba(0, 255, 200, 0.05);
+      border-radius: 10px;
+      margin-bottom: 12px;
+      border-left: 3px solid rgba(0, 255, 200, 0.3);
+    }
+
+    .milestone-item.completed {
+      border-left-color: #0f0;
+      background: rgba(0, 255, 0, 0.05);
+    }
+
+    .milestone-checkbox {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: 2px solid rgba(0, 255, 200, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .milestone-item.completed .milestone-checkbox {
+      background: #0f0;
+      border-color: #0f0;
+    }
+
+    .milestone-checkbox svg {
+      width: 16px;
+      height: 16px;
+      color: #000;
+    }
+
+    .milestone-info {
+      flex: 1;
+    }
+
+    .milestone-title {
+      color: #9ff;
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+
+    .milestone-progress {
+      width: 100%;
+      height: 6px;
+      background: rgba(0, 255, 200, 0.15);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .milestone-progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #0ff, #0f0);
+      border-radius: 3px;
+      transition: width 0.6s ease;
+    }
+
+    /* ========== COMPARISON SECTION ========== */
+    .comparison-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+      margin-bottom: 40px;
+    }
+
+    .comparison-card {
+      background: linear-gradient(135deg, #081818, #040808);
+      border-radius: 15px;
+      padding: 20px;
+      border: 1px solid rgba(0, 255, 200, 0.2);
+    }
+
+    .comparison-card h4 {
+      color: #9ff;
+      margin-bottom: 15px;
+      font-size: 14px;
+    }
+
+    .compare-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(0, 255, 200, 0.1);
+      font-size: 13px;
+    }
+
+    .compare-item:last-child {
+      border-bottom: none;
+    }
+
+    .compare-label {
+      color: #8ff;
+    }
+
+    .compare-value {
+      color: #0ff;
+      font-weight: 600;
+    }
+
+    /* ========== ANIMATIONS ========== */
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes countUp {
+      from {
+        opacity: 0;
+        transform: scale(0.8);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        opacity: 1;
+      }
+      50% {
+        opacity: 0.7;
+      }
+    }
+
+    .loading {
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    /* ========== RESPONSIVE ========== */
+    @media (max-width: 768px) {
+      .charts-container {
+        grid-template-columns: 1fr;
+      }
+
+      .controls-section {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .quick-filters {
+        margin-left: 0;
+        width: 100%;
+      }
+
+      .progress-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .chart-wrapper {
+        height: 250px;
+      }
+    }
+
+    /* ========== STREAK BADGE ========== */
+    .streak-badge {
+      display: inline-block;
+      background: linear-gradient(135deg, #ff6b00, #ff9100);
+      color: white;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 14px;
+      animation: slideUp 0.6s ease-out;
+    }
+
+    /* ========== SUCCESS MESSAGE ========== */
+    .achievement-popup {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      background: linear-gradient(135deg, #0f0, #0ff);
+      color: #000;
+      padding: 20px 25px;
+      border-radius: 12px;
+      box-shadow: 0 0 30px rgba(0, 255, 200, 0.5);
+      animation: slideUp 0.5s ease-out;
+      z-index: 1000;
+      font-weight: 600;
+      max-width: 300px;
+    }
+
+    .achievement-popup svg {
+      width: 20px;
+      height: 20px;
+      margin-right: 10px;
+      display: inline;
+    }
+  </style>
+</head>
+
+<body class="dashboard-body">
+
+  <!-- ========== SIDEBAR ========== -->
+  <aside class="sidebar">
+    <div class="brand">
+      <span class="shield"><i data-lucide="shield"></i></span>
+      <div>
+        <h2>Hacker Portal</h2>
+        <p>Learn & Conquer</p>
+      </div>
+    </div>
+
+    <nav class="menu">
+      <a href="/user/dashboard?email={{EMAIL}}">
+        <i data-lucide="layout-grid"></i> Dashboard
+      </a>
+
+      <a href="/user/tutorials?email={{EMAIL}}">
+        <i data-lucide="book-open"></i> Tutorials
+      </a>
+
+      <a href="/user/tutorials/saved?email={{EMAIL}}">
+        <i data-lucide="star"></i> Saved Tutorials
+      </a>
+
+      <a href="/user/challenges?email={{EMAIL}}">
+        <i data-lucide="target"></i> Challenges
+      </a>
+
+      <a href="/user/quizzes?email={{EMAIL}}">
+        <i data-lucide="help-circle"></i> Quizzes
+      </a>
+
+      <a href="/user/challenges/daily?email={{EMAIL}}">
+        <i data-lucide="calendar"></i> Daily Challenge
+      </a>
+
+      <a href="/user/attempt-history?email={{EMAIL}}">
+        <i data-lucide="history"></i> Attempt History
+      </a>
+
+      <a href="/user/leaderboard?email={{EMAIL}}">
+        <i data-lucide="trophy"></i> Leaderboard
+      </a>
+
+      <a href="/user/friends?email={{EMAIL}}">
+        <i data-lucide="users"></i> Friends
+      </a>
+
+      <a class="active" href="/user/progress?email={{EMAIL}}">
+        <i data-lucide="trending-up"></i> Progress Graph
+      </a>
+
+      <a href="/user/profile?email={{EMAIL}}">
+        <i data-lucide="user"></i> Profile
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <a class="logout" href="/">
+        <i data-lucide="log-out"></i> Logout
+      </a>
+    </div>
+  </aside>
+
+  <!-- ========== MAIN ========== -->
+  <main class="dashboard-main">
+
+    <header class="topbar">
+      <h2>Progress Overview</h2>
+
+      <div class="top-icons">
+        <div class="notif-wrapper">
+          <button id="notifBell" class="icon-btn" type="button">
+            <i data-lucide="bell"></i>
+          </button>
+          <div id="notifPanel" class="notif-panel">
+            <div class="notif-header">Notifications</div>
+            <div id="notifList" class="notif-list">
+              <!-- notifications will load here -->
+            </div>
+          </div>
+        </div>
+
+        <div class="profile-chip">
+          👤 {{USERNAME}} <small>Level {{LEVEL}}</small>
+        </div>
+      </div>
+    </header>
+
+    <!-- ========== MAIN PROGRESS CARDS ========== -->
+    <section class="progress-grid">
+
+      <div class="progress-card">
+        <h4>📌 Total Challenges Completed</h4>
+        <div class="progress-value" id="totalChallenges">-</div>
+        <div class="progress-sub" id="challengesTrend">+0 this week</div>
+      </div>
+
+      <div class="progress-card">
+        <h4>⚡ Total Points</h4>
+        <div class="progress-value" id="totalXP">{{XP}}</div>
+        <div class="progress-sub" id="xpTrend">+0 this week</div>
+      </div>
+
+      <div class="progress-card">
+        <h4>🎯 Success Rate</h4>
+        <div class="progress-value" id="successRate">-</div>
+        <div class="progress-sub" id="successTrend">see your achievement</div>
+      </div>
+
+      <div class="progress-card">
+        <h4>🔥 Current Streak</h4>
+        <div class="progress-value" id="currentStreak">0</div>
+        <div class="progress-sub" id="bestStreak">Best: 0 days</div>
+      </div>
+
+    </section>
+
+    <!-- ========== CONTROLS & FILTERS ========== -->
+    <div class="controls-section">
+      <div class="date-picker-group">
+        <label>📅 Date Range:</label>
+        <input type="date" id="startDate" class="date-input">
+        <span style="color: #8ff;">to</span>
+        <input type="date" id="endDate" class="date-input">
+      </div>
+      <div class="quick-filters">
+        <button class="filter-btn active" data-days="7">This Week</button>
+        <button class="filter-btn" data-days="30">This Month</button>
+        <button class="filter-btn" data-days="90">3 Months</button>
+        <button class="filter-btn" data-days="365">All Time</button>
+        <button class="filter-btn" id="exportBtn">📊 Export</button>
+      </div>
+    </div>
+
+    <!-- ========== CHARTS SECTION ========== -->
+    <div class="charts-container">
+
+      <!-- Learning Progress Bar Chart -->
+      <div class="chart-card">
+        <h3><i data-lucide="bar-chart-2"></i> Learning Progress</h3>
+        <div class="chart-wrapper">
+          <canvas id="learningProgressChart" style="max-height: 250px;"></canvas>
+        </div>
+      </div>
+
+      <!-- Learning Progress Pie Chart -->
+      <div class="chart-card">
+        <h3><i data-lucide="pie-chart"></i> Progress Distribution</h3>
+        <div class="chart-wrapper">
+          <canvas id="progressDistributionChart" style="max-height: 250px;"></canvas>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ========== MILESTONES ========== -->
+    <section class="milestones-section">
+      <h3>🎯 Your Milestones</h3>
+      <div id="milestonesContainer">
+        <!-- Milestones will be loaded here -->
+      </div>
+    </section>
+
+    <!-- ========== GOAL RECOMMENDATIONS ========== -->
+    <section class="comparison-container">
+      <div class="comparison-card">
+        <h4>📍 Next Goals</h4>
+        <div id="nextGoals">
+          <!-- Goals will be populated -->
+        </div>
+      </div>
+
+      <div class="comparison-card">
+        <h4>🏅 Category Performance</h4>
+        <div id="categoryPerformance">
+          <!-- Category performance will be populated -->
+        </div>
+      </div>
+
+
+    </section>
+
+  </main>
+
+  <script>
+    lucide.createIcons();
+  </script>
+
+  <script>
+    const EMAIL = '{{EMAIL}}';
+    let learningProgressChart, progressDistributionChart;
+    let currentDaysFilter = 7;
+
+    // ========== INITIALIZATION ==========
+    document.addEventListener('DOMContentLoaded', async () => {
+      try {
+        // Set date inputs
+        const today = new Date();
+        const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+        
+        document.getElementById('endDate').valueAsDate = today;
+        document.getElementById('startDate').valueAsDate = weekAgo;
+
+        // Load all data
+        await Promise.all([
+          loadProgressStats(),
+          loadChallengeHistory(),
+          loadPerformanceMetrics(),
+          loadStreakInfo(),
+          loadMilestones()
+        ]);
+
+        setupEventListeners();
+      } catch (error) {
+        console.error('Error loading progress data:', error);
+      }
+    });
+
+    // ========== EVENT LISTENERS ==========
+    function setupEventListeners() {
+      // Filter buttons
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          if (e.target.textContent.includes('Export')) {
+            exportProgressData();
+            return;
+          }
+
+          document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+          e.target.classList.add('active');
+          
+          const days = e.target.getAttribute('data-days');
+          if (days) {
+            currentDaysFilter = parseInt(days);
+            const today = new Date();
+            const startDate = new Date(today.getTime() - currentDaysFilter * 24 * 60 * 60 * 1000);
+            
+            document.getElementById('startDate').valueAsDate = startDate;
+            document.getElementById('endDate').valueAsDate = today;
+            
+            await loadChallengeHistory();
+          }
+        });
+      });
+
+      // Date inputs
+      ['startDate', 'endDate'].forEach(id => {
+        document.getElementById(id).addEventListener('change', async () => {
+          await loadChallengeHistory();
+        });
+      });
+    }
+
+    // ========== API CALLS ==========
+    async function loadProgressStats() {
+      try {
+        const response = await fetch(`/api/user/progress-stats?email=${EMAIL}`);
+        const data = await response.json();
+
+        // Update main cards
+        document.getElementById('totalChallenges').textContent = data.total_challenges;
+        document.getElementById('successRate').textContent = data.success_rate.toFixed(1) + '%';
+        document.getElementById('currentStreak').textContent = data.current_streak;
+        document.getElementById('bestStreak').textContent = `Best: ${data.best_streak} days`;
+
+        // Animate values
+        animateCountUp('totalChallenges', parseInt(document.getElementById('totalChallenges').textContent));
+        animateCountUp('successRate', data.success_rate.toFixed(1), true);
+
+      } catch (error) {
+        console.error('Error loading progress stats:', error);
+      }
+    }
+
+    async function loadChallengeHistory() {
+      try {
+        const days = currentDaysFilter;
+        const response = await fetch(`/api/user/challenge-history?email=${EMAIL}&days=${days}`);
+        const data = await response.json();
+
+      } catch (error) {
+        console.error('Error loading challenge history:', error);
+      }
+    }
+
+    async function loadPerformanceMetrics() {
+      try {
+        const response = await fetch(`/api/user/performance-metrics?email=${EMAIL}`);
+        const data = await response.json();
+
+        // Update category performance and charts
+        updateCategoryPerformance(data);
+        
+        // Fetch profile data for learning progress charts
+        const profileResponse = await fetch(`/api/user/profile?email=${EMAIL}`);
+        const profileData = await profileResponse.json();
+        if (profileData.success && profileData.user) {
+          updateLearningProgressCharts(profileData.user);
+        }
+
+      } catch (error) {
+        console.error('Error loading performance metrics:', error);
+      }
+    }
+
+    async function loadStreakInfo() {
+      try {
+        const response = await fetch(`/api/user/streak-info?email=${EMAIL}`);
+        const data = await response.json();
+
+        document.getElementById('currentStreak').textContent = data.current_streak;
+        document.getElementById('bestStreak').textContent = `Best: ${data.best_streak} days`;
+
+      } catch (error) {
+        console.error('Error loading streak info:', error);
+      }
+    }
+
+    async function loadMilestones() {
+      try {
+        const response = await fetch(`/api/user/milestones?email=${EMAIL}`);
+        const data = await response.json();
+
+        displayMilestones(data);
+        displayNextGoals(data);
+
+      } catch (error) {
+        console.error('Error loading milestones:', error);
+      }
+    }
+
+    // ========== CHART UPDATES ==========
+    function updateLearningProgressCharts(data) {
+      // Get progress data from user stats
+      const progressData = [
+        { name: 'Tutorials', count: data.tutorials_completed || 0, max: 50 },
+        { name: 'Challenges', count: data.challenges_solved || 0, max: 20 },
+        { name: 'Quizzes', count: data.quizzes_completed || 0, max: 10 }
+      ];
+
+      // Calculate percentages
+      const percentages = progressData.map(item => {
+        return Math.min((item.count / item.max) * 100, 100);
+      });
+
+      // Update bar chart
+      updateBarChart(percentages);
+      // Update pie chart
+      updatePieChart(progressData);
+    }
+
+    function updateBarChart(percentages) {
+      const ctx = document.getElementById('learningProgressChart');
+      if (!ctx) return;
+      const chartCtx = ctx.getContext('2d');
+
+      if (learningProgressChart) {
+        learningProgressChart.data.datasets[0].data = percentages;
+        learningProgressChart.update('active');
+      } else {
+        learningProgressChart = new Chart(chartCtx, {
+          type: 'bar',
+          data: {
+            labels: ['Tutorials', 'Challenges', 'Quizzes'],
+            datasets: [{
+              label: 'Progress (%)',
+              data: percentages,
+              backgroundColor: [
+                'rgba(76, 175, 80, 0.8)',
+                'rgba(33, 150, 243, 0.8)',
+                'rgba(255, 193, 7, 0.8)'
+              ],
+              borderColor: [
+                'rgba(76, 175, 80, 1)',
+                'rgba(33, 150, 243, 1)',
+                'rgba(255, 193, 7, 1)'
+              ],
+              borderWidth: 2,
+              borderRadius: 8
+            }]
+          },
+          options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: true,
+            animation: { duration: 750 },
+            plugins: {
+              legend: {
+                display: true,
+                labels: {
+                  color: '#00d9ff',
+                  font: { size: 12, weight: 'bold' }
+                }
+              }
+            },
+            scales: {
+              x: {
+                beginAtZero: true,
+                max: 100,
+                ticks: {
+                  color: '#00d9ff',
+                  font: { size: 11 },
+                  callback: function(value) {
+                    return value + '%';
+                  }
+                },
+                grid: { color: 'rgba(0, 217, 255, 0.1)' }
+              },
+              y: {
+                ticks: {
+                  color: '#00d9ff',
+                  font: { size: 12, weight: 'bold' }
+                },
+                grid: { display: false }
+              }
+            }
+          }
+        });
+      }
+    }
+
+    function updatePieChart(progressData) {
+      const ctx = document.getElementById('progressDistributionChart');
+      if (!ctx) return;
+      const chartCtx = ctx.getContext('2d');
+
+      const labels = progressData.map(item => item.name);
+      const data = progressData.map(item => Math.min((item.count / item.max) * 100, 100));
+      const colors = ['rgba(76, 175, 80, 0.8)', 'rgba(33, 150, 243, 0.8)', 'rgba(255, 193, 7, 0.8)'];
+
+      if (progressDistributionChart) {
+        progressDistributionChart.data.labels = labels;
+        progressDistributionChart.data.datasets[0].data = data;
+        progressDistributionChart.update('active');
+      } else {
+        progressDistributionChart = new Chart(chartCtx, {
+          type: 'doughnut',
+          data: {
+            labels: labels,
+            datasets: [{
+              data: data,
+              backgroundColor: colors,
+              borderColor: '#0a1010',
+              borderWidth: 2
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            animation: { duration: 750 },
+            plugins: {
+              legend: {
+                labels: {
+                  color: '#9ff',
+                  font: { size: 12, weight: 'bold' }
+                }
+              }
+            }
+          }
+        });
+      }
+    }
+
+    function updateCategoryPerformance(data) {
+      const html = Object.entries(data.solve_times).map(([cat, stats]) => `
+        <div class="compare-item">
+          <span class="compare-label">${cat}</span>
+          <span class="compare-value">${stats.total_solved} solved</span>
+        </div>
+      `).join('');
+      document.getElementById('categoryPerformance').innerHTML = html;
+    }
+
+    // ========== MILESTONES & GOALS ==========
+    function displayMilestones(data) {
+      const html = data.challenge_milestones.map(milestone => `
+        <div class="milestone-item ${milestone.completed ? 'completed' : ''}">
+          <div class="milestone-checkbox">
+            ${milestone.completed ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"></polyline></svg>' : ''}
+          </div>
+          <div class="milestone-info">
+            <div class="milestone-title">${milestone.goal}</div>
+            <div class="milestone-progress">
+              <div class="milestone-progress-bar" style="width: ${(milestone.progress / milestone.threshold) * 100}%"></div>
+            </div>
+            <div style="font-size: 12px; color: #8ff; margin-top: 4px;">${milestone.progress}/${milestone.threshold}</div>
+          </div>
+        </div>
+      `).join('');
+      
+      document.getElementById('milestonesContainer').innerHTML = html;
+    }
+
+    function displayNextGoals(data) {
+      const incompleteGoals = data.challenge_milestones.filter(m => !m.completed).slice(0, 3);
+      const html = incompleteGoals.map(goal => `
+        <div class="compare-item">
+          <span class="compare-label">🎯 ${goal.goal}</span>
+          <span class="compare-value">${goal.progress}/${goal.threshold}</span>
+        </div>
+      `).join('');
+      
+      document.getElementById('nextGoals').innerHTML = html || '<div class="compare-item"><span class="compare-label">🎉 All milestones achieved!</span></div>';
+    }
+
+    // ========== ANIMATIONS ==========
+    function animateCountUp(elementId, targetValue, isFloat = false) {
+      const elem = document.getElementById(elementId);
+      const duration = 1000;
+      const startTime = Date.now();
+      const startValue = 0;
+
+      const animate = () => {
+        const elapsed = Date.now() - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const current = startValue + (targetValue - startValue) * progress;
+        
+        elem.textContent = isFloat ? current.toFixed(1) : Math.floor(current);
+        
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        }
+      };
+
+      animate();
+    }
+
+    // ========== EXPORT FUNCTION ==========
+    function exportProgressData() {
+      const stats = {
+        username: '{{USERNAME}}',
+        level: '{{LEVEL}}',
+        totalXP: '{{XP}}',
+        exportDate: new Date().toLocaleDateString(),
+        successRate: document.getElementById('successRate').textContent,
+        currentStreak: document.getElementById('currentStreak').textContent,
+        globalRank: document.getElementById('globalRank').textContent
+      };
+
+      const dataStr = JSON.stringify(stats, null, 2);
+      const dataBlob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(dataBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `progress_${new Date().toISOString().split('T')[0]}.json`;
+      link.click();
+
+      // Show success message
+      showAchievementPopup('✓ Progress exported successfully!');
+    }
+
+    function showAchievementPopup(message) {
+      const popup = document.createElement('div');
+      popup.className = 'achievement-popup';
+      popup.textContent = message;
+      document.body.appendChild(popup);
+
+      setTimeout(() => {
+        popup.style.animation = 'slideUp 0.5s ease-in reverse forwards';
+        setTimeout(() => popup.remove(), 500);
+      }, 3000);
+    }
+  </script>
+
+  <script src="/static/js/user_notifications.js"></script>
+</body>
+
+</html>

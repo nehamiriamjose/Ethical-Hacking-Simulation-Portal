@@ -1,0 +1,1379 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Challenges</title>
+    <link rel="stylesheet" href="/static/css/base.css">
+    <link rel="stylesheet" href="/static/css/dashboard.css">
+    <link rel="stylesheet" href="/static/css/admin_dashboard.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* Loading Overlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(5, 7, 11, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        .loading-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(0, 234, 255, 0.2);
+            border-top-color: #00eaff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed !important;
+            bottom: 20px !important;
+            right: 20px !important;
+            padding: 16px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            color: #fff;
+            z-index: 9999;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .toast.success {
+            background: #10b981;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+
+        .toast.error {
+            background: #ef4444;
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        }
+
+        .toast.hide {
+            animation: slideOut 0.3s ease-out forwards;
+        }
+
+        @keyframes slideOut {
+            to {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+        }
+
+        /* Challenge Layout */
+        .challenge-layout {
+            display: grid;
+            grid-template-columns: 1fr;
+            padding-right: 24px;
+        }
+
+        /* Challenge Creator Panel */
+        .challenge-creator {
+            background: #0b0f14;
+            border-radius: 12px;
+            padding: 18px;
+            width: calc(100vw - 280px);
+            max-width: 100%;
+        }
+
+        .create-hero-btn {
+            width: 100%;
+            padding: 14px;
+            font-size: 15px;
+            font-weight: bold;
+            border-radius: 10px;
+            border: none;
+            background: #14f1b2;
+            color: #000;
+            cursor: pointer;
+            margin-bottom: 0px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            height: 52px;
+        }
+
+        .create-hero-btn:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(20, 241, 178, 0.3);
+        }
+
+        .create-hero-btn:active {
+            transform: translateY(0);
+        }
+
+        .header-buttons-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 22px;
+        }
+
+        .header-buttons-group button {
+            padding: 14px;
+            font-size: 15px;
+            font-weight: bold;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            height: 52px;
+        }
+
+        .docker-info-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .docker-info-btn:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .docker-info-btn:active {
+            transform: translateY(0);
+        }
+
+        .docker-modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            z-index: 1001;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .docker-modal-overlay.active {
+            display: flex;
+        }
+
+        .docker-modal {
+            background: #0b0f14;
+            border-radius: 15px;
+            border: 1px solid #14f1b2;
+            box-shadow: 0 10px 40px rgba(20, 241, 178, 0.1);
+            width: 90vw;
+            max-width: 900px;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            animation: slideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .docker-modal-header {
+            padding: 25px;
+            border-bottom: 1px solid #14f1b2;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .docker-modal-header h2 {
+            color: #14f1b2;
+            font-size: 24px;
+            margin: 0;
+        }
+
+        .docker-modal-close {
+            background: none;
+            border: none;
+            color: #14f1b2;
+            font-size: 32px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .docker-modal-close:hover {
+            transform: scale(1.2);
+        }
+
+        .docker-modal-content {
+            padding: 25px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .docker-images-table {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .table-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .docker-image-card {
+            background: linear-gradient(135deg, #1a1f2e 0%, #2a2f3e 100%);
+            border: 1px solid #14f1b2;
+            border-radius: 10px;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .docker-image-card:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 20px rgba(20, 241, 178, 0.2);
+        }
+
+        .docker-image-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+            color: #14f1b2;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .docker-challenge-name {
+            color: #fff;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .docker-image-name {
+            color: #888;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            word-break: break-all;
+            margin-bottom: 12px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 6px;
+            border-left: 3px solid #667eea;
+        }
+
+        .docker-flag-label {
+            color: #888;
+            font-size: 13px;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+            margin-top: 12px;
+        }
+
+        .docker-flag-value {
+            color: #14f1b2;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            word-break: break-all;
+            padding: 12px;
+            background: rgba(20, 241, 178, 0.1);
+            border-radius: 6px;
+            border-left: 3px solid #14f1b2;
+        }
+
+        .docker-no-data {
+            color: #888;
+            text-align: center;
+            padding: 40px;
+            font-style: italic;
+        }
+
+        .create-form-container {
+            background: #0b0f14;
+            border-radius: 12px;
+            padding: 20px;
+            max-height: 0;
+            overflow: hidden;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+            margin-bottom: 22px;
+        }
+
+        .create-form-container.visible {
+            max-height: 1200px;
+            opacity: 1;
+            transform: translateY(0);
+            margin-bottom: 22px;
+        }
+
+        .form-group {
+            margin-bottom: 14px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #14f1b2;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            background: #121821;
+            border: 1px solid #1f2937;
+            border-radius: 8px;
+            color: #fff;
+            font-family: inherit;
+            font-size: 14px;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #14f1b2;
+            box-shadow: 0 0 8px rgba(20, 241, 178, 0.2);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 12px;
+        }
+
+        .form-row .form-group {
+            margin-bottom: 0;
+        }
+
+        .form-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .save-btn,
+        .cancel-btn {
+            flex: 1;
+            padding: 12px 18px;
+            border-radius: 10px;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 15px;
+        }
+
+        .save-btn {
+            background: #14f1b2;
+            color: #000;
+        }
+
+        .save-btn:hover {
+            opacity: 0.9;
+        }
+
+        .cancel-btn {
+            background: #1f2937;
+            color: #9ca3af;
+        }
+
+        .cancel-btn:hover {
+            background: #374151;
+        }
+
+        /* Challenge List */
+        .challenge-list-container {
+            background: #0b0f14;
+            border-radius: 12px;
+            padding: 20px;
+            width: calc(100vw - 280px);
+            max-width: 100%;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+            pointer-events: none;
+            display: none;
+        }
+
+        .challenge-list-container.visible {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+            display: block;
+        }
+
+        .challenge-list-container h2 {
+            color: #14f1b2;
+            margin-bottom: 20px;
+            font-size: 18px;
+        }
+
+        #challengeList {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 24px;
+            width: 100%;
+        }
+
+        .challenge-card {
+            background: linear-gradient(135deg, rgba(20, 241, 178, 0.05) 0%, rgba(10, 15, 20, 0.9) 100%);
+            border: 1px solid rgba(20, 241, 178, 0.2);
+            border-radius: 16px;
+            padding: 28px;
+            box-shadow:
+                0 8px 32px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(20, 241, 178, 0.1);
+            animation: slideInUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+            opacity: 0;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .challenge-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(20, 241, 178, 0.5), transparent);
+        }
+
+        .challenge-card:hover {
+            transform: translateY(-8px);
+            border-color: rgba(20, 241, 178, 0.4);
+            box-shadow:
+                0 16px 48px rgba(20, 241, 178, 0.15),
+                inset 0 1px 0 rgba(20, 241, 178, 0.2);
+            background: linear-gradient(135deg, rgba(20, 241, 178, 0.1) 0%, rgba(10, 15, 20, 0.95) 100%);
+        }
+
+        .challenge-card:nth-child(1) {
+            animation-delay: 0.1s;
+        }
+
+        .challenge-card:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .challenge-card:nth-child(3) {
+            animation-delay: 0.3s;
+        }
+
+        .challenge-card:nth-child(4) {
+            animation-delay: 0.4s;
+        }
+
+        .challenge-card:nth-child(5) {
+            animation-delay: 0.5s;
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .challenge-card h3 {
+            margin: 0 0 12px;
+            color: #14f1b2;
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .challenge-meta {
+            margin: 6px 0;
+            color: #a0aac0;
+            font-size: 12px;
+            font-weight: 500;
+            letter-spacing: 0.3px;
+        }
+
+        .challenge-description {
+            color: #cbd5e1;
+            font-size: 13px;
+            margin-top: 14px;
+            line-height: 1.5;
+            min-height: 36px;
+        }
+
+        .challenge-actions {
+            margin-top: 18px;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            width: 100%;
+        }
+
+        .challenge-actions button {
+            padding: 10px 8px;
+            border-radius: 8px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            white-space: nowrap;
+            text-align: center;
+        }
+
+        .edit-btn {
+            background: linear-gradient(135deg, rgba(100, 116, 139, 0.2), rgba(100, 116, 139, 0.05));
+            color: #cbd5e1;
+            border: 1px solid rgba(100, 116, 139, 0.3);
+        }
+
+        .edit-btn:hover {
+            background: linear-gradient(135deg, rgba(100, 116, 139, 0.3), rgba(100, 116, 139, 0.1));
+            border-color: rgba(100, 116, 139, 0.5);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(100, 116, 139, 0.15);
+        }
+
+        .publish-btn {
+            background: linear-gradient(135deg, rgba(20, 241, 178, 0.2), rgba(20, 241, 178, 0.05));
+            color: #14f1b2;
+            border: 1px solid rgba(20, 241, 178, 0.3);
+        }
+
+        .publish-btn:hover {
+            background: linear-gradient(135deg, rgba(20, 241, 178, 0.3), rgba(20, 241, 178, 0.1));
+            border-color: rgba(20, 241, 178, 0.5);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(20, 241, 178, 0.2);
+        }
+
+        .unpublish-btn {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(239, 68, 68, 0.05));
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .unpublish-btn:hover {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.3), rgba(239, 68, 68, 0.1));
+            border-color: rgba(239, 68, 68, 0.5);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+        }
+
+        .delete-btn {
+            background: linear-gradient(135deg, rgba(220, 38, 38, 0.2), rgba(220, 38, 38, 0.05));
+            color: #dc2626;
+            border: 1px solid rgba(220, 38, 38, 0.3);
+        }
+
+        .delete-btn:hover {
+            background: linear-gradient(135deg, rgba(220, 38, 38, 0.35), rgba(220, 38, 38, 0.15));
+            border-color: rgba(220, 38, 38, 0.6);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25);
+        }
+
+        /* Delete Confirmation Modal */
+        .delete-modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            z-index: 5000;
+            animation: fadeIn 0.2s ease-out;
+        }
+
+        .delete-modal-overlay.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .delete-modal {
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.95) 100%);
+            border: 1px solid rgba(220, 38, 38, 0.3);
+            border-radius: 16px;
+            padding: 32px;
+            max-width: 420px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(220, 38, 38, 0.1);
+            animation: slideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .delete-modal-icon {
+            width: 60px;
+            height: 60px;
+            background: rgba(220, 38, 38, 0.2);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+
+        .delete-modal h3 {
+            color: #f1f5f9;
+            font-size: 20px;
+            font-weight: 700;
+            margin: 0 0 12px;
+        }
+
+        .delete-modal p {
+            color: #cbd5e1;
+            font-size: 14px;
+            line-height: 1.6;
+            margin: 0 0 24px;
+        }
+
+        .delete-modal-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .modal-cancel-btn {
+            background: rgba(100, 116, 139, 0.2);
+            color: #cbd5e1;
+            border: 1px solid rgba(100, 116, 139, 0.3);
+        }
+
+        .modal-cancel-btn:hover {
+            background: rgba(100, 116, 139, 0.3);
+            border-color: rgba(100, 116, 139, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .modal-delete-btn {
+            background: linear-gradient(135deg, rgba(220, 38, 38, 0.4), rgba(220, 38, 38, 0.2));
+            color: #ef5350;
+            border: 1px solid rgba(220, 38, 38, 0.5);
+        }
+
+        .modal-delete-btn:hover {
+            background: linear-gradient(135deg, rgba(220, 38, 38, 0.5), rgba(220, 38, 38, 0.3));
+            border-color: rgba(220, 38, 38, 0.7);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(220, 38, 38, 0.3);
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #9ca3af;
+            padding: 40px 20px;
+        }
+    </style>
+</head>
+
+<body class="dashboard-body">
+
+    <!-- LOADING OVERLAY -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="brand">
+            <span class="shield">
+                <i data-lucide="shield"></i>
+            </span>
+            <div>
+                <h2>Hacker Portal</h2>
+                <p>Learn & Conquer</p>
+            </div>
+        </div>
+
+        <nav class="menu">
+            <a href="/admin/dashboard"><i data-lucide="layout-grid"></i> Dashboard</a>
+            <a href="/admin/users"><i data-lucide="users"></i> User Management</a>
+            <a href="/admin/challenges" class="active"><i data-lucide="target"></i> Challenges</a>
+            <a href="/admin/tutorials"><i data-lucide="book-open"></i> Tutorials</a>
+            <a href="/admin/quizzes"><i data-lucide="help-circle"></i> Quizzes</a>
+            <a href="/admin/leaderboard"><i data-lucide="trophy"></i> Leaderboard</a>
+            <a href="/admin/sandbox"><i data-lucide="cpu"></i> Sandbox Monitor</a>
+            <a href="/admin/notifications"><i data-lucide="bell"></i> Notifications</a>
+            <a href="/admin/analytics"><i data-lucide="bar-chart-2"></i> Analytics</a>
+        </nav>
+
+        <a class="logout" href="/">
+            <i data-lucide="log-out"></i> Logout
+        </a>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="dashboard-main">
+        <header class="topbar">
+            <h2>Challenge Management</h2>
+        </header>
+
+        <div class="challenge-layout">
+            <div class="challenge-creator">
+                <div class="header-buttons-group">
+                    <button class="create-hero-btn" id="createBtn" onclick="toggleCreateForm()">
+                        <i data-lucide="plus-circle" style="width: 18px; height: 18px;"></i>
+                        Create Challenge
+                    </button>
+                    <button class="docker-info-btn" onclick="showDockerModal()">
+                        <i data-lucide="container" style="width: 18px; height: 18px;"></i>
+                        Docker Images & Flags
+                    </button>
+                </div>
+
+                <div class="create-form-container" id="createForm">
+                    <h2 id="formHeader" style="color: #14f1b2; margin-bottom: 15px; font-size: 16px;">New Challenge
+                        Details</h2>
+                    <input type="hidden" id="chId">
+
+                    <div class="form-group">
+                        <label>Title</label>
+                        <input type="text" id="chTitle" placeholder="e.g. SQL Injection Basics">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Category</label>
+                            <select id="chCategory">
+                                <option value="Web">Web Exploitation</option>
+                                <option value="Crypto">Cryptography</option>
+                                <option value="Forensics">Forensics</option>
+                                <option value="Reverse">Reverse Engineering</option>
+                                <option value="Pwn">Binary Exploitation</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Difficulty</label>
+                            <select id="chDifficulty">
+                                <option value="Easy">Easy</option>
+                                <option value="Medium">Medium</option>
+                                <option value="Hard">Hard</option>
+                                <option value="Insane">Insane</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Points</label>
+                            <input type="number" id="chPoints" value="100">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Description (Markdown supported)</label>
+                        <textarea id="chDescription" placeholder="Describe the challenge..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Flag</label>
+                        <input type="text" id="chFlag" placeholder="CTF{...}">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Docker Image *</label>
+                        <select id="chDockerImage" required>
+                            <option value="">⏳ Loading Docker images...</option>
+                        </select>
+                    </div>
+
+                    <div class="form-buttons">
+                        <button class="save-btn" id="saveBtnText" onclick="saveChallenge()">Save Challenge</button>
+                        <button class="cancel-btn" onclick="toggleCreateForm()">Cancel</button>
+                    </div>
+                </div>
+
+                <!-- Challenges List (appears after first creation) -->
+                <div class="challenge-list-container">
+                    <h2>Saved Challenges</h2>
+                    <div id="challengeList" class="empty-state">Loading challenges...</div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="delete-modal-overlay">
+        <div class="delete-modal">
+            <div class="delete-modal-icon">🗑️</div>
+            <h3>Delete Challenge?</h3>
+            <p>Are you sure you want to delete this challenge? This action cannot be undone and all associated data will
+                be permanently removed.</p>
+            <div class="delete-modal-actions">
+                <button class="modal-btn modal-cancel-btn" onclick="closeDeleteModal()">Cancel</button>
+                <button class="modal-btn modal-delete-btn" onclick="confirmDelete()">Delete Challenge</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Docker Images Modal -->
+    <div id="dockerModal" class="docker-modal-overlay">
+        <div class="docker-modal">
+            <div class="docker-modal-header">
+                <h2>Docker Images & Flags</h2>
+                <button class="docker-modal-close" onclick="closeDockerModal()">&times;</button>
+            </div>
+            <div class="docker-modal-content">
+                <div class="docker-images-table">
+                    <div class="table-container" id="dockerTableContainer">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        // Show toast notification
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.add('hide');
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        }
+
+        // Toggle create form
+        function toggleCreateForm(shouldClear = true) {
+            const form = document.getElementById('createForm');
+            form.classList.toggle('visible');
+
+            if (shouldClear && form.classList.contains('visible')) {
+                clearForm();
+            }
+        }
+
+        // Load available Docker images
+        async function loadDockerImages() {
+            try {
+                const res = await fetch("/admin/docker-images");
+                const data = await res.json();
+
+                const select = document.getElementById('chDockerImage');
+                select.innerHTML = "";  // Clear loading option
+
+                if (data.success && data.images.length > 0) {
+                    data.images.forEach(image => {
+                        const option = document.createElement('option');
+                        option.value = image.image;
+                        option.textContent = image.image;
+                        select.appendChild(option);
+                    });
+                } else {
+                    const option = document.createElement('option');
+                    option.value = "";
+                    option.textContent = "❌ No Docker images available. Build one first!";
+                    select.appendChild(option);
+                    select.disabled = true;
+                }
+            } catch (err) {
+                console.error("Error loading Docker images:", err);
+                const select = document.getElementById('chDockerImage');
+                select.innerHTML = '<option value="">❌ Error loading Docker images</option>';
+            }
+        }
+
+        // Clear form
+        function clearForm() {
+            document.getElementById('chId').value = '';
+            document.getElementById('chTitle').value = '';
+            document.getElementById('chCategory').value = 'Web';
+            document.getElementById('chDifficulty').value = 'Easy';
+            document.getElementById('chPoints').value = '100';
+            document.getElementById('chDescription').value = '';
+            document.getElementById('chFlag').value = '';
+            document.getElementById('chDockerImage').value = '';
+            document.getElementById('formHeader').textContent = 'New Challenge Details';
+            document.getElementById('saveBtnText').textContent = 'Save Challenge';
+        }
+
+        // Save challenge
+        async function saveChallenge() {
+            const id = document.getElementById('chId').value;
+            const title = document.getElementById('chTitle').value.trim();
+            const category = document.getElementById('chCategory').value;
+            const difficulty = document.getElementById('chDifficulty').value;
+            const points = Number(document.getElementById('chPoints').value) || 0;
+            const description = document.getElementById('chDescription').value.trim();
+            const flag = document.getElementById('chFlag').value.trim();
+            const docker_image = document.getElementById('chDockerImage').value.trim();
+
+            if (!title || !description || !flag) {
+                showToast("❌ Please fill in Title, Description, and Flag", "error");
+                return;
+            }
+
+            if (!docker_image) {
+                showToast("❌ Please select a Docker image", "error");
+                return;
+            }
+
+            const payload = {
+                title,
+                category,
+                difficulty,
+                points,
+                description,
+                flag,
+                docker_image
+            };
+
+            try {
+                let endpoint = "/admin/challenges/create";
+                let successMsg = "✅ Challenge Saved Successfully!";
+
+                if (id) {
+                    endpoint = `/admin/challenges/${id}/update`;
+                    successMsg = "✅ Challenge Updated Successfully!";
+                }
+
+                const res = await fetch(endpoint, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await res.json();
+
+                if (data.success) {
+                    showToast(successMsg, "success");
+                    toggleCreateForm();
+                    loadChallenges();
+                } else {
+                    showToast("❌ Error: " + (data.error || "Failed to save challenge"), "error");
+                }
+            } catch (err) {
+                console.error("Save error:", err);
+                showToast("❌ Error saving challenge: " + err.message, "error");
+            }
+        }
+
+        // Edit challenge
+        async function editChallenge(challengeId) {
+            try {
+                console.log(`[DEBUG] Fetching challenge ${challengeId}...`);
+                const url = `/admin/api/challenges/${challengeId}`;
+                console.log(`[DEBUG] Calling URL: ${url}`);
+
+                const res = await fetch(url);
+                console.log(`[DEBUG] Response status: ${res.status}`);
+
+                const data = await res.json();
+                console.log(`[DEBUG] Response data:`, data);
+
+                // Check if we got a successful response
+                if (!data.id) {
+                    showToast("❌ Challenge not found or error loading: " + (data.error || "Unknown error"), "error");
+                    console.error("[ERROR] No challenge ID in response");
+                    return;
+                }
+
+                // Populate form with challenge data
+                console.log(`[DEBUG] Populating form with challenge data...`);
+                document.getElementById('chId').value = data.id;
+                document.getElementById('chTitle').value = data.title || '';
+                document.getElementById('chCategory').value = data.category || 'Web';
+                document.getElementById('chDifficulty').value = data.difficulty || 'Easy';
+                document.getElementById('chPoints').value = data.points || 100;
+                document.getElementById('chDescription').value = data.description || '';
+                document.getElementById('chFlag').value = data.flag || '';
+                document.getElementById('chDockerImage').value = data.docker_image || '';
+
+                // Update form header and button
+                document.getElementById('formHeader').textContent = `Edit Challenge: ${data.title}`;
+                document.getElementById('saveBtnText').textContent = 'Update Challenge';
+
+                console.log(`[DEBUG] Form populated successfully with challenge: ${data.title}`);
+                console.log(`[DEBUG] Showing form...`);
+
+                // Show the form WITHOUT clearing it (pass false to toggleCreateForm)
+                const form = document.getElementById('createForm');
+                form.classList.add('visible');
+                console.log(`[DEBUG] Form should now be visible`);
+            } catch (err) {
+                console.error("[ERROR] Edit error:", err);
+                showToast("❌ Error loading challenge: " + err.message, "error");
+            }
+        }
+
+        // Publish challenge
+        async function publishChallenge(challengeId) {
+            try {
+                const res = await fetch(`/admin/challenges/${challengeId}/publish`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" }
+                });
+
+                const data = await res.json();
+
+                if (data.success) {
+                    showToast("✅ Challenge Published Successfully!", "success");
+                    setTimeout(() => loadChallenges(), 1000);
+                } else {
+                    showToast("❌ Error: " + (data.error || "Failed to publish challenge"), "error");
+                }
+            } catch (err) {
+                console.error("Publish error:", err);
+                showToast("❌ Error publishing challenge: " + err.message, "error");
+            }
+        }
+
+        // Unpublish challenge
+        async function unpublishChallenge(challengeId) {
+            try {
+                const res = await fetch(`/admin/challenges/${challengeId}/unpublish`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" }
+                });
+
+                const data = await res.json();
+
+                if (data.success) {
+                    showToast("✅ Challenge Unpublished Successfully!", "success");
+                    setTimeout(() => loadChallenges(), 1000);
+                } else {
+                    showToast("❌ Error: " + (data.error || "Failed to unpublish challenge"), "error");
+                }
+            } catch (err) {
+                console.error("Unpublish error:", err);
+                showToast("❌ Error unpublishing challenge: " + err.message, "error");
+            }
+        }
+
+        // Store challenge ID for deletion
+        let challengeToDelete = null;
+
+        // Delete challenge - show modal instead of confirm
+        function deleteChallenge(challengeId) {
+            console.log(`[DEBUG] deleteChallenge called with ID: ${challengeId}`);
+            challengeToDelete = challengeId;
+            console.log(`[DEBUG] challengeToDelete set to: ${challengeToDelete}`);
+            const modal = document.getElementById('deleteModal');
+            modal.classList.add('active');
+            console.log(`[DEBUG] Modal should now be visible`);
+        }
+
+        // Close delete modal
+        function closeDeleteModal() {
+            console.log(`[DEBUG] closeDeleteModal called`);
+            const modal = document.getElementById('deleteModal');
+            modal.classList.remove('active');
+            challengeToDelete = null;
+            console.log(`[DEBUG] Modal closed, challengeToDelete reset`);
+        }
+
+        // Confirm and execute delete
+        async function confirmDelete() {
+            console.log(`[DEBUG] confirmDelete called with challengeToDelete: ${challengeToDelete}`);
+
+            if (!challengeToDelete) {
+                console.error("[ERROR] challengeToDelete is null or undefined!");
+                showToast("❌ Error: No challenge selected for deletion", "error");
+                return;
+            }
+
+            try {
+                const url = `/admin/challenges/${challengeToDelete}/delete`;
+                console.log(`[DEBUG] Calling API: ${url}`);
+
+                const res = await fetch(url, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" }
+                });
+
+                console.log(`[DEBUG] Response status: ${res.status}`);
+                const data = await res.json();
+                console.log(`[DEBUG] Response data:`, data);
+
+                closeDeleteModal();
+
+                if (data.success) {
+                    console.log(`[DEBUG] Challenge deleted successfully`);
+                    showToast("✅ Challenge Deleted Successfully!", "success");
+                    setTimeout(() => loadChallenges(), 1000);
+                } else {
+                    console.error(`[ERROR] Delete failed: ${data.error}`);
+                    showToast("❌ Error: " + (data.error || "Failed to delete challenge"), "error");
+                }
+            } catch (err) {
+                console.error("[ERROR] Delete error:", err);
+                closeDeleteModal();
+                showToast("❌ Error deleting challenge: " + err.message, "error");
+            }
+        }
+
+        // Close modal when clicking outside
+        document.addEventListener('click', function (e) {
+            const modal = document.getElementById('deleteModal');
+            if (e.target === modal) {
+                console.log(`[DEBUG] Clicked outside modal, closing it`);
+                closeDeleteModal();
+            }
+        });
+
+        // Docker Images Modal Functions
+        async function showDockerModal() {
+            console.log('[DEBUG] showDockerModal called');
+            const modal = document.getElementById('dockerModal');
+            modal.classList.add('active');
+
+            // Fetch and display docker images and flags
+            await populateDockerImagesTable();
+        }
+
+        function closeDockerModal() {
+            console.log('[DEBUG] closeDockerModal called');
+            const modal = document.getElementById('dockerModal');
+            modal.classList.remove('active');
+        }
+
+        async function populateDockerImagesTable() {
+            const container = document.getElementById('dockerTableContainer');
+
+            // Removed hardcoded flagMapping - now using data from backend
+
+            try {
+                console.log('[DEBUG] Fetching docker images from /admin/docker-images');
+                const res = await fetch('/admin/docker-images');
+                const data = await res.json();
+
+                console.log('[DEBUG] Docker images response:', data);
+
+                if (!data.success || !Array.isArray(data.images) || data.images.length === 0) {
+                    container.innerHTML = '<div class="docker-no-data">No docker images available</div>';
+                    return;
+                }
+
+                // Create HTML for each docker image
+                const html = data.images.map(image => {
+                    const flag = image.flag || 'No flag available';
+                    const imageName = image.image;
+                    return `
+                    <div class="docker-image-card">
+                        <div class="docker-challenge-name">
+                            <span>Docker Image</span>
+                        </div>
+                        <div class="docker-image-header">
+                            🐳 Image Name
+                        </div>
+                        <div class="docker-image-name">${imageName}</div>
+                        <div class="docker-flag-header" style="margin-top: 15px; font-weight: bold; color: #00ff88;">
+                            🚩 Flag Name
+                        </div>
+                        <div class="docker-flag-name" style="color: #ffff00; font-family: monospace; word-break: break-all; padding: 8px; background: rgba(0,0,0,0.3); border-radius: 4px; margin-top: 5px;">${flag}</div>
+                    </div>
+                `}).join('');
+
+                container.innerHTML = html;
+            } catch (err) {
+                console.error('[ERROR] Failed to fetch docker images:', err);
+                container.innerHTML = '<div class="docker-no-data">Error loading docker images. Make sure Docker Desktop is running.</div>';
+            }
+        }
+
+        // Close docker modal when clicking outside
+        document.getElementById('dockerModal')?.addEventListener('click', function (e) {
+            if (e.target === this) {
+                console.log('[DEBUG] Clicked outside docker modal, closing it');
+                closeDockerModal();
+            }
+        });
+
+        // Load challenges
+        async function loadChallenges() {
+            const container = document.getElementById('challengeList');
+            const listContainer = document.querySelector('.challenge-list-container');
+
+            try {
+                // Add cache-busting query parameter to ensure fresh data
+                const res = await fetch("/admin/api/challenges?t=" + Date.now());
+                const challenges = await res.json();
+
+                container.innerHTML = "";
+
+                if (!challenges || challenges.length === 0) {
+                    listContainer.classList.remove('visible');
+                    return;
+                }
+
+                // Show the challenges container with animation
+                listContainer.classList.add('visible');
+
+                challenges.forEach(c => {
+                    const isPublished = c.is_published === 1;
+                    const statusBadge = isPublished ? '🟢 Published' : '⚪ Draft';
+
+                    container.innerHTML += `
+                        <div class="challenge-card">
+                            <h3>${c.title}</h3>
+                            <p class="challenge-meta">
+                                ${c.category || "No category"} •
+                                ${c.difficulty || "No difficulty"} •
+                                ⭐ ${c.points || 0} pts •
+                                ${statusBadge}
+                            </p>
+                            ${c.docker_image ? `<p class="challenge-meta">🐳 ${c.docker_image}</p>` : ""}
+                            <p class="challenge-description">${c.description.substring(0, 120)}...</p>
+                            <div class="challenge-actions">
+                                <button class="edit-btn" onclick="editChallenge(${c.id})">✏️ Edit</button>
+                                <button class="publish-btn" onclick="previewChallenge(${c.id}, '${c.title}')">👁️ Preview</button>
+                                ${isPublished ?
+                            `<button class="unpublish-btn" onclick="unpublishChallenge(${c.id})">📥 Unpublish</button>` :
+                            `<button class="publish-btn" onclick="publishChallenge(${c.id})">🚀 Publish</button>`
+                        }
+                                <button class="delete-btn" onclick="deleteChallenge(${c.id})">🗑️ Delete</button>
+                            </div>
+                        </div>
+                    `;
+                });
+            } catch (err) {
+                console.error(err);
+                container.innerHTML = "<p style='color:#ff6b6b'>Failed to load challenges</p>";
+                listContainer.classList.remove('visible');
+            }
+        }
+
+        // Preview challenge (start Docker container)
+        async function previewChallenge(challengeId, challengeTitle) {
+            try {
+                showToast("🚀 Starting preview container...", "success");
+
+                const res = await fetch(`/admin/challenges/${challengeId}/preview`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({})
+                });
+
+                const data = await res.json();
+
+                if (data.success) {
+                    showToast(`✅ Challenge preview launching on ${data.access_url}...`, "success");
+                    // Store challenge ID for the preview page
+                    localStorage.setItem('previewChallengeId', challengeId);
+                    // Open the preview page
+                    setTimeout(() => {
+                        window.open(`/admin/preview?id=${challengeId}`, "_blank");
+                    }, 1500);
+                } else {
+                    const errorMsg = data.error || "Failed to launch preview";
+
+                    // Check for Docker daemon errors
+                    if (errorMsg.includes("Docker daemon")) {
+                        showToast("❌ Docker is not running! Start Docker Desktop and try again.", "error");
+                    } else if (errorMsg.includes("image") || errorMsg.includes("not found")) {
+                        showToast("❌ Docker image not found. Please build the challenge image first.", "error");
+                    } else {
+                        showToast("❌ Error: " + errorMsg, "error");
+                    }
+
+                    console.error("Preview error:", data);
+                }
+            } catch (err) {
+                console.error("Preview error:", err);
+                showToast("❌ Connection error: " + err.message, "error");
+            }
+        }
+
+        // Load challenges on page load
+        document.addEventListener("DOMContentLoaded", function () {
+            loadChallenges();
+            loadDockerImages();
+        });
+
+        // Loading animation on sidebar navigation
+        document.querySelectorAll('.sidebar a').forEach(link => {
+            link.addEventListener('click', function (e) {
+                if (this.href.includes('/admin/') && !this.href.endsWith('#')) {
+                    document.getElementById('loadingOverlay').classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

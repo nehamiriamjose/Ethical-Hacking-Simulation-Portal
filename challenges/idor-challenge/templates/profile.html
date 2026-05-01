@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ user.full_name }} | SecureCorp Identity Portal</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <div class="background-blobs">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+    </div>
+
+    <div class="app-container">
+        <!-- Sidebar Navigation (LHS) -->
+        <nav class="glass-sidebar animate-left">
+            <div class="sidebar-logo">
+                <div class="logo-box">SC</div>
+                <span>SecureCorp</span>
+            </div>
+            <div class="nav-items">
+                <div class="nav-item active">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    <span>Profile</span>
+                </div>
+                <div class="nav-item">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                    </svg>
+                    <span>Security</span>
+                </div>
+                <div class="nav-item">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <span>Preferences</span>
+                </div>
+            </div>
+            <div class="sidebar-footer">
+                <div class="node-status">
+                    <div class="status-dot"></div>
+                    <span>Node: SG-PROD-01</span>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content (Center) -->
+        <main class="main-content">
+            <!-- Simulated Browser Bar -->
+            <div class="browser-bar">
+                <div class="browser-controls">
+                    <div class="dot dot-red"></div>
+                    <div class="dot dot-yellow"></div>
+                    <div class="dot dot-green"></div>
+                </div>
+                <div class="url-input-container">
+                    <span class="url-prefix">https://secure-corp.io/profile/</span>
+                    <input type="text" id="urlInput" class="url-input" value="{{ user_id }}" placeholder="ID">
+                </div>
+            </div>
+
+            <header class="content-header">
+                <div class="breadcrumb">PORTAL / ACCESS / PERSONNEL / ID_{{ user_id }}</div>
+                <button class="intel-toggle-btn" onclick="toggleIntel()">
+                    <span class="intel-icon-small">⚡</span> Mission Intel
+                </button>
+            </header>
+
+            <div class="profile-layout animate-up">
+                <div class="glass-card profile-card">
+                    <div class="profile-hero">
+                        <div class="avatar-container">
+                            <div class="avatar-glow"></div>
+                            <div class="avatar-main">{{ user.full_name[0] }}</div>
+                        </div>
+                        <div class="hero-text">
+                            <span class="access-badge">{{ user.role }}</span>
+                            <h1>{{ user.full_name }}</h1>
+                            <p class="handle">@{{ user.username }}</p>
+                        </div>
+                    </div>
+
+                    <div class="info-grid">
+                        <div class="info-group">
+                            <label>Email Address</label>
+                            <div class="value">{{ user.email }}</div>
+                        </div>
+                        <div class="info-group">
+                            <label>Service Tenure</label>
+                            <div class="value">{{ user.joined }}</div>
+                        </div>
+                        <div class="info-group">
+                            <label>Authentication Status</label>
+                            <div class="value status-active">Verified</div>
+                        </div>
+                        <div class="info-group">
+                            <label>Last Activity</label>
+                            <div class="value">{{ user.last_login }}</div>
+                        </div>
+                    </div>
+
+                    <div class="bio-container">
+                        <label>Personnel Biography</label>
+                        <p>{{ user.bio }}</p>
+                    </div>
+
+                    <div class="token-container">
+                        <div class="token-header">
+                            <label>Infrastructure Privacy Token</label>
+                            <span class="security-level">Level 4 Encryption</span>
+                        </div>
+                        <div class="token-box">
+                            <code>{{ user.privacy_token }}</code>
+                            <button class="copy-btn">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Mission Intel Panel (RHS - Overlaid/Toggleable) -->
+        <aside id="intelPanel" class="intel-sidebar">
+            <div class="intel-card glass-card">
+                <div class="intel-header">
+                    <div class="intel-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path
+                                d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z">
+                            </path>
+                            <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                            <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                        </svg>
+                    </div>
+                    <h3>Mission Intel</h3>
+                    <button class="close-intel" onclick="toggleIntel()">&times;</button>
+                </div>
+
+                <div class="intel-body">
+                    <section class="intel-section">
+                        <h4><span class="step-num">01</span> Observation</h4>
+                        <p>Notice the URL structure: <code>/profile/{{ user_id }}</code>. The <code>user_id</code> is a
+                            direct reference to a database record. The application trustfully serves whatever ID is
+                            requested.</p>
+                    </section>
+
+                    <section class="intel-section">
+                        <h4><span class="step-num">02</span> The Objective</h4>
+                        <p>Your goal is to escalate privileges. The <strong>Infrastructure Lead</strong> likely holds
+                            the master encryption key (the flag). Use enumeration to find their profile.</p>
+                    </section>
+
+                    <section class="intel-section">
+                        <h4><span class="step-num">03</span> Tactical Execution</h4>
+                        <p>Manually modify the <code>user_id</code> in the address bar. Try changing your ID from
+                            <code>9</code> to <code>30</code> to discover hidden personnel files.
+                        </p>
+                    </section>
+
+                    <section class="intel-section">
+                        <h4><span class="step-num">04</span> Flag Acquisition</h4>
+                        <p>Once you access the Lead's profile, the system will reveal the <strong>Infrastructure Privacy
+                                Token</strong>. Submit this flag in the Admin Portal to complete the mission.</p>
+                    </section>
+
+                    <section class="intel-section">
+                        <h4><span class="step-num">05</span> Real-World Impact</h4>
+                        <p>IDOR is a top OWASP risk. It facilitates massive data exfiltration, horizontal privilege
+                            escalation, and full account takeover.</p>
+                    </section>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <!-- Success Modal -->
+    <div id="successModal" class="modal-overlay">
+        <div class="modal-content glass-card animate-scale">
+            <div class="modal-glow"></div>
+            <div class="success-header">
+                <div class="success-orb">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="3">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                </div>
+                <h2>System Compromised</h2>
+                <p>Root privileges acquired. Administrator token intercepted.</p>
+            </div>
+
+            <div class="flag-section">
+                <label>ENCRYPTED FLAG</label>
+                <div class="flag-text" id="flagText"></div>
+            </div>
+
+            <button class="action-btn" onclick="closeModal()">Secure Transmission</button>
+        </div>
+    </div>
+
+    <script>
+        const isAdmin = {{ 'true' if user.is_admin else 'false' }};
+        const privacyToken = "{{ user.privacy_token }}";
+
+        if (isAdmin && privacyToken.includes('FLAG{')) {
+            document.getElementById('flagText').innerText = privacyToken;
+            setTimeout(() => {
+                document.getElementById('successModal').style.display = 'flex';
+            }, 600);
+        }
+
+        function toggleIntel() {
+            const panel = document.getElementById('intelPanel');
+            panel.classList.toggle('active');
+        }
+
+        function closeModal() {
+            document.getElementById('successModal').classList.add('fade-out');
+            setTimeout(() => {
+                document.getElementById('successModal').style.display = 'none';
+                document.getElementById('successModal').classList.remove('fade-out');
+            }, 400);
+        }
+
+        // Simulated Browser Hook
+        document.getElementById('urlInput').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                const newId = this.value.trim();
+                if (newId) {
+                    window.location.href = '/profile/' + newId;
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>

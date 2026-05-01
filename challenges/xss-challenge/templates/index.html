@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vibe Social | Connect & Share</title>
+
+    <!-- CRITICAL: Alert Override must be at the very top -->
+    <script>
+        (function () {
+            const originalAlert = window.alert;
+            window.alert = function (msg) {
+                console.log("XSS Triggered:", msg);
+                const modal = document.getElementById('success-modal');
+                const modalMsg = document.getElementById('modal-msg');
+
+                if (modal && modalMsg) {
+                    modalMsg.innerText = "Injection Status: " + (msg || "Executed Successfully");
+                    modal.style.display = 'flex';
+
+                    if (window.confetti) {
+                        confetti({
+                            particleCount: 150,
+                            spread: 70,
+                            origin: { y: 0.6 },
+                            colors: ['#ec4899', '#8b5cf6', '#f59e0b']
+                        });
+                    }
+                } else {
+                    originalAlert(msg);
+                }
+            };
+        })();
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@700&display=swap"
+        rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: #ec4899;
+            --primary-glow: rgba(236, 72, 153, 0.4);
+            --bg: #030712;
+            --surface: #0f172a;
+            --card-glass: rgba(30, 41, 59, 0.7);
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+            --border: rgba(255, 255, 255, 0.08);
+            --accent: #f59e0b;
+            --success: #10b981;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text-main);
+            min-height: 100vh;
+            background-image: radial-gradient(circle at 100% 0%, rgba(236, 72, 153, 0.1) 0%, transparent 40%);
+            overflow-x: hidden;
+        }
+
+        nav {
+            padding: 1.25rem 4rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(3, 7, 18, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .brand {
+            font-size: 1.5rem;
+            font-weight: 800;
+            background: linear-gradient(to right, #ec4899, #8b5cf6);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .intel-btn {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            color: var(--accent);
+            padding: 0.6rem 1.4rem;
+            border-radius: 99px;
+            font-size: 0.8rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .intel-btn:hover {
+            background: rgba(245, 158, 11, 0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+        }
+
+        main {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 3rem 1.5rem;
+        }
+
+        .feed-card {
+            background: var(--card-glass);
+            backdrop-filter: blur(16px);
+            border-radius: 1.5rem;
+            border: 1px solid var(--border);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            animation: slideUp 0.6s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .profile {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #ec4899, #8b5cf6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            color: white;
+            box-shadow: 0 4px 10px var(--primary-glow);
+        }
+
+        .comment-item {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .comment-text {
+            background: rgba(255, 255, 255, 0.04);
+            padding: 1rem 1.5rem;
+            border-radius: 1.25rem;
+            flex: 1;
+            border: 1px solid rgba(255, 255, 255, 0.02);
+        }
+
+        .comment-input-wrap {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        input {
+            flex: 1;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            padding: 1rem 1.5rem;
+            color: white;
+            font-family: inherit;
+        }
+
+        .btn-send {
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 1rem;
+            width: 52px;
+            height: 52px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        /* --- SUCCESS MODAL --- */
+        #success-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(2, 6, 23, 0.95);
+            backdrop-filter: blur(40px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+        }
+
+        .modal-card {
+            background: linear-gradient(145deg, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.98));
+            border: 1px solid var(--primary);
+            border-radius: 3rem;
+            padding: 4rem 3rem;
+            max-width: 550px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 20px 100px rgba(0, 0, 0, 0.8);
+            animation: modalPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .flag-revealer {
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px dashed var(--primary);
+            padding: 2.5rem 1.5rem;
+            border-radius: 2rem;
+            margin: 2.5rem 0;
+            cursor: pointer;
+        }
+
+        .flag-text {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.6rem;
+            color: var(--primary);
+        }
+
+        /* --- INTEL PANEL (ENHANCED) --- */
+        #intel-panel {
+            position: fixed;
+            top: 0;
+            right: -550px;
+            width: 550px;
+            height: 100vh;
+            background: rgba(15, 23, 42, 0.99);
+            backdrop-filter: blur(50px);
+            border-left: 1px solid var(--border);
+            z-index: 1000;
+            padding: 3rem 2.5rem;
+            transition: 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            overflow-y: auto;
+        }
+
+        #intel-panel.open {
+            right: 0;
+        }
+
+        .intel-sec {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            border-radius: 1.5rem;
+            padding: 1.75rem;
+            margin-bottom: 2rem;
+        }
+
+        .intel-sec h3 {
+            color: var(--accent);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .intel-sec p {
+            font-size: 0.95rem;
+            line-height: 1.7;
+            color: var(--text-dim);
+            margin-bottom: 1rem;
+        }
+
+        .code-block {
+            background: #000;
+            padding: 1.25rem;
+            border-radius: 0.75rem;
+            color: #fb7185;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            margin: 1rem 0;
+            word-break: break-all;
+        }
+
+        .highlight-card {
+            background: rgba(236, 72, 153, 0.05);
+            border-left: 4px solid var(--primary);
+            padding: 1rem;
+            border-radius: 0 0.75rem 0.75rem 0;
+            margin: 1rem 0;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- CRITICAL COMPONENTS AT TOP -->
+    <div id="success-modal">
+        <div class="modal-card">
+            <h2 style="font-size: 2.5rem; color: #fff; font-weight: 800; margin-bottom: 0.5rem;">MISSION COMPLETE</h2>
+            <p id="modal-msg"
+                style="color: var(--accent); font-weight: 800; text-transform: uppercase; margin-bottom: 1.5rem;"></p>
+            <div class="flag-revealer" onclick="copyToClipboard('FLAG{XSS_ST0R3D_VULN_2026}')">
+                <div class="flag-text">FLAG{XSS_ST0R3D_VULN_2026}</div>
+                <div style="font-size: 0.7rem; color: var(--text-dim); margin-top: 1rem;">CLICK TO COPY SYSTEM FLAG
+                </div>
+            </div>
+            <button class="intel-btn" style="width: 100%; border-radius: 1.5rem;"
+                onclick="document.getElementById('success-modal').style.display='none'">RETURN TO SIMULATION</button>
+        </div>
+    </div>
+
+    <div id="intel-panel">
+        <h2 style="color: var(--accent); font-weight: 800; font-size: 2rem; margin-bottom: 2.5rem;">MISSION INTEL</h2>
+
+        <div class="intel-sec">
+            <h3>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="16" x2="12" y2="12"></line>
+                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                </svg>
+                What is XSS?
+            </h3>
+            <p><b>Cross-Site Scripting (XSS)</b> is a vulnerability where an attacker injects malicious scripts into
+                trusted websites. When a user visits the compromised page, the browser executes the script, thinking
+                it's part of the legitimate site.</p>
+            <div class="highlight-card">
+                <p style="margin:0; color:var(--text-main); font-size:0.9rem;">In this simulation, we are demonstrating
+                    **Stored XSS**—the most dangerous type, where the script is permanently saved on the server.</p>
+            </div>
+        </div>
+
+        <div class="intel-sec">
+            <h3>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                </svg>
+                Simulation Vulnerability
+            </h3>
+            <p>VibeSocial's comment system is vulnerable because it uses the <code>| safe</code> filter in its template.
+                This tells the system to render HTML tags instead of treating them as plain text.</p>
+            <div class="code-block">
+                &lt;p&gt;{&#123; comment.text | safe &#125;}&lt;/p&gt;
+            </div>
+            <p>Because of this, an attacker can post a <code>&lt;script&gt;</code> tag, and it will run for every single
+                user who views the feed.</p>
+        </div>
+
+        <div class="intel-sec">
+            <h3>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="16 18 22 12 16 6"></polyline>
+                    <polyline points="8 6 2 12 8 18"></polyline>
+                </svg>
+                Exploitation Guide
+            </h3>
+            <p>To confirm the hack, you must execute a JavaScript <code>alert</code>. The system monitors for this alert
+                and will decrypt the flag upon detection.</p>
+            <div class="code-block" style="color:var(--primary);">
+                &lt;script&gt;alert('Hacked')&lt;/script&gt;
+            </div>
+            <button class="intel-btn" style="width: 100%; margin-bottom: 1rem;" onclick="copyPayload()">Copy
+                Payload</button>
+            <p style="font-size: 0.85rem; color: var(--accent);">Paste this into the comment box and click Send to
+                reveal the flag.</p>
+        </div>
+
+        <div style="border-top: 1px solid var(--border); padding-top: 2rem;">
+            <button class="intel-btn" style="width: 100%; background: var(--bg);"
+                onclick="window.alert('Force Reveal')">DEBUG: FORCE REVEAL FLAG</button>
+        </div>
+
+        <button class="intel-btn" style="width: 100%; margin-top: 3rem; background: #000;" onclick="toggleIntel()">CLOSE
+            INTEL</button>
+    </div>
+
+    <nav>
+        <div class="brand">VibeSocial</div>
+        <button class="intel-btn" onclick="toggleIntel()">Mission Intel</button>
+    </nav>
+
+    <main>
+        <div class="feed-card">
+            <div class="profile">
+                <div class="avatar">JS</div>
+                <div>
+                    <p style="font-weight: 700; font-size: 1.1rem;">John Smith <span
+                            style="color: var(--text-dim); font-weight: 400; font-size: 0.9rem; margin-left: 8px;">@jsmith
+                            · 2h</span></p>
+                    <p style="font-size: 0.75rem; color: var(--primary); font-weight: 800; text-transform: uppercase;">
+                        Verified Analyst</p>
+                </div>
+            </div>
+            <p class="post-content">Analyzing the platform for bypasses. Is the comment engine sanitizing user input
+                effectively? 🕵️‍♂️💻</p>
+
+            <div id="comments">
+                {% for comment in comments %}
+                <div class="comment-item">
+                    <div class="avatar" style="width: 38px; height: 38px; font-size: 0.8rem; border-radius: 10px;">AN
+                    </div>
+                    <div class="comment-text">
+                        <p style="font-weight: 800; font-size: 0.9rem; margin-bottom: 0.4rem; color: var(--primary);">{{
+                            comment.user }}</p>
+                        <p style="color: #cbd5e1; line-height: 1.6;">{{ comment.text | safe }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <form action="/comment" method="POST" class="comment-input-wrap">
+                <input type="text" name="comment" placeholder="Test the engine..." required autocomplete="off">
+                <button type="submit" class="btn-send">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3">
+                        <line x1="22" y1="2" x2="11" y2="13"></line>
+                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                    </svg>
+                </button>
+            </form>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script>
+        function toggleIntel() { document.getElementById('intel-panel').classList.toggle('open'); }
+        function copyPayload() {
+            navigator.clipboard.writeText("<script>alert('Hacked')<\/script>");
+            alert("Payload copied! Paste it into the comment field.");
+        }
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text);
+            const revealer = document.querySelector('.flag-revealer div:last-child');
+            revealer.innerText = "COPIED TO CLIPBOARD";
+            setTimeout(() => { revealer.innerText = "CLICK TO COPY SYSTEM FLAG"; }, 2000);
+        }
+    </script>
+</body>
+
+</html>

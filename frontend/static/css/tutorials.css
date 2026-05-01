@@ -1,0 +1,448 @@
+/* ================= TUTORIALS PAGE ================= */
+
+.tutorials-container {
+  width: 100%;
+  max-width: calc(100vw - 336px);
+}
+
+/* ================= HEADER ================= */
+
+.figma-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 22px;
+}
+
+.figma-header h1 {
+  font-size: 28px;
+}
+
+.figma-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.figma-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(0,255,255,0.15);
+  padding: 6px 14px;
+  border-radius: 20px;
+}
+
+/* ================= SEARCH ================= */
+
+.figma-search input {
+  width: 100%;
+  padding: 14px 18px;
+  border-radius: 14px;
+  background: rgba(12,18,24,0.95);
+  border: 1px solid rgba(0,255,255,0.25);
+  color: #e6faff;
+  margin-bottom: 18px;
+}
+
+/* ================= FILTERS ================= */
+
+.figma-filters {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 30px;
+}
+
+.figma-filters button {
+  padding: 8px 16px;
+  border-radius: 20px;
+  background: rgba(255,255,255,0.06);
+  border: none;
+  color: #b9f7ff;
+  cursor: pointer;
+}
+
+.figma-filters button.active {
+  background: linear-gradient(90deg,#00cfff,#00ffb4);
+  color: #00141a;
+  box-shadow: 0 0 12px rgba(0,255,255,0.5);
+}
+
+/* ================= GRID ================= */
+
+.figma-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 22px;
+  width: 100%;
+}
+
+/* ================= CARD ================= */
+
+.figma-card {
+  background: rgba(12,18,24,0.96);
+  border-radius: 18px;
+  padding: 18px;
+  position: relative;
+  box-shadow:
+    0 0 22px rgba(0,255,255,0.18),
+    inset 0 0 10px rgba(0,255,255,0.08);
+  min-height: auto;
+  max-height: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  overflow: visible;
+}
+
+/* Badge */
+.badge {
+  padding: 5px 12px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  width: fit-content;
+  margin-bottom: 8px;
+}
+
+.beginner { background: rgba(0,255,180,0.2); color:#00ffb4; }
+.intermediate { background: rgba(255,200,0,0.25); color:#ffd24d; }
+.advanced { background: rgba(255,80,80,0.25); color:#ff6b6b; }
+
+/* Star */
+.star {
+  position: absolute;
+  top: 14px;
+  right: 76px;
+  font-size: 20px;
+  cursor: pointer;
+  color: #7fbfcf;
+  transition: color 0.3s ease, transform 0.2s ease;
+  user-select: none;
+}
+
+.star.inline {
+  position: static;
+  display: block;
+  margin-top: 0;
+  margin-bottom: 16px;
+  font-size: 16px;
+  text-align: left;
+  padding: 0;
+  color: #7fbfcf;
+}
+
+.star:hover {
+  color: #14f1b2;
+  transform: scale(1.2);
+}
+
+.star.saved {
+  color: #14f1b2;
+  text-shadow: 0 0 12px rgba(20, 241, 178, 0.6);
+}
+
+/* Progress Circle */
+.progress-circle {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+/* Show progress circle when it has content */
+.progress-circle:not(:empty) {
+  opacity: 1;
+}
+
+.progress-circle svg {
+  transform: rotate(-90deg);
+}
+
+.progress-ring-background {
+  fill: none;
+  stroke: rgba(20, 241, 178, 0.15);
+  stroke-width: 3;
+}
+
+.progress-ring-fill {
+  fill: none;
+  stroke: #14f1b2;
+  stroke-width: 3;
+  stroke-linecap: round;
+  transition: stroke-dasharray 0.3s ease;
+}
+
+.progress-text {
+  position: absolute;
+  font-size: 12px;
+  font-weight: 700;
+  color: #14f1b2;
+  text-shadow: 0 0 8px rgba(20, 241, 178, 0.5);
+}
+
+/* Title */
+.figma-card h3 {
+  margin: 0 0 8px 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+/* Description */
+.figma-card p {
+  font-size: 13px;
+  color: #9fbfcf;
+  line-height: 1.4;
+  margin: 0 0 8px 0;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  flex-grow: 1;
+}
+
+/* Star - Inline version */
+.star.inline {
+  position: static;
+  display: inline-block;
+  margin: 0;
+  margin-bottom: 12px;
+  font-size: 14px;
+  text-align: left;
+  padding: 6px 12px;
+  color: #7fbfcf;
+  border: 1px solid rgba(0,255,180,0.3);
+  border-radius: 8px;
+  background: rgba(0,255,180,0.05);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  user-select: none;
+}
+
+.star.inline:hover {
+  color: #14f1b2;
+  border-color: rgba(0,255,180,0.6);
+  background: rgba(0,255,180,0.15);
+  transform: translateY(-2px);
+}
+
+.star.inline.saved {
+  color: #14f1b2;
+  border-color: rgba(20,241,178,0.6);
+  background: rgba(20,241,178,0.1);
+  text-shadow: 0 0 12px rgba(20, 241, 178, 0.6);
+}
+
+/* Meta */
+.figma-meta {
+  display: flex;
+  gap: 14px;
+  font-size: 12px;
+  color: #7fbfcf;
+  margin: 12px 0;
+  padding: 8px 0;
+  border-top: 1px solid rgba(0,255,255,0.1);
+  border-bottom: 1px solid rgba(0,255,255,0.1);
+}
+
+/* Chip */
+.chip {
+  display: inline-block;
+  padding: 5px 12px;
+  border-radius: 12px;
+  font-size: 11px;
+  background: rgba(0,255,255,0.15);
+  color: #00ffff;
+  margin: 10px 0 auto 0;
+  font-weight: 500;
+  width: fit-content;
+}
+
+/* Button */
+.figma-card button {
+  width: 100%;
+  padding: 11px;
+  border-radius: 12px;
+  border: none;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  background: linear-gradient(90deg,#00cfff,#00ffb4);
+  color: #00141a;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  margin-top: 10px;
+}
+
+.figma-card button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0,255,255,0.3);
+}
+  color: #00141a;
+}
+
+/* ===== PRACTICAL VM BOX ===== */
+.vm-box {
+  margin-top: 30px;
+  padding: 28px;
+  border-radius: 18px;
+  background: linear-gradient(145deg, #071c1f, #020b0d);
+  box-shadow: 0 0 25px rgba(0, 255, 200, 0.12);
+}
+
+.vm-box .box-title {
+  font-size: 22px;
+  font-weight: 600;
+  color: #e6ffff;
+  margin-bottom: 14px;
+}
+
+.vm-box .box-text {
+  font-size: 15px;
+  color: #cdeeee;
+  line-height: 1.6;
+  margin-bottom: 10px;
+}
+
+.vm-box .box-action {
+  margin-top: 20px;
+}
+
+/* ===== PRACTICAL VM BOX ===== */
+.vm-box {
+  margin-top: 30px;
+  padding: 28px;
+  border-radius: 18px;
+  background: linear-gradient(145deg, #071c1f, #020b0d);
+  box-shadow: 0 0 25px rgba(0, 255, 200, 0.12);
+}
+/* Remove underline from button-like links */
+.primary-btn {
+  text-decoration: none;
+}
+
+/* Safety: also remove underline on hover/focus */
+.primary-btn:hover,
+.primary-btn:focus {
+  text-decoration: none;
+}
+/* ================= RATING & COMPLETION RATE ================= */
+
+.rating-bar {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin: 12px 0;
+  flex-wrap: wrap;
+}
+
+.rating-display {
+  font-size: 14px;
+  color: #00e5d0;
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: rgba(0, 229, 208, 0.1);
+  border: 1px solid rgba(0, 229, 208, 0.3);
+  transition: all 0.3s ease;
+}
+
+.rating-display:hover {
+  background: rgba(0, 229, 208, 0.2);
+  border-color: rgba(0, 229, 208, 0.6);
+  transform: translateY(-2px);
+}
+
+.completion-badge {
+  font-size: 14px;
+  color: #87e8f0;
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: rgba(135, 232, 240, 0.1);
+  border: 1px solid rgba(135, 232, 240, 0.3);
+}
+
+/* ================= RATING MODAL ================= */
+
+.rating-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 9998;
+}
+
+.rating-modal.show {
+  display: flex;
+}
+
+.rating-modal-content {
+  position: relative;
+  background: linear-gradient(145deg, #0f2c2e, #071c1f);
+  border: 2px solid rgba(0, 255, 200, 0.3);
+  border-radius: 20px;
+  padding: 40px;
+  text-align: center;
+  box-shadow: 0 0 40px rgba(0, 255, 200, 0.2);
+  min-width: 300px;
+}
+
+.rating-modal-content h3 {
+  font-size: 24px;
+  color: #e6ffff;
+  margin-bottom: 30px;
+}
+
+.star-rating {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.star-rating-item {
+  font-size: 48px;
+  color: #555;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.star-rating-item:hover,
+.star-rating-item.active {
+  color: #00e5d0;
+  text-shadow: 0 0 20px rgba(0, 229, 208, 0.6);
+  transform: scale(1.2);
+}
+
+.close-rating {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: none;
+  border: none;
+  color: #00e5d0;
+  font-size: 24px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.close-rating:hover {
+  transform: rotate(90deg);
+  color: #ff6b6b;
+}

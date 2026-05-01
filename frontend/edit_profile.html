@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Edit Profile</title>
+
+  <!-- GLOBAL STYLES -->
+  <link rel="stylesheet" href="/static/css/base.css">
+  <link rel="stylesheet" href="/static/css/dashboard.css">
+  <link rel="stylesheet" href="/static/css/profile.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    /* ===== CENTERING & LAYOUT ===== */
+    .edit-profile-center {
+      min-height: calc(100vh - 80px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+
+    .edit-profile-card {
+      width: 420px;
+      padding: 30px 28px;
+    }
+
+    /* ===== FORM ===== */
+    .edit-profile-card .section-title {
+      text-align: center;
+      margin-bottom: 22px;
+      font-size: 20px;
+      color: #00eaff;
+    }
+
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      margin-bottom: 6px;
+      color: #9fdcff;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 12px;
+      border-radius: 8px;
+      background: #0b132b;
+      border: 1px solid #1f2a48;
+      color: #e6f1ff;
+      font-size: 14px;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: #00eaff;
+      box-shadow: 0 0 8px rgba(0, 234, 255, 0.4);
+    }
+
+    /* ===== AVATAR SELECTION ===== */
+    .avatar-selection {
+      margin-bottom: 22px;
+    }
+
+    .avatar-selection label {
+      display: block;
+      font-size: 13px;
+      margin-bottom: 12px;
+      color: #9fdcff;
+    }
+
+    .avatar-preview-section {
+      text-align: center;
+      margin-bottom: 15px;
+    }
+
+    .current-avatar-display {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 10px;
+      border-radius: 20px;
+      border: 2px solid #00eaff;
+      object-fit: cover;
+      background: linear-gradient(135deg, #0a1f3a 0%, #0d2a4a 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 40px;
+      box-shadow: inset 0 0 8px rgba(0, 234, 255, 0.15), 0 0 12px rgba(0, 234, 255, 0.2);
+    }
+
+    .add-avatar-btn {
+      background: linear-gradient(135deg, #00eaff, #0099cc);
+      border: none;
+      color: #000;
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 13px;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .add-avatar-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.2);
+      transition: left 0.3s ease;
+    }
+
+    .add-avatar-btn:hover::before {
+      left: 100%;
+    }
+
+    .add-avatar-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(0, 234, 255, 0.5);
+    }
+
+    .add-avatar-btn:active {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 234, 255, 0.4);
+    }
+
+    /* ===== MODAL ===== */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(4px);
+      animation: backdropFadeIn 0.3s ease;
+    }
+
+    .modal.open {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    @keyframes backdropFadeIn {
+      from {
+        opacity: 0;
+      }
+
+      to {
+        opacity: 1;
+      }
+    }
+
+    .modal-content {
+      background: linear-gradient(135deg, #0b132b, #1f2a48);
+      padding: 30px;
+      border: 2px solid #00eaff;
+      border-radius: 10px;
+      width: 90%;
+      max-width: 600px;
+      box-shadow: 0 0 50px rgba(0, 234, 255, 0.4);
+      animation: contentSlideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @keyframes contentSlideIn {
+      from {
+        opacity: 0;
+        transform: scale(0.7) translateY(-50px);
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
+    }
+
+    .modal-content.closing {
+      animation: contentSlideOut 0.3s ease forwards;
+    }
+
+    @keyframes contentSlideOut {
+      from {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
+
+      to {
+        opacity: 0;
+        transform: scale(0.7) translateY(50px);
+      }
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      color: #00eaff;
+    }
+
+    .modal-header h2 {
+      margin: 0;
+      font-size: 18px;
+    }
+
+    .close-modal {
+      background: none;
+      border: none;
+      color: #00eaff;
+      font-size: 28px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .close-modal:hover {
+      transform: rotate(90deg);
+    }
+
+    .professional-avatar-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .professional-avatar {
+      position: relative;
+      cursor: pointer;
+      animation: slideIn 0.5s ease forwards;
+    }
+
+    .professional-avatar:nth-child(1) {
+      animation-delay: 0.1s;
+    }
+
+    .professional-avatar:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    .professional-avatar:nth-child(3) {
+      animation-delay: 0.3s;
+    }
+
+    .professional-avatar:nth-child(4) {
+      animation-delay: 0.4s;
+    }
+
+    .professional-avatar:nth-child(5) {
+      animation-delay: 0.5s;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(30px) scale(0.8);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .professional-avatar input {
+      display: none;
+    }
+
+    .avatar-img-wrapper {
+      width: 100%;
+      aspect-ratio: 1;
+      border: 2px solid #00eaff;
+      border-radius: 20px;
+      overflow: hidden;
+      background: linear-gradient(135deg, rgba(10, 31, 58, 0.8) 0%, rgba(13, 42, 74, 0.8) 100%);
+      transition: all 0.3s ease;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: inset 0 0 8px rgba(0, 234, 255, 0.1);
+    }
+
+    .professional-avatar:hover .avatar-img-wrapper {
+      border-color: #00ffd5;
+      transform: scale(1.05);
+      box-shadow: inset 0 0 10px rgba(0, 234, 255, 0.2), 0 0 12px rgba(0, 255, 213, 0.3);
+    }
+
+    .professional-avatar input:checked+.avatar-img-wrapper {
+      border-color: #00ffd5;
+      box-shadow: inset 0 0 12px rgba(0, 234, 255, 0.25), 0 0 20px rgba(0, 255, 213, 0.4);
+      transform: scale(1.08);
+      animation: pulse 0.6s ease;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        box-shadow: 0 0 25px rgba(0, 234, 255, 0.8);
+      }
+
+      50% {
+        box-shadow: 0 0 40px rgba(0, 234, 255, 1);
+      }
+    }
+
+    .avatar-img-wrapper img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.3s ease;
+    }
+
+    .professional-avatar:hover .avatar-img-wrapper img {
+      transform: scale(1.1);
+    }
+
+    .professional-avatar input:checked~.avatar-img-wrapper img {
+      animation: spin 0.6s ease;
+    }
+
+    @keyframes spin {
+      0% {
+        transform: scale(1) rotateZ(0deg);
+      }
+
+      50% {
+        transform: scale(1.05) rotateZ(5deg);
+      }
+
+      100% {
+        transform: scale(1) rotateZ(0deg);
+      }
+    }
+
+    .avatar-fallback {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 40px;
+      pointer-events: none;
+    }
+
+    .professional-avatar input:checked+.avatar-img-wrapper::after {
+      content: '✓';
+      position: absolute;
+      bottom: 8px;
+      right: 8px;
+      background: #00eaff;
+      color: #000;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      animation: popIn 0.3s ease;
+    }
+
+    @keyframes popIn {
+      0% {
+        transform: scale(0) rotate(-45deg);
+      }
+
+      100% {
+        transform: scale(1) rotate(0deg);
+      }
+    }
+
+    .avatar-grid {
+      display: none;
+    }
+
+    .modal-buttons {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+
+    .modal-buttons button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .save-avatar-btn {
+      background: linear-gradient(135deg, #00eaff, #0099cc);
+      color: #000;
+    }
+
+    .save-avatar-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.3);
+      transition: left 0.3s ease;
+    }
+
+    .save-avatar-btn:hover::before {
+      left: 100%;
+    }
+
+    .save-avatar-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0, 234, 255, 0.5);
+    }
+
+    .save-avatar-btn:active {
+      transform: translateY(0px);
+      box-shadow: 0 3px 10px rgba(0, 234, 255, 0.3);
+    }
+
+    .cancel-avatar-btn {
+      background: rgba(255, 255, 255, 0.1);
+      color: #00eaff;
+      border: 1px solid #00eaff;
+    }
+
+    .cancel-avatar-btn:hover {
+      background: rgba(0, 234, 255, 0.1);
+      border-color: #00d5ff;
+      transform: translateY(-2px);
+    }
+
+    .cancel-avatar-btn:active {
+      transform: translateY(0px);
+    }
+
+    /* ===== BUTTONS ===== */
+    .edit-profile-card .primary-btn {
+      width: 100%;
+      margin-top: 12px;
+      padding: 12px;
+      font-size: 15px;
+    }
+
+    .edit-profile-card .outline-btn {
+      display: block;
+      width: fit-content;
+      margin: 18px auto 0;
+      padding: 8px 20px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+
+<body class="dashboard-body">
+
+  <!-- ================= SIDEBAR ================= -->
+  <aside class="sidebar">
+    <div class="brand">
+      🛡️ <span>Hacker Portal</span>
+      <small>Learn & Conquer</small>
+    </div>
+
+    <nav class="menu">
+      <a class="active" href="/user/dashboard?email={{EMAIL}}">
+        <i data-lucide="layout-grid"></i>
+        Dashboard
+      </a>
+
+      <a href="/user/tutorials?email={{EMAIL}}">
+        <i data-lucide="book-open"></i>
+        Tutorials
+      </a>
+
+      <a href="/user/tutorials/saved?email={{EMAIL}}">
+        <i data-lucide="star"></i>
+        Saved Tutorials
+      </a>
+
+
+      <a href="/user/challenges?email={{EMAIL}}">
+        <i data-lucide="target"></i>
+        Challenges
+      </a>
+
+      <a href="/user/quizzes?email={{EMAIL}}">
+        <i data-lucide="help-circle"></i>
+        Quizzes
+      </a>
+
+
+      <a href="/user/challenges/daily?email={{EMAIL}}">
+        <i data-lucide="calendar"></i>
+        Daily Challenge
+      </a>
+
+      <a href="/user/attempt-history?email={{EMAIL}}">
+        <i data-lucide="history"></i>
+        Attempt History
+      </a>
+
+      <a href="/user/leaderboard?email={{EMAIL}}">
+        <i data-lucide="trophy"></i>
+        Leaderboard
+      </a>
+
+      <a href="/user/progress?email={{EMAIL}}">
+        <i data-lucide="trending-up"></i>
+        Progress Graph
+      </a>
+
+      <a href="/user/profile?email={{EMAIL}}">
+        <i data-lucide="user"></i>
+        Profile
+      </a>
+    </nav>
+
+    <a class="logout" href="/">
+      <i data-lucide="log-out"></i>
+      Logout
+    </a>
+  </aside>
+
+  <!-- ================= MAIN ================= -->
+  <main class="dashboard-main">
+
+    <header class="topbar">
+      <h2>Edit Profile</h2>
+      <div class="top-icons">
+        <div class="profile-chip">
+          👤 {{USERNAME}}
+        </div>
+      </div>
+    </header>
+
+    <!-- ================= CONTENT ================= -->
+    <section class="profile-page edit-profile-center">
+
+      <div class="profile-card glow edit-profile-card">
+
+        <h3 class="section-title">Update Your Details</h3>
+
+        <!-- Error Message Display -->
+        <div id="errorAlert"
+          style="display: none; margin-bottom: 20px; padding: 15px; background: rgba(255, 107, 107, 0.1); border: 2px solid #ff6b6b; border-radius: 8px; color: #ff6b6b; font-size: 14px;">
+          <strong>❌ Error:</strong> <span id="errorMessage"></span>
+        </div>
+
+        <form method="post" action="/user/edit-profile" id="editProfileForm">
+
+          <!-- REQUIRED FOR BACKEND -->
+          <input type="hidden" name="old_email" value="{{EMAIL}}">
+
+          <div class="form-group">
+            <label>Username</label>
+            <input type="text" name="name" value="{{USERNAME}}" required>
+          </div>
+
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" name="email" value="{{EMAIL}}" required>
+          </div>
+
+          <!-- AVATAR SELECTION -->
+          <div class="avatar-selection">
+            <label>Choose Your Avatar</label>
+            <div class="avatar-preview-section">
+              <div class="current-avatar-display" id="currentAvatarDisplay">
+                <img id="avatarImg" src="" alt="Avatar"
+                  onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ccircle cx=%2250%22 cy=%2250%22 r=%2250%22 fill=%22%23333%22/%3E%3Ctext x=%2250%22 y=%2250%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22white%22 font-size=%2250%22%3E👤%3C/text%3E%3C/svg%3E'">
+              </div>
+              <button type="button" class="add-avatar-btn" id="openAvatarModal">+ Change Avatar</button>
+            </div>
+            <input type="hidden" name="avatar" id="avatarInput" value="{{AVATAR_VALUE}}">
+          </div>
+
+          <button type="submit" class="primary-btn">💾 Save Changes</button>
+
+          <a href="/user/profile?email={{EMAIL}}" class="outline-btn">
+            ← Cancel
+          </a>
+
+        </form>
+
+      </div>
+
+    </section>
+
+    <!-- ================= AVATAR MODAL ================= -->
+    <div id="avatarModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Select Your Avatar</h2>
+          <button type="button" class="close-modal" id="closeModal">&times;</button>
+        </div>
+
+        <div class="professional-avatar-grid">
+          <div class="professional-avatar">
+            <input type="radio" id="prof_avatar1" name="prof_avatar" value="avatar1">
+            <label for="prof_avatar1" class="avatar-img-wrapper">
+              <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=character1&scale=85" alt="Avatar 1"
+                onerror="this.style.display='none'">
+              <div class="avatar-fallback">👤</div>
+            </label>
+          </div>
+          <div class="professional-avatar">
+            <input type="radio" id="prof_avatar2" name="prof_avatar" value="avatar2">
+            <label for="prof_avatar2" class="avatar-img-wrapper">
+              <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=character2&scale=85" alt="Avatar 2"
+                onerror="this.style.display='none'">
+              <div class="avatar-fallback">👤</div>
+            </label>
+          </div>
+          <div class="professional-avatar">
+            <input type="radio" id="prof_avatar3" name="prof_avatar" value="avatar3">
+            <label for="prof_avatar3" class="avatar-img-wrapper">
+              <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=character3&scale=85" alt="Avatar 3"
+                onerror="this.style.display='none'">
+              <div class="avatar-fallback">👤</div>
+            </label>
+          </div>
+          <div class="professional-avatar">
+            <input type="radio" id="prof_avatar4" name="prof_avatar" value="avatar4">
+            <label for="prof_avatar4" class="avatar-img-wrapper">
+              <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=character4&scale=85" alt="Avatar 4"
+                onerror="this.style.display='none'">
+              <div class="avatar-fallback">👤</div>
+            </label>
+          </div>
+          <div class="professional-avatar">
+            <input type="radio" id="prof_avatar5" name="prof_avatar" value="avatar5">
+            <label for="prof_avatar5" class="avatar-img-wrapper">
+              <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=character5&scale=85" alt="Avatar 5"
+                onerror="this.style.display='none'">
+              <div class="avatar-fallback">👤</div>
+            </label>
+          </div>
+          <div class="professional-avatar">
+            <input type="radio" id="prof_avatar6" name="prof_avatar" value="avatar6">
+            <label for="prof_avatar6" class="avatar-img-wrapper">
+              <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=character6&scale=85" alt="Avatar 6"
+                onerror="this.style.display='none'">
+              <div class="avatar-fallback">👤</div>
+            </label>
+          </div>
+          <div class="professional-avatar">
+            <input type="radio" id="prof_avatar7" name="prof_avatar" value="avatar7">
+            <label for="prof_avatar7" class="avatar-img-wrapper">
+              <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=character7&scale=85" alt="Avatar 7"
+                onerror="this.style.display='none'">
+              <div class="avatar-fallback">👤</div>
+            </label>
+          </div>
+          <div class="professional-avatar">
+            <input type="radio" id="prof_avatar8" name="prof_avatar" value="avatar8">
+            <label for="prof_avatar8" class="avatar-img-wrapper">
+              <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=character8&scale=85" alt="Avatar 8"
+                onerror="this.style.display='none'">
+              <div class="avatar-fallback">👤</div>
+            </label>
+          </div>
+          <div class="professional-avatar">
+            <input type="radio" id="prof_avatar9" name="prof_avatar" value="avatar9">
+            <label for="prof_avatar9" class="avatar-img-wrapper">
+              <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=character9&scale=85" alt="Avatar 9"
+                onerror="this.style.display='none'">
+              <div class="avatar-fallback">👤</div>
+            </label>
+          </div>
+          <div class="professional-avatar">
+            <input type="radio" id="prof_avatar10" name="prof_avatar" value="avatar10">
+            <label for="prof_avatar10" class="avatar-img-wrapper">
+              <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=character10&scale=85" alt="Avatar 10"
+                onerror="this.style.display='none'">
+              <div class="avatar-fallback">👤</div>
+            </label>
+          </div>
+        </div>
+
+        <div class="modal-buttons">
+          <button type="button" class="cancel-avatar-btn" id="cancelModal">Cancel</button>
+          <button type="button" class="save-avatar-btn" id="saveAvatarBtn">Save Avatar</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      lucide.createIcons();
+
+      const modal = document.getElementById('avatarModal');
+      const modalContent = modal.querySelector('.modal-content');
+      const openBtn = document.getElementById('openAvatarModal');
+      const closeBtn = document.getElementById('closeModal');
+      const cancelBtn = document.getElementById('cancelModal');
+      const saveBtn = document.getElementById('saveAvatarBtn');
+      const avatarInput = document.getElementById('avatarInput');
+      const currentDisplay = document.getElementById('currentAvatarDisplay');
+      const avatarImg = document.getElementById('avatarImg');
+
+      const avatarSeeds = {
+        'avatar1': 'character1',
+        'avatar2': 'character2',
+        'avatar3': 'character3',
+        'avatar4': 'character4',
+        'avatar5': 'character5',
+        'avatar6': 'character6',
+        'avatar7': 'character7',
+        'avatar8': 'character8',
+        'avatar9': 'character9',
+        'avatar10': 'character10'
+      };
+
+      const avatarEmojis = {
+        'avatar1': '🦸',
+        'avatar2': '🧙',
+        'avatar3': '🕵️',
+        'avatar4': '👨‍💻',
+        'avatar5': '🔮'
+      };
+
+      // Initialize current avatar
+      function initializeAvatar() {
+        const currentAvatar = avatarInput.value || 'avatar1';
+        const seed = avatarSeeds[currentAvatar];
+        avatarImg.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${seed}&scale=85`;
+        document.getElementById(`prof_${currentAvatar}`).checked = true;
+      }
+
+      initializeAvatar();
+
+      // Open modal with animation
+      openBtn.addEventListener('click', function (e) {
+        e.preventDefault();
+        modal.classList.add('open');
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+      });
+
+      // Close modal with animation
+      function closeAvatarModal() {
+        if (modalContent) {
+          modalContent.classList.add('closing');
+          setTimeout(() => {
+            modal.classList.remove('open');
+            modal.style.display = 'none';
+            modalContent.classList.remove('closing');
+            document.body.style.overflow = 'auto';
+          }, 300);
+        }
+      }
+
+      closeBtn.addEventListener('click', closeAvatarModal);
+      cancelBtn.addEventListener('click', closeAvatarModal);
+
+      // Add hover effect to avatar options
+      document.querySelectorAll('.professional-avatar').forEach(avatar => {
+        avatar.addEventListener('mouseenter', function () {
+          const img = this.querySelector('img');
+          if (img) {
+            img.style.animation = 'none';
+            setTimeout(() => {
+              img.style.animation = '';
+            }, 10);
+          }
+        });
+      });
+
+      // Save avatar with confirmation
+      saveBtn.addEventListener('click', function () {
+        const selected = document.querySelector('input[name="prof_avatar"]:checked');
+        if (selected) {
+          const avatarValue = selected.value;
+          const seed = avatarSeeds[avatarValue];
+
+          console.log('Selected avatar:', avatarValue);
+
+          // Update avatar input
+          avatarInput.value = avatarValue;
+          console.log('Updated hidden input to:', avatarInput.value);
+
+          // Update display with animation
+          avatarImg.style.animation = 'none';
+          setTimeout(() => {
+            avatarImg.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${seed}&scale=85`;
+            avatarImg.style.animation = 'spin 0.6s ease';
+          }, 10);
+
+          // Close modal after brief delay
+          setTimeout(() => {
+            closeAvatarModal();
+          }, 300);
+        } else {
+          console.log('No avatar selected');
+        }
+      });
+
+      // Close modal when clicking outside
+      window.addEventListener('click', function (event) {
+        if (event.target === modal) {
+          closeAvatarModal();
+        }
+      });
+
+      // Keyboard support
+      document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape' && modal.style.display === 'flex') {
+          closeAvatarModal();
+        }
+      });
+
+      // Handle error messages from URL params
+      const urlParams = new URLSearchParams(window.location.search);
+      const error = urlParams.get('error');
+      const errorAlert = document.getElementById('errorAlert');
+      const errorMessage = document.getElementById('errorMessage');
+
+      if (error) {
+        errorAlert.style.display = 'block';
+        if (error === 'email_exists') {
+          errorMessage.textContent = 'This email is already in use. Please choose a different email.';
+        } else if (error === 'update_failed') {
+          errorMessage.textContent = 'Failed to update profile. Please try again.';
+        } else {
+          errorMessage.textContent = 'An error occurred. Please try again.';
+        }
+      }
+
+      // Form validation
+      const editForm = document.getElementById('editProfileForm');
+      if (editForm) {
+        editForm.addEventListener('submit', function (e) {
+          const emailInput = document.querySelector('input[name="email"]');
+          const nameInput = document.querySelector('input[name="name"]');
+          const avatarInput = document.getElementById('avatarInput');
+
+          // Basic validation
+          if (!nameInput.value.trim()) {
+            e.preventDefault();
+            errorAlert.style.display = 'block';
+            errorMessage.textContent = 'Username cannot be empty.';
+            return;
+          }
+
+          if (!emailInput.value.trim()) {
+            e.preventDefault();
+            errorAlert.style.display = 'block';
+            errorMessage.textContent = 'Email cannot be empty.';
+            return;
+          }
+
+          // Email validation
+          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          if (!emailRegex.test(emailInput.value)) {
+            e.preventDefault();
+            errorAlert.style.display = 'block';
+            errorMessage.textContent = 'Please enter a valid email address.';
+            return;
+          }
+
+          // Ensure avatar is set
+          if (!avatarInput.value) {
+            avatarInput.value = 'avatar1';
+          }
+
+          console.log('Form submitted with avatar:', avatarInput.value);
+        });
+      }
+    </script>

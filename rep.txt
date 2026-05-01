@@ -1,0 +1,1259 @@
+================================================================================
+                    ETHICAL HACKING SIMULATION PORTAL
+                         COMPREHENSIVE PROJECT REPORT
+                    Version 1.0 - March 13, 2026
+================================================================================
+
+PROJECT OVERVIEW
+================================================================================
+
+Project Name: Ethical Hacking Simulation Portal
+Project Type: Full-stack web application for cybersecurity education and training
+Tech Stack: FastAPI (Backend), Flask (Challenge Applications), SQLite (Database), 
+            Docker (Container Management), HTML/CSS/JavaScript (Frontend)
+Purpose: Educational platform for learning ethical hacking through interactive 
+         challenges, tutorials, quizzes, and leaderboard competitions
+
+
+================================================================================
+                          PROJECT ARCHITECTURE
+================================================================================
+
+DIRECTORY STRUCTURE:
+├── backend/
+│   ├── main.py                    (FastAPI application - core platform)
+│   ├── docker_manager.py          (Docker container orchestration)
+│   ├── database.db                (SQLite database - user, tutorial, quiz data)
+│   └── __pycache__/
+├── challenges/                    (Individual vulnerable applications)
+│   ├── brute-force/               (Flask app - demonstrates brute force attacks)
+│   ├── command-injection/         (Flask app - command injection vulnerability)
+│   ├── csrf-challenge/            (Flask app - CSRF vulnerability)
+│   ├── file-upload-vulnerability/ (Flask app - insecure file uploads)
+│   ├── idor-challenge/            (Flask app - IDOR vulnerability)
+│   ├── lfi-challenge/             (Flask app - Local File Inclusion)
+│   ├── offensive security/        (Advanced security challenges)
+│   ├── sql injection/             (Flask app - SQL injection vulnerability)
+│   ├── ssti-challenge/            (Flask app - Server-Side Template Injection)
+│   └── xss-challenge/             (Flask app - Cross-Site Scripting)
+├── frontend/                      (User interface - 40+ HTML templates)
+│   ├── admin_*.html               (Admin dashboard & management pages)
+│   ├── user_*.html                (User-facing pages)
+│   ├── layout/                    (Reusable UI components)
+│   ├── static/                    (CSS, JavaScript, images, user uploads)
+│   ├── assets/                    (Additional static resources)
+│   └── index.html                 (Landing page)
+├── requirements.txt               (Project dependencies)
+└── query.sql                      (Empty SQL file for future use)
+
+
+================================================================================
+                    BACKEND INFRASTRUCTURE (FastAPI)
+================================================================================
+
+FILE: backend/main.py (Core Application Server)
+SIZE: ~2500+ lines
+FRAMEWORK: FastAPI 0.104.1
+PORT: 8000 (default)
+
+DEPENDENCIES:
+- fastapi==0.104.1
+- uvicorn==0.24.0
+- python-multipart==0.0.6
+- markdown==3.5.1
+- httpx==0.25.1
+- docker==7.0.0
+- flask==3.0.0
+
+GEMINI API INTEGRATION:
+- API Key: AIzaSyBxnzCyvlkmT8cvpHVLuW_6XSwlVT5vdzI
+- Model: gemini-2.5-flash
+- Purpose: AI-powered features (likely for tutoring, hints, or content generation)
+
+DATABASE: SQLite (backend/database.db)
+- PRAGMA foreign_keys enabled for referential integrity
+- PRAGMA isolation_level set to DEFERRED for better concurrency
+- Database operations include automatic retry logic for lock handling
+- Exponential backoff for failed operations (max 5 retries)
+
+DATABASE TABLES & SCHEMA:
+================================================================================
+
+USER MANAGEMENT:
+┌─ users
+├─ id (PK, Auto-increment)
+├─ name
+├─ email (UNIQUE)
+├─ password (plaintext - NO HASHING!)
+├─ level (default: 1)
+├─ xp (default: 0) - experience points
+├─ challenges_solved (default: 0)
+├─ global_rank (default: 0)
+├─ avatar (default: 'avatar1') - 10 avatar options available
+├─ status (default: 'active') - can be 'banned'
+├─ is_locked (default: 0) - account lock flag
+├─ created_at (timestamp)
+└─ last_login (timestamp)
+
+┌─ user_security_settings
+├─ id (PK)
+├─ user_id (FK to users)
+├─ user_email (UNIQUE)
+├─ two_factor_enabled (default: 0)
+├─ failed_login_attempts (default: 0)
+├─ last_failed_attempt
+├─ password_changed_at
+└─ force_password_reset (default: 0)
+
+┌─ login_history
+├─ id (PK)
+├─ user_id (FK)
+├─ user_email
+├─ login_time (timestamp)
+├─ logout_time
+├─ ip_address
+└─ user_agent
+
+┌─ audit_logs
+├─ id (PK)
+├─ admin_email
+├─ action
+├─ target_user_id
+├─ target_user_email
+├─ old_value
+├─ new_value
+├─ timestamp
+└─ details
+
+RANKING & LEADERBOARD:
+┌─ ranking
+├─ user_id (PK, FK)
+├─ rank
+├─ score (based on XP)
+├─ level
+└─ challenges_solved
+
+SOCIAL FEATURES:
+┌─ friendships
+├─ id (PK)
+├─ requester_email (FK)
+├─ receiver_email (FK)
+├─ status (pending/accepted/blocked)
+├─ requested_at
+└─ responded_at
+
+┌─ messages
+├─ id (PK)
+├─ sender_email (FK)
+├─ receiver_email (FK)
+├─ message_text
+├─ is_read (default: 0)
+└─ sent_at
+
+┌─ chat_clear_history
+├─ id (PK)
+├─ user_email (FK)
+├─ friend_email (FK)
+├─ cleared_at
+└─ UNIQUE constraint on (user_email, friend_email)
+
+┌─ admin_messages
+├─ id (PK)
+├─ sender_email (FK)
+├─ recipient_email (FK)
+├─ message_text
+├─ message_type (user/admin)
+├─ is_read (default: 0)
+└─ created_at
+
+NOTIFICATIONS:
+┌─ notifications
+├─ id (PK)
+├─ title
+├─ message
+├─ target (all/user/admin)
+├─ created_by (default: 'Admin')
+└─ created_at
+
+TUTORIALS & LEARNING:
+┌─ tutorials
+├─ id (PK)
+├─ title
+├─ category
+├─ difficulty
+├─ estimated_time
+├─ intro
+├─ points (default: 0)
+├─ is_published (default: 0)
+├─ average_rating (default: 0)
+├─ rating_count (default: 0)
+└─ [more fields...]
+
+┌─ tutorial_classes
+├─ id (PK)
+├─ tutorial_id (FK)
+├─ title
+├─ class_order
+├─ progress_percentage (default: 0)
+└─ [more fields...]
+
+┌─ tutorial_blocks
+├─ id (PK)
+├─ class_id (FK)
+├─ block_type (content/knowledge/image)
+├─ content
+├─ answer
+├─ hint
+├─ position (left/right for images)
+└─ block_order
+
+┌─ tutorial_progress
+├─ id (PK)
+├─ username
+├─ tutorial_id (FK)
+├─ progress (0-100)
+├─ completed (0/1)
+├─ last_accessed
+├─ completed_at
+├─ current_class_index
+└─ UNIQUE(username, tutorial_id)
+
+┌─ tutorial_ratings
+├─ id (PK)
+├─ user_id (FK)
+├─ tutorial_id (FK)
+├─ rating (1-5)
+├─ created_at
+└─ UNIQUE(user_id, tutorial_id)
+
+┌─ saved_tutorials
+├─ id (PK)
+├─ user_id (FK)
+├─ tutorial_id (FK)
+├─ saved_at
+└─ UNIQUE(user_id, tutorial_id)
+
+CHALLENGES:
+┌─ challenges
+├─ id (PK)
+├─ title
+├─ category
+├─ difficulty
+├─ points
+├─ description
+├─ flag
+├─ docker_image (required)
+├─ is_published (default: 0)
+└─ created_at
+
+┌─ user_challenges
+├─ id (PK)
+├─ user_id (FK)
+├─ challenge_id (FK)
+├─ progress (default: 0)
+├─ solved_at
+└─ UNIQUE(user_id, challenge_id)
+
+┌─ running_containers
+├─ id (PK)
+├─ challenge_id (FK)
+├─ user_id (FK)
+├─ container_id
+├─ container_name
+├─ port_mapping
+├─ status (default: 'running')
+├─ started_at
+├─ stopped_at
+└─ duration_minutes (default: 30)
+
+┌─ challenge_solves
+├─ id (PK)
+├─ challenge_id (UNIQUE, FK)
+├─ title
+├─ category
+└─ count (number of users who solved)
+
+┌─ attempt_history
+├─ id (PK)
+├─ user_id (FK)
+├─ activity_type (visited/viewed/completed)
+├─ resource_id
+├─ resource_name
+├─ resource_type
+└─ visited_at
+
+QUIZZES:
+┌─ quizzes
+├─ id (PK)
+├─ title
+├─ description
+├─ category
+├─ difficulty
+├─ points (default: 10)
+├─ passing_score (default: 70)
+├─ time_limit
+├─ is_published (default: 0)
+├─ created_by
+├─ created_at
+└─ updated_at
+
+┌─ quiz_questions
+├─ id (PK)
+├─ quiz_id (FK)
+├─ question_text
+├─ question_type (multiple_choice)
+├─ question_order
+└─ points_value (default: 1)
+
+┌─ quiz_options
+├─ id (PK)
+├─ question_id (FK)
+├─ option_text
+├─ is_correct (default: 0)
+└─ option_order
+
+┌─ quiz_attempts
+├─ id (PK)
+├─ user_id (FK)
+├─ quiz_id (FK)
+├─ score
+├─ total_questions
+├─ percentage
+├─ passed (default: 0)
+├─ time_spent
+├─ started_at
+└─ completed_at
+
+┌─ quiz_answers
+├─ id (PK)
+├─ attempt_id (FK)
+├─ question_id (FK)
+├─ selected_option_id (FK)
+├─ is_correct (default: 0)
+└─ answered_at
+
+
+FASTAPI ENDPOINTS & FEATURES:
+================================================================================
+
+1. DEBUG ENDPOINT
+   GET /debug
+   - Returns: {"email_received": email, "status": "API is running"}
+   - Query: ?email=<email>
+
+2. LANDING & LOGIN
+   GET /
+   - Returns: index.html (landing page with portal overview)
+   
+   GET /user/login
+   - Returns: user_login.html
+   
+   POST /user/login (email, password)
+   - Authenticates user
+   - Updates last_login timestamp
+   - Records login in login_history table
+   - Checks: account not locked, not banned, correct credentials
+   - Redirects to /user/dashboard on success
+   
+   GET /user/register
+   - Returns: user_register.html
+   
+   POST /user/register (name, email, password)
+   - Creates new user account
+   - Returns: redirects to /user/login on success
+
+3. USER AUTHENTICATION & SECURITY
+   POST /user/login
+   - Logs login attempt with IP address and user agent
+   - Prevents access to locked/banned accounts
+   - Updates global rankings after login
+   
+   POST /user/change-password (email, new_password)
+   - Updates password (plaintext - NO HASHING IMPLEMENTED!)
+   
+   GET /user/delete-account (email)
+   - Deletes user account from database
+
+4. USER DASHBOARD & PROFILE
+   GET /user/dashboard (email: str)
+   - Returns: Dashboard with personalized data
+   - Shows: level, XP, challenges solved, rank
+   - Displays: daily challenge, recommendations
+   - Includes: tutorial scores, total XP calculation
+   
+   GET /user/profile (email: str)
+   - Returns: user profile page
+   - Shows: avatar (DiceBear API), stats, achievements
+   - Calculates: total_score = challenge_xp + tutorial_points
+   - Caching headers prevent browser caching
+   
+   GET /api/user/profile (email: str)
+   - JSON endpoint returning profile data
+   - Includes: avatar, level, xp, challenges, rank
+   
+   POST /user/edit-profile
+   - OLD_EMAIL, name, email, avatar
+   - validates avatar is in 'avatar1' through 'avatar10'
+   - checks for duplicate email
+   - updates user record
+   - prevents concurrent email updates
+   
+   GET /user/edit-profile (email: str)
+   - Returns: edit profile form with current data pre-filled
+
+5. TUTORIALS SYSTEM
+   GET /user/tutorials (email: str)
+   - Lists all published tutorials
+   - Logs visit to tutorials
+   - Returns: tutorials.html
+   
+   GET /user/tutorial/{tutorial_id} (email: str)
+   - Returns: user_tutorial_view.html for specific tutorial
+   - Logs tutorial view
+   
+   GET /user/tutorials/api/published
+   - JSON: list of all published tutorials
+   - Returns: id, title, category, difficulty, estimated_time, intro, points
+   
+   GET /admin/tutorials/list
+   - Admin endpoint to list all tutorials (published + unpublished)
+   
+   GET /admin/tutorials/{tutorial_id}/classes
+   - Returns tutorial structure: classes and blocks
+   - Blocks contain: type, content, answer, hint, position
+   
+   POST /admin/tutorials/{tutorial_id}/classes
+   - Saves tutorial class structure with blocks
+   - Uses transaction for data consistency
+   - Supports: content blocks, knowledge blocks, image blocks
+   - Image blocks support position: left/right
+   
+   POST /admin/tutorials/{tutorial_id}/publish
+   - Sets is_published=1
+   
+   POST /admin/tutorials/{tutorial_id}/unpublish
+   - Sets is_published=0
+   
+   POST /admin/tutorials/{tutorial_id}/upgrade-publish
+   - Publishes tutorial AND increases points by 50%
+   - Example: 10 points → 15 points
+   
+   POST /user/tutorials/{tutorial_id}/save (email: str)
+   - Saves tutorial to user's collection
+   - Prevents duplicate saves
+   
+   DELETE /user/tutorials/{tutorial_id}/unsave (email: str)
+   - Removes from saved tutorials
+   
+   GET /user/tutorials/{tutorial_id}/is-saved (email: str)
+   - Returns: {"saved": true/false}
+   
+   GET /user/tutorials/api/saved (email: str)
+   - Returns: list of user's saved tutorials
+   
+   POST /user/tutorials/{tutorial_id}/progress (email, current_class_index, progress_percentage)
+   - IMPORTANT: Uses admin-provided progress_percentage ONLY
+   - Sets completed=1 when progress=100
+   - On completion (first time):
+     * Increments user level by 1
+     * Awards tutorial points to user XP
+     * Updates ranking table
+     * Recalculates global ranks for all users
+   - Logs: "Level incremented for user [name] (from completion of tutorial [id])"
+   - Does NOT award points on re-completion
+   
+   GET /user/tutorials/{tutorial_id}/progress (email: str)
+   - Returns: current_class_index, progress (0-100), completed (0/1)
+   
+   POST /user/tutorials/{tutorial_id}/rate (email, rating: 1-5)
+   - User submits rating for tutorial
+   - Prevents invalid ratings (<1 or >5)
+   - Prevents duplicate ratings (first rating wins)
+   
+   GET /user/saved-tutorials (email: str)
+   - Returns: user_saved_tutorials.html
+
+6. FRIEND SYSTEM
+   POST /user/api/friend-request (sender_email, receiver_email)
+   - Sends friend request (status: pending)
+   - Validates: not adding self, receiver exists, no duplicate
+   
+   POST /user/api/accept-friend-request (user_email, requester_email)
+   - Changes status from pending to accepted
+   
+   POST /user/api/reject-friend-request (user_email, requester_email)
+   - Deletes pending request
+   
+   POST /user/api/cancel-friend-request (sender_email, receiver_email)
+   - Cancels sent pending request
+   
+   POST /user/api/remove-friend (user_email, friend_email)
+   - Removes accepted friendship
+   
+   GET /user/api/friends (email: str)
+   - Returns: {"friends": [email_list]}
+   - Only accepted friendships
+   
+   GET /user/api/pending-requests (email: str)
+   - Returns: {"requests": [requester_emails]}
+   - Ordered by requested_at DESC
+   
+   GET /user/api/friend-status (email, friend_email)
+   - Returns: {"status": "none/pending/accepted/blocked"}
+   
+   GET /user/api/search-users (query: str, email: str)
+   - Searches by email or name
+   - Minimum 2 characters required
+   - Limits to 10 results
+   - Returns: email, name, level, status
+   - Excludes self from results
+   
+   GET /user/api/all-users (email: str)
+   - Returns: all users except self
+   - Sorted by name
+   - Includes friendship status
+   
+   GET /user/friends (email: str)
+   - Returns: user_friends.html
+   - Shows friend list, pending requests, search
+
+7. MESSAGING SYSTEM
+   POST /user/api/send-message (sender_email, receiver_email, message_text)
+   - Validates: users are friends (accepted status)
+   - Stores message with is_read=0
+   - Requires friendship to send message
+   
+   GET /user/api/messages (email, friend_email)
+   - Returns: all messages between two users
+   - Respects chat_clear_history (only shows messages after clear time)
+   - Marks received messages as is_read=1
+   - Formats time as "HH:MM AM/PM"
+   
+   GET /user/api/new-messages (email, friend_email, last_timestamp)
+   - Returns: only messages since last_timestamp
+   - For incremental message loading
+   
+   POST /user/api/clear-messages (user_email, friend_email)
+   - Clears chat history for user (other user keeps their history)
+   - Uses ON CONFLICT clause to update if record exists
+   
+   GET /user/api/unread-count (email, friend_email)
+   - Returns: {"unread_count": number}
+   - Counts messages from friend_email that are unread
+   
+   GET /user/api/all-unread-counts (email: str)
+   - Returns: {"unread_counts": {friend_email: count, ...}}
+   - Only includes friends with unread messages
+
+8. ADMIN PANEL
+   GET /admin/login
+   - Returns: admin_login.html
+   
+   POST /admin/login (email, password)
+   - Authenticates admin
+   - Redirects to /admin/dashboard on success
+   - Error queries: ?error=invalid_email or invalid_password
+   
+   GET /admin/dashboard
+   - Returns: admin_dashboard.html
+   
+   GET /admin/reset_password (email: str)
+   - Returns: admin_reset_password.html with email pre-filled
+   
+   POST /admin/reset_password (email, new_password, confirm_password)
+   - Validates: passwords match
+   - Updates admin password
+   
+   GET /admin/forgot_password
+   - Returns: admin_forgot_password.html
+   
+   POST /admin/forgot_password (email)
+   - Redirects to /admin/reset_password?email=<email>
+
+9. ADMIN ANALYTICS & MANAGEMENT
+   GET /admin/tutorials/list - Lists all tutorials
+   GET /admin/users - Admin user management page
+   GET /admin/challenges - Manage challenges
+   GET /admin/quizzes - Manage quizzes
+   GET /admin/analytics - Analytics dashboard
+   GET /admin/leaderboard - Leaderboard management
+   GET /admin/notifications - Notification management
+   GET /admin/sandbox - Testing/sandbox environment
+
+10. QUIZ SYSTEM
+    POST /admin/quizzes - Create new quiz
+    GET /admin/quizzes/list - List all quizzes
+    POST /user/quizzes/{quiz_id}/attempt - Start attempting quiz
+    GET /user/quizzes/api/published - Get published quizzes
+    
+    Database stores:
+    - Quiz metadata (title, category, difficulty, time_limit, passing_score)
+    - Questions with question_type = 'multiple_choice'
+    - Multiple options per question with is_correct flag
+    - User attempts with score, percentage, pass/fail
+    - Individual question answers tracking correctness
+
+11. LEADERBOARD & RANKING
+    GET /user/leaderboard
+    - Returns: user_leaderboard.html
+    - Shows global ranking based on XP and level
+    
+    RANKING LOGIC:
+    - Primary sort: xp DESC
+    - Secondary sort: level DESC
+    - Recalculated on: login, tutorial completion, challenge completion
+    - Updates both: users.global_rank and ranking table
+    
+    UPDATE FUNCTIONS:
+    - update_global_ranks() - Called on major events
+    - update_ranks() - Legacy function
+    - sync_ranking_table() - Syncs users without scores
+
+12. NOTIFICATIONS
+    GET /user/api/notifications (email: str)
+    - Returns: notifications with target IN (all, user)
+    - Limited to last 10
+    - Returns: title, message, created_at
+
+
+================================================================================
+                    DOCKER CONTAINER MANAGEMENT
+================================================================================
+
+FILE: backend/docker_manager.py (~300+ lines)
+
+PURPOSE: Orchestrate Docker containers for challenge applications
+LANGUAGE: Python 3.9+
+KEY FEATURE: Handles starting, stopping, monitoring challenge containers
+
+CRITICAL FUNCTIONALITY:
+
+1. PORT ALLOCATION
+   - Uses port range: 16000-18000 (shifted high to avoid TIME_WAIT conflicts)
+   - Allocates TWO consecutive ports per challenge
+   - Checks port availability using socket binding
+   - Implements port tracking cache: _container_ports dict
+   - Exponential backoff for port reservation
+
+2. CONTAINER LIFECYCLE MANAGEMENT
+   start_container(docker_image, challenge_id, user_id, is_preview=False)
+   - Initializes Docker client
+   - Gets available port pair
+   - Cleans up existing containers (docker rm -f)
+   - Special cleanup for preview containers
+   - Determines exposed ports from image metadata
+   - Builds port mapping (5000/tcp → host_port, 8000/tcp → host_port_alt)
+   - Runs container via CLI: docker run -d -p 127.0.0.1:PORT:CONTAINERPORT
+   - Maps ONLY to 127.0.0.1 (localhost) for security
+   - Health check: waits up to 15 seconds for port to respond
+   - Returns: {"success": true, "container_id": id, "container_name": name, "port": port}
+
+3. DOCKER CLIENT MANAGEMENT
+   _get_docker_client()
+   - Lazy initialization pattern
+   - Connects to Docker daemon via socket
+   - Fallback handling if daemon unavailable
+   
+   _initialize_client()
+   - Attempts client.from_env()
+   - Calls client.ping() to verify
+   - Graceful failure if daemon not running
+
+4. HEALTH CHECKS
+   - Socket-based connectivity check
+   - Timeout: 0.5 seconds per attempt
+   - Retries: 15 attempts (7.5 seconds total)
+   - Verifies container is responsive before returning success
+
+5. ERROR HANDLING
+   - Catches OperationalError for lock handling
+   - Returns structured error responses
+   - Logs all major operations to stdout
+
+
+================================================================================
+                       CHALLENGE APPLICATIONS
+================================================================================
+
+All challenge applications are Flask-based vulnerable web apps designed for 
+educational purposes to demonstrate security flaws.
+
+1. BRUTE-FORCE CHALLENGE
+   Location: challenges/brute-force/
+   Port: 5000 (via Docker mapping)
+   
+   Vulnerability: No rate limiting, no lockout mechanism
+   Files:
+   - app.py: Flask application
+   - Dockerfile: Python 3.9-slim base, port 5000
+   - requirements.txt: flask
+   - templates/login.html: Login form
+   - templates/dashboard.html: Success page
+   
+   Target Credentials:
+   - Username: "admin"
+   - Password: "111"
+   
+   Endpoints:
+   - GET /: Login form
+   - POST /: Submit username/password
+   - GET /dashboard: Success page (after login)
+   - GET /logout: Clear session
+
+2. COMMAND-INJECTION CHALLENGE
+   Location: challenges/command-injection/
+   Port: 5000
+   
+   Vulnerability: shell=True with direct user input in subprocess
+   Flaw: subprocess.check_output(f"ping -c 4 {ip_address}", shell=True)
+   
+   Endpoints:
+   - GET /: Form requesting host IP
+   - POST /: Executes "ping -c 4 {user_input}" via shell
+   - GET /flag: Hidden flag endpoint returns FLAG{C0MM4ND_INJ3CT10N_W1Z4RD_2026}
+   
+   Attack Vector: Inject shell commands via IP input field
+
+3. CSRF-CHALLENGE (Cross-Site Request Forgery)
+   Location: challenges/csrf-challenge/
+   Port: 5000
+   
+   Vulnerability: No CSRF protection, session-based auth without tokens
+   
+   Initial Balances:
+   - admin: $1000
+   - victim: $5000
+   
+   Endpoints:
+   - GET /: Dashboard showing user balance and transactions
+   - POST /transfer: Vulnerable transfer endpoint (no CSRF token)
+     * Parameters: to (recipient), amount (integer)
+     * Logic: deducts from sender, adds to recipient
+     * History: logged in transactions list
+   - GET /flag: Returns flag if admin balance > $2000
+     * Flag: FLAG{CSRF_B4NK_HACK_2026}
+     * Need to steal $1000+ from victim to admin via CSRF
+   - GET /attacker: Attacker page (likely contains CSRF form)
+   - GET /reset: Resets balances and transactions
+   - GET /logout: Clear session
+
+4. FILE-UPLOAD-VULNERABILITY
+   Location: challenges/file-upload-vulnerability/
+   Port: 5009
+   
+   Vulnerability: No file type/extension validation, arbitrary code execution
+   
+   Endpoints:
+   - GET /: File upload form
+   - POST /upload: Uploads file to /uploads directory
+     * No MIME type checking
+     * Accepts any extension
+     * If .py file: executes it via subprocess.run(['python', file_path])
+     * Returns output to user
+   - GET /uploads/<filename>: Download uploaded file
+   - Creates: /uploads/flag.txt with FLAG{INSECURE_F1L3_UPLOAD_2026}
+
+5. IDOR-CHALLENGE (Insecure Direct Object Reference)
+   Location: challenges/idor-challenge/
+   Port: 5004
+   
+   Vulnerability: Direct object reference to admin user without authorization
+   
+   Mock Users Database:
+   - User ID "9": alice_w (UX Designer) - Regular user
+   - User ID "2": bob_s (Systems Analyst) - Regular user
+   - User ID "30": admin_master (System Administrator) - ADMIN
+   - User ID "4": charlie_d (DevOps Engineer) - Regular user
+   
+   Each user has:
+   - username, full_name, role, email, bio
+   - joined, last_login, privacy_token
+   - is_admin flag
+   
+   Admin User (ID 30):
+   - privacy_token: FLAG{IDOR_SYSTEM_BR3ACH_2026}
+   - Can be accessed via /profile/30
+   
+   Endpoints:
+   - GET /: Redirects to /profile/9 (logged in as alice_w)
+   - GET /profile/<user_id>: Returns profile.html with user data
+   - GET /api/v1/health: Health check endpoint
+
+6. LFI-CHALLENGE (Local File Inclusion)
+   Location: challenges/lfi-challenge/
+   Port: 5006
+   
+   Vulnerability: Path traversal in file reading
+   
+   Endpoints:
+   - GET /?page=<filename>: Reads file from pages directory or absolute path
+     * If page starts with '/': uses as absolute path
+     * Otherwise: joins with /pages directory
+     * os.path.join with absolute path discards first argument
+   - Special handling: If 'etc/flag.txt' detected, returns FLAG{LFI_D0C_EXF1LTRATION_2026}
+   - GET /flag: Hint that flag is in /etc/flag.txt
+   
+   Create pages directory with:
+   - home.html: Welcome page
+   - about.html: About page
+
+7. SQL-INJECTION CHALLENGE
+   Location: challenges/sql injection/
+   Port: 5001
+   
+   Vulnerability: Direct SQL query string concatenation
+   
+   Database: SQLite (users.db)
+   Pre-populated users:
+   - admin / admin123
+   - user / user123
+   - jsmith / pass123
+   
+   Vulnerable Code:
+   sql_query = f"SELECT * FROM users WHERE username = '{username}' AND password = '{password}'"
+   cursor.execute(sql_query)  # VULNERABLE!
+   
+   Endpoints:
+   - GET /: Index page
+   - GET /vulnerable-login: Login form showing SQL query
+   - POST /vulnerable-login: Executes vulnerable SQL
+     * Success: redirects to /bank-account
+     * Returns: message with SQL_injection_M4st3r_2026
+   - GET /bank-account: Shows success page with flag
+   - GET /secure-login: (Secure version for comparison)
+   
+   Docker Compose: Runs on port 5001
+   Environment: FLASK_ENV=production
+
+8. SSTI-CHALLENGE (Server-Side Template Injection)
+   Location: challenges/ssti-challenge/
+   Port: 5008
+   
+   Vulnerability: Unsafe render_template_string with user input
+   
+   Vulnerable Code:
+   template = f"Hello {name}, welcome to our secure server!"
+   render_template_string(template)  # VULNERABLE!
+   
+   Endpoints:
+   - GET /: Index form
+   - POST /: Takes 'name' parameter and renders in template
+     * Vulnerable to Jinja2 template injection
+     * Example: {{7*7}} would execute
+   - GET /flag-location: Hint that FLAG is in APP_FLAG environment variable
+   
+   Debug: app.run(debug=True, use_reloader=False)
+
+9. XSS-CHALLENGE (Cross-Site Scripting)
+   Location: challenges/xss-challenge/
+   Port: 5002
+   
+   Vulnerability: Stored XSS - user input stored and displayed without sanitization
+   
+   Initial Comments (in-memory):
+   - Admin: "Welcome to the guestbook!"
+   - System: "Please be respectful in your comments."
+   
+   Endpoints:
+   - GET /: Index page showing comments
+   - POST /comment: Adds user comment
+     * Takes 'comment' parameter from form
+     * Stores in-memory in comments list
+     * Checks for "<script>alert" (weak detection)
+   - GET /secret-admin-page: Returns FLAG{XSS_ST0R3D_VULN_2026}
+   
+   Vulnerability: Comments are rendered in HTML without escaping
+   Attack: Submit <script>alert('XSS')</script> as comment
+
+
+================================================================================
+                         FRONTEND STRUCTURE
+================================================================================
+
+PRIMARY USER PAGES:
+
+1. index.html - Landing page
+2. user_login.html - User login (dark theme, cyan accent)
+3. user_register.html - Registration form
+4. user_dashboard.html - Main dashboard after login
+   - Shows: username, email, level, XP, challenges_solved, rank
+   - Template replacements: {{USERNAME}}, {{EMAIL}}, {{LEVEL}}, {{XP}}, {{CHALLENGES}}, {{RANK}}
+
+5. user_profile.html - User profile with avatar
+   - Uses DiceBear API for avatars: https://api.dicebear.com/7.x/avataaars/
+   - Avatar seed based on user selection (avatar1-avatar10)
+   - Shows stats and achievement information
+
+6. edit_profile.html - Edit name, email, avatar
+   - Pre-fills current values
+   - Avatar selector: 10 options
+
+7. change_password.html - Change user password
+
+8. user_challenges.html - List of available challenges
+9. user_challenge_preview.html - Challenge details before starting
+10. user_challenge_attempt.html - Active challenge interface
+11. user_attempt_history.html - User's challenge attempt log
+
+12. tutorials.html - Tutorial listing and discovery
+13. user_tutorial_view.html - Tutorial content viewer
+    - Supports: text content, knowledge blocks, images
+    - Tracks: progress percentage, completion status
+    - Shows: hints, answers, class navigation
+
+14. user_saved_tutorials.html - User's saved/bookmarked tutorials
+
+15. user_quizzes.html - List of available quizzes
+16. user_quiz_take.html - Quiz interface
+    - Multiple choice questions
+    - Progress tracking
+    - Score calculation
+
+17. user_daily_challenges.html - Daily challenge feature
+
+18. progress_graph.html - User progress visualization
+
+19. user_friends.html - Friend management interface
+    - Add friends (search)
+    - Pending requests
+    - Friend list
+    - Remove friends
+
+20. user_leaderboard.html - Global ranking display
+    - Rank, username, level, XP, challenges_solved
+    - Sorting options
+
+ADMIN PAGES:
+
+1. admin_login.html - Admin authentication
+2. admin_dashboard.html - Admin control panel
+3. admin_users.html - User management (create, edit, delete, ban, lock)
+4. admin_challenges.html - Challenge management
+5. admin_quizzes.html - Quiz management
+6. admin_quiz_editor.html - Quiz creation/editing interface
+7. admin_tutorials.html - Tutorial management list
+8. admin_tutorial_content.html - Tutorial content editor
+9. admin_tutorial_preview.html - Preview rendered tutorial
+10. admin_create_notification.html - Create notification for users
+11. admin_notifications.html - Manage notifications
+12. admin_edit_notification.html - Edit existing notification
+13. admin_analytics.html - Platform analytics and statistics
+14. admin_leaderboard.html - Admin view of leaderboard
+15. admin_reset_password.html - Password reset for admins
+16. admin_sandbox.html - Testing environment
+
+LAYOUT COMPONENTS:
+
+- layout/sidebar.html - Navigation sidebar (admin/user specific)
+- layout/topbar.html - Top navigation bar with user menu
+
+STATIC ASSETS:
+
+- static/css/ - Stylesheets (likely dark theme matching user_login)
+- static/js/ - JavaScript logic
+- static/uploads/ - User-uploaded files during challenges
+
+
+================================================================================
+                        SECURITY VULNERABILITIES
+================================================================================
+
+CRITICAL ISSUES (Production should NEVER use this):
+
+1. PASSWORD STORAGE
+   - Passwords stored in PLAINTEXT in database
+   - NO hashing (bcrypt, argon2, scrypt, PBKDF2)
+   - Risk: Complete compromise if database is stolen
+   
+2. ADMIN CREDENTIALS BYPASS
+   - Email-based differentiation between admin and user tables
+   - No salt/hashing on admin passwords
+   - Direct plaintext comparison
+   
+3. NO CSRF PROTECTION
+   - FastAPI endpoints don't require CSRF tokens
+   - User deletion, profile changes vulnerable
+   - Challenge endpoints could be CSRF'd
+   
+4. SQL INJECTION IN APPLICATION
+   - While backend uses parameterized queries (some)
+   - Challenge applications intentionally vulnerable
+   - Production code uses exec/string formatting in some areas
+   
+5. GEMINI API KEY HARDCODED
+   - API key visible in public code
+   - Should be environment variable
+   - Key: AIzaSyBxnzCyvlkmT8cvpHVLuW_6XSwlVT5vdzI
+   
+6. NO INPUT VALIDATION
+   - Email format not validated
+   - Passwords accepted as-is
+   - No complexity requirements
+   
+7. DOCKER SECURITY
+   - Containers map to localhost (127.0.0.1) - good
+   - But no resource limits (CPU, memory, disk)
+   - Containers could be exploited for host access
+   
+8. SESSION MANAGEMENT
+   - Sessions not explicitly managed in FastAPI
+   - HTML form-based navigation without tokens
+   
+9. RATE LIMITING
+   - No rate limiting on login attempts
+   - No account lockout after failed attempts
+   - Brute force possible
+   
+10. INFORMATION DISCLOSURE
+    - Debug endpoints exposed (/debug)
+    - Detailed error messages not sanitized
+    - SQL errors could leak query structure
+
+
+================================================================================
+                      GEMINI API INTEGRATION
+================================================================================
+
+API Key: AIzaSyBxnzCyvlkmT8cvpHVLuW_6XSwlVT5vdzI
+Model: gemini-2.5-flash
+Library: httpx (async HTTP client)
+
+Current Usage: Unclear from code review
+Probable Features:
+- AI-powered hints for challenges
+- Tutorial content generation
+- Quiz question generation
+- User assistance/tutoring
+- Code review for submitted solutions
+
+
+================================================================================
+                    DEVELOPMENT & EXECUTION
+================================================================================
+
+RUNNING THE PROJECT:
+
+1. Backend (FastAPI):
+   Command: python backend/main.py
+   Port: 8000 (default)
+   Alternative: uvicorn backend.main:app --reload
+   
+   Task Available: "Run FastAPI Server"
+   - Command: python backend/main.py
+   - From venv: C:/Users/loq/OneDrive/Desktop/ET/ethical hacking - continue/venv/Scripts/python.exe
+
+2. Docker Setup:
+   - Installs: pip install docker==7.0.0
+   - Manages containers for challenges
+   - Port range: 16000-18000
+
+3. Database Initialization:
+   - Automatic on app startup
+   - Creates all tables if not exist
+   - Migration: ALTER TABLE for new columns
+
+4. Challenge Applications:
+   Each runs as separate Flask app in Docker container
+   - Individual Dockerfiles with Python 3.9-slim
+   - Port binding managed by docker_manager.py
+   - Exposed ports: 5000, 5001, 5002, 5004, 5006, 5008, 5009
+
+DEPENDENCIES:
+- Python 3.9+
+- FastAPI, Uvicorn, Flask
+- Docker daemon running
+- SQLite (embedded)
+- httpx, markdown, python-multipart
+
+
+================================================================================
+                        PROJECT FEATURES SUMMARY
+================================================================================
+
+CORE FEATURES:
+✓ User registration and authentication
+✓ User profiles with avatars (DiceBear API)
+✓ Challenge system with Docker containers
+✓ Tutorial system with classes and blocks
+✓ Quiz system with scoring
+✓ Leaderboard and global ranking
+✓ Friend system with requests and acceptance
+✓ Messaging system between friends
+✓ Admin panel for content management
+✓ Notification system
+✓ Login history tracking
+✓ User activity logging
+✓ Analytics and statistics
+✓ Achievement/badge system (implicit via levels)
+✓ Challenge completion tracking
+✓ Tutorial progress saving
+
+EDUCATIONAL CONTENT:
+✓ 9 different security vulnerabilities demonstrated:
+  1. Brute Force Attacks
+  2. Command Injection
+  3. CSRF (Cross-Site Request Forgery)
+  4. Insecure File Upload
+  5. IDOR (Insecure Direct Object Reference)
+  6. LFI (Local File Inclusion)
+  7. SQL Injection
+  8. SSTI (Server-Side Template Injection)
+  9. XSS (Cross-Site Scripting)
+
+✓ Interactive tutorials with:
+  - Text blocks
+  - Knowledge checkpoints (Q&A)
+  - Image demonstrations
+  - Progress tracking
+  - Completion rewards
+
+✓ Quiz system with:
+  - Multiple choice questions
+  - Scoring and passing grades
+  - Time limits
+  - Attempt history
+
+
+================================================================================
+                        NOTABLE IMPLEMENTATION DETAILS
+================================================================================
+
+1. RANKING SYSTEM
+   - Calculated on user login
+   - Recalculated on tutorial completion
+   - Recalculated on challenge completion
+   - Primary sort: XP descending
+   - Secondary sort: Level descending
+
+2. AVATAR SYSTEM
+   Uses DiceBear Avataaars API
+   - 10 avatar options selectable
+   - Server generates: <img src="https://api.dicebear.com/7.x/avataaars/svg?seed={seed}&scale=85">
+   - Seed mapped from avatar selection
+   - Fallback: (fallback ASCII)
+
+3. TUTORIAL COMPLETION
+   - Sets progress=100 AND completed=1
+   - Awards 1 level increment
+   - Adds points to user XP
+   - Only on FIRST completion (not re-completions)
+   - Debugging logs all state changes
+
+4. PORT ALLOCATION
+   - Dynamic port assignment for each challenge instance
+   - Two consecutive ports per challenge
+   - Availability check before use
+   - Fallback handling for conflicts
+
+5. MESSAGE TRACKING
+   - Messages marked as read (is_read flag)
+   - Chat history can be cleared per friend
+   - Timestamps recorded
+   - Both users keep separate clear history
+
+6. TRANSACTION HANDLING
+   - BEGIN/COMMIT/ROLLBACK for data consistency
+   - Deferred isolation level for concurrency
+   - Database locks handled with exponential backoff
+
+
+================================================================================
+                          STATISTICS & METRICS
+================================================================================
+
+Lines of Code:
+- backend/main.py: 2500+ lines
+- backend/docker_manager.py: 300+ lines
+- Challenge apps: ~50-100 lines each
+- Total: ~3500+ lines
+
+Database Tables: 27 total
+- User/Auth: 2
+- Security: 2
+- Social: 4
+- Learning: 8
+- Challenges: 3
+- Quizzes: 5
+- Admin: 1
+- Notifications: 1
+- Ranking: 1
+
+API Endpoints: 100+ total
+- Admin endpoints: 20+
+- User endpoints: 40+
+- API endpoints: 40+
+
+UI Pages:
+- User pages: 20
+- Admin pages: 16
+- Total HTML files: 40+
+
+Challenge Applications: 9
+- Each with custom Dockerfile
+- Each with Flask app
+- Each with templates
+- Each with different vulnerability
+
+================================================================================
+                        PROJECT DEPLOYMENT NOTES
+================================================================================
+
+PRODUCTION CONSIDERATIONS (Currently UNSAFE):
+
+1. Must hash passwords (bcrypt minimum)
+2. Must remove hardcoded API keys
+3. Must implement CSRF protection
+4. Must implement rate limiting
+5. Must use HTTPS/TLS
+6. Must validate all inputs strictly
+7. Must sanitize HTML output
+8. Must implement proper session management
+9. Must add request logging and monitoring
+10. Must set up proper error handling (don't expose internals)
+
+DOCKER SECURITY:
+- Containers run on localhost only (good)
+- Need: Resource limits, restart policies
+- Consider: Running as non-root user
+
+DATABASE:
+- SQLite suitable for learning, not production
+- Production: PostgreSQL or MySQL recommended
+- Need: Database backups, WAL mode
+- Consider: Connection pooling
+
+DEPLOYMENT OPTIONS:
+- Local: uvicorn main:app --reload
+- Docker: Dockerfile for entire application
+- Cloud: Could deploy to AWS/GCP/Azure with containerization
+- Scaling: Load balancer would be needed for multiple instances
+
+
+================================================================================
+                            CONCLUSION
+================================================================================
+
+This is a comprehensive ethical hacking learning platform with:
+
+✓ Robust backend infrastructure
+✓ Modern FastAPI framework
+✓ Docker-based challenge isolation
+✓ Rich UI with 40+ pages
+✓ Complete learning management system
+✓ Social and competitive features
+✓ Admin content management
+✓ Detailed activity tracking
+
+DESIGNATED FOR: Educational purposes in controlled environments
+NOT FOR: Production use without security hardening
+SUITABLE FOR: Computer science courses, cybersecurity training, CTF practice
+
+The platform successfully demonstrates multiple web vulnerabilities in isolated
+Docker containers while providing a complete learning experience with tutorials,
+quizzes, challenges, and community features through a professional web interface.
+
+================================================================================
+Report Generated: March 13, 2026
+Prepared for: Project Analysis and Documentation
+Total Documentation Length: Comprehensive (this file)
+================================================================================

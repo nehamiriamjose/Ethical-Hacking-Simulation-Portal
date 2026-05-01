@@ -1,0 +1,2024 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Friends Network</title>
+
+  <!-- GLOBAL -->
+  <link rel="stylesheet" href="/static/css/base.css">
+  <link rel="stylesheet" href="/static/css/dashboard.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    /* ================= MAIN LAYOUT ================= */
+    .friends-main-container {
+      display: grid;
+      grid-template-columns: 350px 1fr;
+      gap: 25px;
+      height: calc(100vh - 180px);
+      margin-top: 20px;
+    }
+
+    /* ================= SIDEBAR (FRIENDS LIST) ================= */
+    .friends-sidebar {
+      background: linear-gradient(180deg, rgba(20, 241, 178, 0.05), rgba(0, 229, 255, 0.05));
+      border: 2px solid rgba(20, 241, 178, 0.2);
+      border-radius: 15px;
+      padding: 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sidebar-title {
+      color: #14f1b2;
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .friend-item-sidebar {
+      padding: 12px 15px;
+      background: rgba(0, 0, 0, 0.3);
+      border: 2px solid transparent;
+      border-radius: 10px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      position: relative;
+    }
+
+    .friend-item-sidebar:hover {
+      background: rgba(20, 241, 178, 0.1);
+      border-color: #14f1b2;
+      transform: translateX(5px);
+    }
+
+    .friend-item-sidebar.active {
+      background: rgba(20, 241, 178, 0.2);
+      border-color: #14f1b2;
+    }
+
+    .unread-badge {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: linear-gradient(135deg, #ff4757, #ee5a6f);
+      color: white;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: bold;
+      box-shadow: 0 2px 8px rgba(255, 71, 87, 0.4);
+    }
+
+    .friend-avatar {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #14f1b2, #00e5ff);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #000;
+      font-weight: 700;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    .friend-sidebar-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .friend-sidebar-name {
+      color: #fff;
+      font-weight: 600;
+      font-size: 14px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .friend-sidebar-email {
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 12px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .no-friends-message {
+      color: rgba(255, 255, 255, 0.6);
+      text-align: center;
+      padding: 40px 20px;
+      font-size: 14px;
+    }
+
+    /* ================= MAIN CONTENT AREA ================= */
+    .friends-content {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      position: relative;
+      min-height: 650px;
+    }
+
+    .content-wrapper {
+      position: relative;
+      flex: 1;
+      min-height: 550px;
+    }
+
+    .friends-card {
+      background: linear-gradient(135deg, rgba(20, 241, 178, 0.08), rgba(0, 229, 255, 0.08));
+      border: 2px solid rgba(20, 241, 178, 0.3);
+      border-radius: 15px;
+      padding: 25px;
+      animation: slideDown 0.3s ease-out;
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid rgba(20, 241, 178, 0.2);
+    }
+
+    .card-header h3 {
+      font-size: 18px;
+      color: #14f1b2;
+      margin: 0;
+      flex: 1;
+    }
+
+    .card-badge {
+      background: rgba(20, 241, 178, 0.2);
+      color: #14f1b2;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    /* ================= TABS SECTION ================= */
+    .tabs-section {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 25px;
+      border-bottom: 2px solid rgba(20, 241, 178, 0.2);
+    }
+
+    .tab-btn {
+      padding: 12px 20px;
+      background: transparent;
+      color: rgba(255, 255, 255, 0.7);
+      border: none;
+      border-bottom: 3px solid transparent;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .tab-btn:hover {
+      color: #14f1b2;
+    }
+
+    .tab-btn.active {
+      color: #14f1b2;
+      border-bottom-color: #14f1b2;
+    }
+
+    .tab-content {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      opacity: 0;
+      pointer-events: none;
+      animation: slideOut 0.4s ease-out forwards;
+    }
+
+    .tab-content.active {
+      opacity: 1;
+      pointer-events: auto;
+      animation: slideIn 0.4s ease-out forwards;
+    }
+
+    @keyframes slideOut {
+      from {
+        opacity: 1;
+        transform: translateX(0);
+      }
+
+      to {
+        opacity: 0;
+        transform: translateX(-40px);
+      }
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateX(-40px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    /* ================= SEARCH SECTION ================= */
+    .search-section {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .search-input {
+      flex: 1;
+      padding: 12px 15px;
+      border: 2px solid rgba(20, 241, 178, 0.3);
+      background: rgba(0, 0, 0, 0.3);
+      color: #fff;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+
+    .search-input::placeholder {
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: #14f1b2;
+      box-shadow: 0 0 15px rgba(20, 241, 178, 0.3);
+    }
+
+    .primary-btn {
+      padding: 12px 24px;
+      background: linear-gradient(135deg, #14f1b2, #00e5cd);
+      color: #000;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .primary-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(20, 241, 178, 0.4);
+    }
+
+    .primary-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* ================= RESULT ITEMS ================= */
+    .result-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 10px;
+      margin-bottom: 10px;
+      border-left: 4px solid #2196f3;
+      transition: all 0.3s ease;
+    }
+
+    .result-item:hover {
+      background: rgba(0, 0, 0, 0.3);
+      transform: translateX(5px);
+    }
+
+    .result-info {
+      flex: 1;
+    }
+
+    .result-email {
+      color: #fff;
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+
+    .result-meta {
+      display: flex;
+      gap: 15px;
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    .action-btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      white-space: nowrap;
+    }
+
+    .action-btn.add {
+      background: #14f1b2;
+      color: #000;
+    }
+
+    .action-btn.add:hover {
+      transform: scale(1.05);
+      box-shadow: 0 3px 10px rgba(20, 241, 178, 0.4);
+    }
+
+    .action-btn.pending,
+    .action-btn.friends {
+      background: rgba(255, 193, 7, 0.2);
+      color: #ffc107;
+      cursor: default;
+    }
+
+    .action-btn.accept {
+      background: #4caf50;
+      color: #fff;
+    }
+
+    .action-btn.accept:hover {
+      background: #45a049;
+      transform: scale(1.05);
+    }
+
+    .action-btn.reject {
+      background: #f44336;
+      color: #fff;
+    }
+
+    .action-btn.reject:hover {
+      background: #da190b;
+      transform: scale(1.05);
+    }
+
+    .action-btn.remove {
+      background: #ff6b6b;
+      color: #fff;
+    }
+
+    .action-btn.remove:hover {
+      background: #ff5252;
+      transform: scale(1.05);
+    }
+
+    .no-results {
+      text-align: center;
+      padding: 30px;
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    /* ================= CHAT SECTION ================= */
+    #friendsChatContainer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      opacity: 0;
+      pointer-events: none;
+      animation: chatSlideOut 0.4s ease-out forwards;
+    }
+
+    #friendsChatContainer.active {
+      opacity: 1;
+      pointer-events: auto;
+      animation: chatSlideIn 0.4s ease-out forwards;
+    }
+
+    @keyframes chatSlideOut {
+      from {
+        opacity: 1;
+        transform: translateX(0);
+      }
+
+      to {
+        opacity: 0;
+        transform: translateX(40px);
+      }
+    }
+
+    @keyframes chatSlideIn {
+      from {
+        opacity: 0;
+        transform: translateX(40px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    .chat-container {
+      background: linear-gradient(135deg, rgba(20, 241, 178, 0.08), rgba(0, 229, 255, 0.08));
+      border: 2px solid rgba(20, 241, 178, 0.3);
+      border-radius: 15px;
+      display: flex;
+      flex-direction: column;
+      height: 600px;
+      width: 100%;
+      max-width: 1000px;
+    }
+
+    .chat-header {
+      padding: 20px;
+      border-bottom: 2px solid rgba(20, 241, 178, 0.3);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+
+    .chat-header-avatar {
+      width: 50px;
+      height: 50px;
+      background: linear-gradient(135deg, #14f1b2, #00e5ff);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #000;
+      font-weight: 700;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    .chat-header-info {
+      flex: 1;
+    }
+
+    .chat-header-name {
+      color: #14f1b2;
+      font-weight: 700;
+      font-size: 16px;
+    }
+
+    .chat-header-status {
+      color: rgba(255, 255, 255, 0.6);
+      font-size: 12px;
+    }
+
+    .chat-messages {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      min-height: 0;
+    }
+
+    .message {
+      padding: 12px 16px;
+      border-radius: 10px;
+      max-width: 70%;
+      word-wrap: break-word;
+      font-size: 14px;
+      animation: messageSlideIn 0.3s ease;
+      flex-shrink: 0;
+    }
+
+    @keyframes messageSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .message.sent {
+      background: linear-gradient(135deg, #14f1b2, #00e5cd);
+      color: #000;
+      align-self: flex-end;
+      border-bottom-right-radius: 3px;
+    }
+
+    .message.received {
+      background: rgba(0, 0, 0, 0.4);
+      color: #fff;
+      align-self: flex-start;
+      border-bottom-left-radius: 3px;
+    }
+
+    .message-timestamp {
+      font-size: 11px;
+      opacity: 0.7;
+      margin-top: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      justify-content: space-between;
+    }
+
+    .message.sent .message-timestamp {
+      text-align: right;
+    }
+
+    .read-status {
+      font-size: 12px;
+      font-weight: bold;
+      color: #14f1b2;
+    }
+
+    .read-status.unread {
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    /* ================= CHAT MENU ================= */
+    .chat-menu-container {
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .chat-menu-btn {
+      background: transparent;
+      border: none;
+      color: #14f1b2;
+      cursor: pointer;
+      padding: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+      border-radius: 6px;
+    }
+
+    .chat-menu-btn:hover {
+      background: rgba(20, 241, 178, 0.1);
+      color: #00e5ff;
+    }
+
+    .chat-menu-dropdown {
+      position: absolute;
+      top: 100%;
+      right: 0;
+      background: linear-gradient(135deg, rgba(5, 7, 11, 0.95), rgba(2, 4, 9, 0.95));
+      border: 2px solid rgba(20, 241, 178, 0.3);
+      border-radius: 10px;
+      min-width: 150px;
+      display: none;
+      flex-direction: column;
+      z-index: 1000;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+      margin-top: 8px;
+    }
+
+    .chat-menu-dropdown.active {
+      display: flex;
+    }
+
+    .chat-menu-item {
+      padding: 12px 16px;
+      color: #fff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: all 0.2s ease;
+      border-bottom: 1px solid rgba(20, 241, 178, 0.1);
+    }
+
+    .chat-menu-item:last-child {
+      border-bottom: none;
+    }
+
+    .chat-menu-item:hover {
+      background: rgba(20, 241, 178, 0.1);
+      color: #14f1b2;
+      padding-left: 20px;
+    }
+
+    .chat-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: rgba(255, 255, 255, 0.5);
+      text-align: center;
+    }
+
+    .chat-input-area {
+      padding: 20px;
+      border-top: 2px solid rgba(20, 241, 178, 0.3);
+      display: flex;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    .chat-input {
+      flex: 1;
+      padding: 12px 15px;
+      border: 2px solid rgba(20, 241, 178, 0.3);
+      background: rgba(0, 0, 0, 0.3);
+      color: #fff;
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: inherit;
+    }
+
+    .chat-input::placeholder {
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    .chat-input:focus {
+      outline: none;
+      border-color: #14f1b2;
+      box-shadow: 0 0 15px rgba(20, 241, 178, 0.3);
+    }
+
+    .send-btn {
+      padding: 12px 24px;
+      background: linear-gradient(135deg, #14f1b2, #00e5cd);
+      color: #000;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .send-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(20, 241, 178, 0.4);
+    }
+
+    .send-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* ================= TOAST NOTIFICATION ================= */
+    .toast {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 16px 24px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 14px;
+      animation: slideInRight 0.4s ease, slideOutRight 0.4s ease 3.6s;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      z-index: 10000;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    }
+
+    .toast.success {
+      background: linear-gradient(135deg, #4caf50, #45a049);
+      color: #fff;
+      border-left: 4px solid #2e7d32;
+    }
+
+    .toast.success::before {
+      content: '✓';
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    .toast.info {
+      background: linear-gradient(135deg, #2196f3, #1976d2);
+      color: #fff;
+      border-left: 4px solid #1565c0;
+    }
+
+    .toast.info::before {
+      content: 'ℹ';
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    @keyframes slideInRight {
+      from {
+        opacity: 0;
+        transform: translateX(400px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    @keyframes slideOutRight {
+      from {
+        opacity: 1;
+        transform: translateX(0);
+      }
+
+      to {
+        opacity: 0;
+        transform: translateX(400px);
+      }
+    }
+
+    /* ================= NOTIFICATION BADGE ================= */
+    .notification-badge {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      background: linear-gradient(135deg, #ff4757, #ee5a6f);
+      color: white;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: bold;
+      box-shadow: 0 2px 8px rgba(255, 71, 87, 0.4);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        transform: scale(1);
+      }
+
+      50% {
+        transform: scale(1.1);
+      }
+    }
+
+    .pending-requests-tab {
+      position: relative;
+    }
+
+    /* ================= CONFIRM MODAL ================= */
+    .confirm-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 9999;
+    }
+
+    .confirm-modal.active {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .confirm-modal-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(4px);
+    }
+
+    .confirm-modal-content {
+      position: relative;
+      background: linear-gradient(135deg, rgba(5, 7, 11, 0.98), rgba(2, 4, 9, 0.98));
+      border: 2px solid rgba(20, 241, 178, 0.3);
+      border-radius: 15px;
+      width: 90%;
+      max-width: 400px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(20, 241, 178, 0.2);
+      animation: modalSlideIn 0.3s ease;
+      z-index: 10000;
+    }
+
+    @keyframes modalSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-30px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .confirm-modal-header {
+      padding: 24px;
+      border-bottom: 2px solid rgba(20, 241, 178, 0.2);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .confirm-modal-header h3 {
+      margin: 0;
+      color: #14f1b2;
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .modal-close-btn {
+      background: transparent;
+      border: none;
+      color: rgba(255, 255, 255, 0.6);
+      cursor: pointer;
+      padding: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      border-radius: 4px;
+    }
+
+    .modal-close-btn:hover {
+      color: #14f1b2;
+      background: rgba(20, 241, 178, 0.1);
+    }
+
+    .confirm-modal-body {
+      padding: 24px;
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    .confirm-modal-footer {
+      padding: 20px 24px;
+      border-top: 2px solid rgba(20, 241, 178, 0.2);
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+    }
+
+    .modal-btn-cancel {
+      padding: 10px 20px;
+      background: rgba(100, 100, 100, 0.2);
+      color: rgba(255, 255, 255, 0.8);
+      border: 2px solid rgba(100, 100, 100, 0.3);
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      transition: all 0.3s ease;
+    }
+
+    .modal-btn-cancel:hover {
+      background: rgba(100, 100, 100, 0.3);
+      border-color: rgba(100, 100, 100, 0.5);
+      transform: translateY(-2px);
+    }
+
+    .modal-btn-confirm {
+      padding: 10px 24px;
+      background: linear-gradient(135deg, #14f1b2, #00e5cd);
+      color: #000;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 14px;
+      transition: all 0.3s ease;
+    }
+
+    .modal-btn-confirm:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(20, 241, 178, 0.4);
+    }
+
+    .modal-btn-confirm:active {
+      transform: translateY(0);
+    }
+
+    /* ================= RESPONSIVE ================= */
+    @media (max-width: 1200px) {
+      .friends-main-container {
+        grid-template-columns: 300px 1fr;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .friends-main-container {
+        grid-template-columns: 1fr;
+        height: auto;
+      }
+
+      .friends-sidebar {
+        max-height: 300px;
+      }
+
+      .message {
+        max-width: 90%;
+      }
+    }
+  </style>
+</head>
+
+<body class="dashboard-body">
+
+  <!-- ================= SIDEBAR ================= -->
+  <aside class="sidebar">
+    <div class="brand">
+      <span class="shield">
+        <i data-lucide="shield"></i>
+      </span>
+      <div>
+        <h2>Hacker Portal</h2>
+        <p>Learn & Conquer</p>
+      </div>
+    </div>
+
+    <nav class="menu">
+      <a href="/user/dashboard?email={{EMAIL}}">
+        <i data-lucide="layout-grid"></i>
+        Dashboard
+      </a>
+
+      <a href="/user/tutorials?email={{EMAIL}}">
+        <i data-lucide="book-open"></i>
+        Tutorials
+      </a>
+
+      <a href="/user/tutorials/saved?email={{EMAIL}}">
+        <i data-lucide="star"></i>
+        Saved Tutorials
+      </a>
+
+      <a href="/user/challenges?email={{EMAIL}}">
+        <i data-lucide="target"></i>
+        Challenges
+      </a>
+
+      <a href="/user/quizzes?email={{EMAIL}}">
+        <i data-lucide="help-circle"></i>
+        Quizzes
+      </a>
+
+      <a href="/user/attempt-history?email={{EMAIL}}">
+        <i data-lucide="history"></i>
+        Attempt History
+      </a>
+
+      <a href="/user/leaderboard?email={{EMAIL}}">
+        <i data-lucide="trophy"></i>
+        Leaderboard
+      </a>
+
+      <a class="active" href="/user/friends?email={{EMAIL}}">
+        <i data-lucide="users"></i>
+        Friends
+      </a>
+
+      <a href="/user/progress?email={{EMAIL}}">
+        <i data-lucide="trending-up"></i>
+        Progress Graph
+      </a>
+
+      <a href="/user/profile?email={{EMAIL}}">
+        <i data-lucide="user"></i>
+        Profile
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <a class="logout" href="/">
+        <i data-lucide="log-out"></i>
+        Logout
+      </a>
+    </div>
+  </aside>
+
+  <!-- ================= MAIN ================= -->
+  <main class="dashboard-main">
+
+    <header class="topbar">
+      <h2>Friends Network</h2>
+      <div class="top-icons">
+        <div class="notif-wrapper">
+          <button id="notifBell" class="icon-btn" type="button">
+            <i data-lucide="bell"></i>
+          </button>
+          <div id="notifPanel" class="notif-panel">
+            <div class="notif-header">Notifications</div>
+            <div id="notifList" class="notif-list">
+              <!-- notifications will load here -->
+            </div>
+          </div>
+        </div>
+        <div class="profile-chip">
+          👤 {{USERNAME}} <small>Level {{LEVEL}}</small>
+        </div>
+      </div>
+    </header>
+
+    <section class="friends-main-container">
+
+      <!-- LEFT SIDEBAR: FRIENDS LIST -->
+      <div class="friends-sidebar">
+        <div class="sidebar-title">
+          <i data-lucide="heart" style="color: #14f1b2; width: 20px; height: 20px;"></i>
+          My Friends
+        </div>
+        <div id="friendsListContainer">
+          <div class="no-friends-message">No friends yet. Start by finding users to add!</div>
+        </div>
+      </div>
+
+      <!-- RIGHT MAIN CONTENT: TABS & CHAT -->
+      <div class="friends-content">
+
+        <!-- TAB NAVIGATION -->
+        <div
+          style="display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px;">
+          <button class="tab-button active" onclick="switchTab('find')"
+            style="padding: 10px 20px; background: none; border: none; cursor: pointer; font-size: 16px; color: #14f1b2; font-weight: 600; border-bottom: 3px solid #14f1b2; margin-bottom: -10px;">
+            🔍 Find Friends
+          </button>
+        </div>
+
+        <!-- CONTENT WRAPPER - Absolute positioned for swapping -->
+        <div class="content-wrapper">
+
+          <!-- FIND FRIENDS TAB -->
+          <div id="findFriendsTab" class="tab-content active">
+            <div class="friends-card">
+
+              <!-- INCOMING FRIEND REQUESTS SECTION -->
+              <div id="incomingRequestsSection"
+                style="display: none; margin-bottom: 30px; padding: 20px; background: linear-gradient(135deg, rgba(77, 208, 225, 0.15) 0%, rgba(100, 181, 246, 0.15) 100%); border-radius: 12px; border-left: 4px solid #4dd0e1;">
+                <div class="card-header" style="margin: 0 0 15px 0;">
+                  <h3 style="margin: 0; color: #4dd0e1;">📬 Incoming Friend Requests</h3>
+                  <div class="card-badge" id="incomingCount" style="background: #4dd0e1; color: #000;">0</div>
+                </div>
+                <div id="incomingRequestsList"></div>
+              </div>
+
+              <div class="card-header">
+                <h3>🔍 Find Friends</h3>
+                <div class="card-badge" id="searchResultsCount">0 Found</div>
+              </div>
+
+              <div class="search-section">
+                <input type="text" id="searchUsers" class="search-input"
+                  placeholder="Search by email or name... (min 2 characters)">
+                <button class="primary-btn" onclick="clearSearch()">Clear</button>
+              </div>
+
+              <div id="searchResults" style="display: none;">
+                <div id="searchResultsList"></div>
+              </div>
+
+              <div id="allUsersSection">
+                <h4 style="color: #14f1b2; margin-top: 30px; margin-bottom: 15px;">👥 All Users</h4>
+                <div id="allUsersList"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- CHAT CONTAINER (Shows when friend is clicked) -->
+          <div id="friendsChatContainer">
+            <div class="chat-container">
+              <div id="chatView" style="display: flex; flex-direction: column; height: 100%;">
+                <div class="chat-header">
+                  <button class="chat-back-btn" onclick="closeChatAndShowTabs()"
+                    style="background: none; border: none; color: #14f1b2; cursor: pointer; font-size: 20px; padding: 0; margin-right: 10px;">
+                    ←
+                  </button>
+                  <div class="chat-header-avatar" id="chatAvatar">J</div>
+                  <div class="chat-header-info">
+                    <div class="chat-header-name" id="chatFriendName">Friend Name</div>
+                    <div class="chat-header-status">Active now</div>
+                  </div>
+                  <div class="chat-menu-container">
+                    <button class="chat-menu-btn" onclick="toggleChatMenu()">
+                      <i data-lucide="more-vertical" style="width: 20px; height: 20px;"></i>
+                    </button>
+                    <div id="chatMenuDropdown" class="chat-menu-dropdown">
+                      <div class="chat-menu-item" onclick="unfollowFriend()">
+                        <i data-lucide="user-minus" style="width: 16px; height: 16px;"></i>
+                        Unfollow
+                      </div>
+                      <div class="chat-menu-item" onclick="clearChatMessages()">
+                        <i data-lucide="trash-2" style="width: 16px; height: 16px;"></i>
+                        Clear Chat
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="chat-messages" id="chatMessages">
+                  <div class="chat-empty">
+                    <i data-lucide="message-square"
+                      style="width: 60px; height: 60px; margin-bottom: 15px; opacity: 0.3;"></i>
+                    <p>Start a conversation!</p>
+                  </div>
+                </div>
+
+                <div class="chat-input-area">
+                  <input type="text" id="chatInput" class="chat-input" placeholder="Type your message...">
+                  <button class="send-btn" onclick="sendMessage()">
+                    <i data-lucide="send" style="width: 16px; height: 16px;"></i>
+                    Send
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div><!-- END content-wrapper -->
+
+      </div>
+
+    </section>
+
+    <!-- PROFESSIONAL MODAL -->
+    <div id="confirmModal" class="confirm-modal">
+      <div class="confirm-modal-content">
+        <div class="confirm-modal-header">
+          <h3 id="modalTitle">Confirm Action</h3>
+          <button class="modal-close-btn" onclick="closeConfirmModal()">
+            <i data-lucide="x" style="width: 20px; height: 20px;"></i>
+          </button>
+        </div>
+        <div class="confirm-modal-body">
+          <p id="modalMessage">Are you sure?</p>
+        </div>
+        <div class="confirm-modal-footer">
+          <button class="modal-btn-cancel" onclick="closeConfirmModal()">Cancel</button>
+          <button class="modal-btn-confirm" id="confirmButton" onclick="executeConfirmAction()">Confirm</button>
+        </div>
+      </div>
+      <div class="confirm-modal-overlay" onclick="closeConfirmModal()"></div>
+    </div>
+
+  </main>
+
+  <script>
+    lucide.createIcons();
+
+    const email = new URLSearchParams(window.location.search).get('email');
+    let currentChatFriend = null;
+    let messages = {}; // Store messages by friend email
+    let previousPendingCount = 0;
+    let notificationEnabled = true;
+    let lastActionTime = 0; // Track last button action to prevent overwriting
+    let messagePollingInterval = null;
+    let lastMessageTimestamp = {}; // Track last message timestamp per friend for polling
+
+    // ================= REAL-TIME NOTIFICATION POLLING =================
+    // Check for new friend requests every 3 seconds
+    function startNotificationPolling() {
+      setInterval(() => {
+        checkForNewRequests();
+      }, 3000);
+
+      // Initial check
+      checkForNewRequests();
+    }
+
+    // Check for new pending friend requests
+    function checkForNewRequests() {
+      fetch(`/user/api/pending-requests?email=${email}`)
+        .then(res => res.json())
+        .then(data => {
+          const currentCount = data.requests ? data.requests.length : 0;
+
+          // If new requests arrived
+          if (currentCount > previousPendingCount && notificationEnabled) {
+            const newRequestsCount = currentCount - previousPendingCount;
+            showNotificationToast(newRequestsCount, data.requests);
+            loadIncomingRequests(); // Update the incoming requests section
+          }
+
+          previousPendingCount = currentCount;
+          updatePendingBadge(currentCount);
+        })
+        .catch(err => console.error('Error checking pending requests:', err));
+    }
+
+    // Show Instagram-style notification toast
+    function showNotificationToast(count, requesters) {
+      const requesterName = requesters[requesters.length - 1]?.split('@')[0] || 'Someone';
+      const message = count === 1
+        ? `${requesterName} sent you a friend request! 👋`
+        : `You have ${count} new friend requests! 🎉`;
+
+      const notification = document.createElement('div');
+      notification.className = 'toast info';
+      notification.innerHTML = `
+      <div style="display: flex; align-items: center; gap: 10px; width: 100%;">
+        <i data-lucide="user-plus" style="width: 20px; height: 20px;"></i>
+        <span>${message}</span>
+      </div>
+    `;
+      document.body.appendChild(notification);
+      lucide.createIcons();
+
+      // Auto-remove after 5 seconds
+      setTimeout(() => {
+        notification.remove();
+      }, 5000);
+
+      // Play notification sound
+      playNotificationSound();
+    }
+
+    // Update the notification badge on the pending requests tab
+    function updatePendingBadge(count) {
+      const pendingCountEl = document.getElementById('pendingCount');
+      const badge = document.getElementById('notificationBadge');
+
+      if (count > 0) {
+        if (!badge) {
+          const tab = document.querySelector('.tab-label[data-tab="pendingRequestsTab"]');
+          if (tab) {
+            const newBadge = document.createElement('span');
+            newBadge.id = 'notificationBadge';
+            newBadge.className = 'notification-badge';
+            newBadge.textContent = count > 9 ? '9+' : count;
+            tab.style.position = 'relative';
+            tab.appendChild(newBadge);
+          }
+        } else {
+          badge.textContent = count > 9 ? '9+' : count;
+        }
+      } else if (badge) {
+        badge.remove();
+      }
+
+      pendingCountEl.textContent = count;
+    }
+
+    // Play a notification sound
+    function playNotificationSound() {
+      try {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+
+        oscillator.frequency.value = 800;
+        oscillator.type = 'sine';
+
+        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.1);
+      } catch (e) {
+        // Silently fail if audio context not available
+      }
+    }
+
+    // Tab switching
+    function switchTab(tabName) {
+      // Hide all tabs
+      document.getElementById('findFriendsTab').classList.remove('active');
+
+      // Update tab buttons styling
+      document.querySelectorAll('.tab-button').forEach(btn => {
+        btn.style.color = '#999';
+        btn.style.borderBottom = '3px solid transparent';
+      });
+
+      // Find the clicked button and highlight it
+      event.target.style.color = '#14f1b2';
+      event.target.style.borderBottom = '3px solid #14f1b2';
+
+      // Show selected tab
+      if (tabName === 'find') {
+        document.getElementById('findFriendsTab').classList.add('active');
+      }
+    }
+
+    // Search functionality
+    let searchTimeout;
+    document.getElementById('searchUsers').addEventListener('input', function (e) {
+      clearTimeout(searchTimeout);
+      const query = e.target.value.trim();
+
+      if (query.length < 2) {
+        document.getElementById('searchResults').style.display = 'none';
+        return;
+      }
+
+      searchTimeout = setTimeout(() => {
+        performSearch(query);
+      }, 300);
+    });
+
+    function clearSearch() {
+      document.getElementById('searchUsers').value = '';
+      document.getElementById('searchResults').style.display = 'none';
+    }
+
+    function performSearch(query) {
+      fetch(`/user/api/search-users?query=${encodeURIComponent(query)}&email=${email}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.users && data.users.length > 0) {
+            document.getElementById('searchResults').style.display = 'block';
+            document.getElementById('searchResultsCount').textContent = data.users.length + ' Found';
+            const searchResultsList = document.getElementById('searchResultsList');
+            searchResultsList.innerHTML = '';
+
+            data.users.forEach(user => {
+              const resultItem = document.createElement('div');
+              resultItem.className = 'result-item';
+
+              let buttonHTML = `<button class="action-btn add" onclick="sendFriendRequest('${user.email}', this)">Follow</button>`;
+
+              if (user.status === 'pending') {
+                buttonHTML = `<button class="action-btn reject" onclick="unsendFriendRequest('${user.email}', this)">Unsend Request</button>`;
+              } else if (user.status === 'accepted') {
+                buttonHTML = `<button class="action-btn friends" disabled>Already Friends</button>`;
+              }
+
+              resultItem.innerHTML = `
+            <div class="result-info">
+              <div class="result-email">${user.name || 'Unknown'}</div>
+              <div class="result-meta">
+                <span>${user.email}</span>
+                <span>Level ${user.level}</span>
+              </div>
+            </div>
+            ${buttonHTML}
+          `;
+              searchResultsList.appendChild(resultItem);
+            });
+          } else {
+            document.getElementById('searchResults').style.display = 'block';
+            document.getElementById('searchResultsList').innerHTML = '<div class="no-results">No users found</div>';
+          }
+        })
+        .catch(err => console.error('Error:', err));
+    }
+
+    function loadAllUsers() {
+      fetch(`/user/api/all-users?email=${email}`)
+        .then(res => res.json())
+        .then(data => {
+          const allUsersList = document.getElementById('allUsersList');
+          allUsersList.innerHTML = '';
+
+          if (data.users && data.users.length > 0) {
+            data.users.forEach(user => {
+              const userItem = document.createElement('div');
+              userItem.className = 'result-item';
+
+              let buttonHTML = `<button class="action-btn add" onclick="sendFriendRequest('${user.email}', this)">Follow</button>`;
+
+              if (user.status === 'pending') {
+                buttonHTML = `<button class="action-btn reject" onclick="unsendFriendRequest('${user.email}', this)">Unsend Request</button>`;
+              } else if (user.status === 'accepted') {
+                buttonHTML = `<button class="action-btn friends" disabled>Already Friends</button>`;
+              }
+
+              userItem.innerHTML = `
+            <div class="result-info">
+              <div class="result-email">${user.name || 'Unknown'}</div>
+              <div class="result-meta">
+                <span>${user.email}</span>
+                <span>Level ${user.level}</span>
+              </div>
+            </div>
+            ${buttonHTML}
+          `;
+              allUsersList.appendChild(userItem);
+            });
+          } else {
+            allUsersList.innerHTML = '<div class="no-results">No users available</div>';
+          }
+        })
+        .catch(err => console.error('Error loading all users:', err));
+    }
+
+    function showToast(message, type = 'success') {
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.textContent = message;
+      document.body.appendChild(toast);
+
+      // Remove after animation
+      setTimeout(() => {
+        toast.remove();
+      }, 4000);
+    }
+
+    function unsendFriendRequest(receiverEmail, buttonElement) {
+      const formData = new FormData();
+      formData.append('sender_email', email);
+      formData.append('receiver_email', receiverEmail);
+
+      fetch('/user/api/cancel-friend-request', {
+        method: 'POST',
+        body: formData
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.status === 'success') {
+            showToast('Follow request cancelled', 'success');
+            lastActionTime = Date.now();
+
+            // Immediately update button state (Instagram-style)
+            buttonElement.textContent = 'Follow';
+            buttonElement.className = 'action-btn add';
+            buttonElement.onclick = function () { sendFriendRequest(receiverEmail, this); };
+
+            // Reload list after 3 seconds to sync backend (user won't see change)
+            setTimeout(() => {
+              // Only reload if no recent user action
+              if (Date.now() - lastActionTime > 2000) {
+                loadAllUsers();
+              }
+            }, 3000);
+          } else {
+            showToast(data.message || 'Error cancelling request', 'info');
+          }
+        })
+        .catch(err => {
+          console.error('Error:', err);
+          showToast('Failed to cancel request', 'info');
+        });
+    }
+
+    function sendFriendRequest(receiverEmail, buttonElement) {
+      const formData = new FormData();
+      formData.append('sender_email', email);
+      formData.append('receiver_email', receiverEmail);
+
+      fetch('/user/api/friend-request', {
+        method: 'POST',
+        body: formData
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.status === 'success') {
+            showToast('Follow request sent successfully! 🎉', 'success');
+            lastActionTime = Date.now();
+
+            // Immediately update button state (Instagram-style)
+            buttonElement.textContent = 'Unsend Request';
+            buttonElement.className = 'action-btn reject';
+            buttonElement.onclick = function () { unsendFriendRequest(receiverEmail, this); };
+
+            // Reload list after 3 seconds to sync backend (user won't see change)
+            setTimeout(() => {
+              // Only reload if no recent user action
+              if (Date.now() - lastActionTime > 2000) {
+                loadAllUsers();
+              }
+            }, 3000);
+          } else {
+            showToast(data.message || 'Error sending follow request', 'info');
+          }
+        })
+        .catch(err => {
+          console.error('Error:', err);
+          showToast('Failed to send follow request', 'info');
+        });
+    }
+
+    function loadFriendsList() {
+      fetch(`/user/api/friends?email=${email}`)
+        .then(res => res.json())
+        .then(data => {
+          const container = document.getElementById('friendsListContainer');
+
+          if (data.friends && data.friends.length > 0) {
+            container.innerHTML = '';
+
+            // Get unread counts for all friends
+            fetch(`/user/api/all-unread-counts?email=${email}`)
+              .then(res => res.json())
+              .then(unreadData => {
+                const unreadCounts = unreadData.unread_counts || {};
+
+                data.friends.forEach(friendEmail => {
+                  const friendItem = document.createElement('div');
+                  friendItem.className = 'friend-item-sidebar';
+                  friendItem.onclick = () => selectFriend(friendEmail, friendItem);
+
+                  const firstName = friendEmail.split('@')[0].charAt(0).toUpperCase();
+                  const unreadCount = unreadCounts[friendEmail] || 0;
+                  const badgeHtml = unreadCount > 0 ? `<div class="unread-badge">${unreadCount > 99 ? '99+' : unreadCount}</div>` : '';
+
+                  friendItem.innerHTML = `
+                <div class="friend-avatar">${firstName}</div>
+                <div class="friend-sidebar-info">
+                  <div class="friend-sidebar-name">${friendEmail.split('@')[0]}</div>
+                  <div class="friend-sidebar-email">${friendEmail}</div>
+                </div>
+                ${badgeHtml}
+              `;
+                  container.appendChild(friendItem);
+                });
+              })
+              .catch(err => {
+                console.error('Error loading unread counts:', err);
+                // Still show friends even if unread count fails
+                data.friends.forEach(friendEmail => {
+                  const friendItem = document.createElement('div');
+                  friendItem.className = 'friend-item-sidebar';
+                  friendItem.onclick = () => selectFriend(friendEmail, friendItem);
+
+                  const firstName = friendEmail.split('@')[0].charAt(0).toUpperCase();
+                  friendItem.innerHTML = `
+                <div class="friend-avatar">${firstName}</div>
+                <div class="friend-sidebar-info">
+                  <div class="friend-sidebar-name">${friendEmail.split('@')[0]}</div>
+                  <div class="friend-sidebar-email">${friendEmail}</div>
+                </div>
+              `;
+                  container.appendChild(friendItem);
+                });
+              });
+          } else {
+            container.innerHTML = '<div class="no-friends-message">No friends yet</div>';
+          }
+        })
+        .catch(err => console.error('Error loading friends:', err));
+    }
+
+    function loadIncomingRequests() {
+      fetch(`/user/api/pending-requests?email=${email}`)
+        .then(res => res.json())
+        .then(data => {
+          const incomingSection = document.getElementById('incomingRequestsSection');
+          const incomingList = document.getElementById('incomingRequestsList');
+          const incomingCount = document.getElementById('incomingCount');
+
+          if (data.requests && data.requests.length > 0) {
+            incomingSection.style.display = 'block';
+            incomingCount.textContent = data.requests.length;
+            incomingList.innerHTML = '';
+
+            data.requests.forEach(requesterEmail => {
+              const requestItem = document.createElement('div');
+              requestItem.className = 'result-item';
+
+              const requesterName = requesterEmail.split('@')[0];
+              requestItem.innerHTML = `
+            <div class="result-info">
+              <div class="result-email" style="font-weight: 600; color: #ff6f00;">${requesterName}</div>
+              <div class="result-meta">
+                <span>${requesterEmail}</span>
+              </div>
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <button class="action-btn accept" onclick="acceptFriendRequestInline('${requesterEmail}')">Accept</button>
+              <button class="action-btn reject" onclick="rejectFriendRequestInline('${requesterEmail}')">Reject</button>
+            </div>
+          `;
+              incomingList.appendChild(requestItem);
+            });
+          } else {
+            incomingSection.style.display = 'none';
+          }
+        })
+        .catch(err => console.error('Error loading incoming requests:', err));
+    }
+
+    function acceptFriendRequestInline(requesterEmail) {
+      const formData = new FormData();
+      formData.append('user_email', email);
+      formData.append('requester_email', requesterEmail);
+
+      fetch('/user/api/accept-friend-request', {
+        method: 'POST',
+        body: formData
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.status === 'success') {
+            showToast(`You accepted ${requesterEmail.split('@')[0]}'s request! 🎉`, 'success');
+            loadIncomingRequests();
+            loadFriendsList();
+          }
+        })
+        .catch(err => console.error('Error:', err));
+    }
+
+    function rejectFriendRequestInline(requesterEmail) {
+      const formData = new FormData();
+      formData.append('user_email', email);
+      formData.append('requester_email', requesterEmail);
+
+      fetch('/user/api/reject-friend-request', {
+        method: 'POST',
+        body: formData
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.status === 'success') {
+            showToast(`Friend request from ${requesterEmail.split('@')[0]} rejected`, 'info');
+            loadIncomingRequests();
+          }
+        })
+        .catch(err => console.error('Error:', err));
+    }
+
+    function rejectFriendRequest(requesterEmail) {
+      const formData = new FormData();
+      formData.append('user_email', email);
+      formData.append('requester_email', requesterEmail);
+
+      fetch('/user/api/reject-friend-request', {
+        method: 'POST',
+        body: formData
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.status === 'success') {
+            showToast('Friend request rejected', 'info');
+            loadPendingRequests();
+          }
+        })
+        .catch(err => console.error('Error:', err));
+    }
+
+    function selectFriend(friendEmail, element) {
+      console.log('selectFriend called with:', friendEmail);
+      currentChatFriend = friendEmail;
+
+      // Update sidebar selection
+      document.querySelectorAll('.friend-item-sidebar').forEach(item => {
+        item.classList.remove('active');
+      });
+      element.classList.add('active');
+
+      // Hide tabs and show chat - using classes for consistency
+      const findFriendsTab = document.getElementById('findFriendsTab');
+      if (findFriendsTab) {
+        findFriendsTab.classList.remove('active');
+        console.log('Find friends tab hidden');
+      }
+
+      const chatContainer = document.getElementById('friendsChatContainer');
+      console.log('Chat container:', chatContainer);
+      if (chatContainer) {
+        chatContainer.classList.add('active');
+        console.log('Chat container shown');
+      } else {
+        console.log('Chat container not found!');
+      }
+
+      // Update chat header
+      const firstName = friendEmail.split('@')[0];
+      document.getElementById('chatAvatar').textContent = firstName.charAt(0).toUpperCase();
+      document.getElementById('chatFriendName').textContent = firstName;
+
+      // Load messages from API
+      loadMessagesFromAPI(friendEmail);
+
+      // Start polling for new messages
+      if (messagePollingInterval) {
+        clearInterval(messagePollingInterval);
+      }
+      messagePollingInterval = setInterval(() => {
+        pollNewMessages(friendEmail);
+      }, 2000); // Poll every 2 seconds
+    }
+
+    function closeChatAndShowTabs() {
+      // Hide chat and show tabs again - using classes for consistency
+      const chatContainer = document.getElementById('friendsChatContainer');
+      if (chatContainer) {
+        chatContainer.classList.remove('active');
+      }
+
+      const findFriendsTab = document.getElementById('findFriendsTab');
+      if (findFriendsTab) {
+        findFriendsTab.classList.add('active');
+      }
+      currentChatFriend = null;
+
+      // Stop polling
+      if (messagePollingInterval) {
+        clearInterval(messagePollingInterval);
+      }
+    } function loadMessagesFromAPI(friendEmail) {
+      fetch(`/user/api/messages?email=${email}&friend_email=${friendEmail}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.messages) {
+            messages[friendEmail] = data.messages;
+            displayMessages(friendEmail);
+
+            // Store the latest timestamp for polling
+            if (data.messages.length > 0) {
+              lastMessageTimestamp[friendEmail] = data.messages[data.messages.length - 1].sent_at || new Date().toISOString();
+            }
+
+            // Refresh unread counts since messages are marked as read when opened
+            loadFriendsList();
+          }
+        })
+        .catch(err => {
+          console.error('Error loading messages:', err);
+          showToast('Failed to load messages', 'info');
+        });
+    }
+
+    function pollNewMessages(friendEmail) {
+      const timestamp = lastMessageTimestamp[friendEmail] || null;
+      const params = timestamp
+        ? `?email=${email}&friend_email=${friendEmail}&last_timestamp=${encodeURIComponent(timestamp)}`
+        : `?email=${email}&friend_email=${friendEmail}`;
+
+      fetch(`/user/api/new-messages${params}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.messages && data.messages.length > 0) {
+            // Add new messages to the array
+            if (!messages[friendEmail]) {
+              messages[friendEmail] = [];
+            }
+            messages[friendEmail].push(...data.messages);
+
+            // Update the last timestamp
+            if (data.last_timestamp) {
+              lastMessageTimestamp[friendEmail] = data.last_timestamp;
+            }
+
+            // Display all messages
+            displayMessages(friendEmail);
+
+            // Refresh unread counts
+            loadFriendsList();
+          }
+        })
+        .catch(err => {
+          console.error('Error polling messages:', err);
+        });
+    }
+
+    function displayMessages(friendEmail) {
+      const chatMessages = document.getElementById('chatMessages');
+      if (!messages[friendEmail] || messages[friendEmail].length === 0) {
+        chatMessages.innerHTML = `
+        <div class="chat-empty">
+          <i data-lucide="message-square" style="width: 60px; height: 60px; margin-bottom: 15px; opacity: 0.3;"></i>
+          <p>No messages yet. Start a conversation!</p>
+        </div>
+      `;
+      } else {
+        chatMessages.innerHTML = messages[friendEmail].map(msg => {
+          // Only show read status for sent messages
+          let readStatusHtml = '';
+          if (msg.type === 'sent') {
+            const isRead = msg.is_read === 1 || msg.is_read === true;
+            const readStatusClass = isRead ? 'read-status' : 'read-status unread';
+            const readIndicator = isRead ? '✓✓ Read' : '✓ Unseen';
+            readStatusHtml = `<span class="${readStatusClass}">${readIndicator}</span>`;
+          }
+
+          return `
+          <div class="message ${msg.type}">
+            ${msg.text}
+            <div class="message-timestamp">
+              <span>${msg.time}</span>
+              ${readStatusHtml}
+            </div>
+          </div>
+        `;
+        }).join('');
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      }
+    }
+
+    function sendMessage() {
+      if (!currentChatFriend) {
+        alert('Select a friend first');
+        return;
+      }
+
+      const chatInput = document.getElementById('chatInput');
+      const messageText = chatInput.value.trim();
+
+      if (!messageText) return;
+
+      // Disable send button while sending
+      const sendBtn = document.querySelector('.send-btn');
+      sendBtn.disabled = true;
+
+      const formData = new FormData();
+      formData.append('sender_email', email);
+      formData.append('receiver_email', currentChatFriend);
+      formData.append('message_text', messageText);
+
+      fetch('/user/api/send-message', {
+        method: 'POST',
+        body: formData
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.status === 'success') {
+            // Clear input
+            chatInput.value = '';
+
+            // Reload messages
+            loadMessagesFromAPI(currentChatFriend);
+
+            showToast('Message sent! 📨', 'success');
+          } else {
+            showToast(data.message || 'Failed to send message', 'info');
+          }
+        })
+        .catch(err => {
+          console.error('Error sending message:', err);
+          showToast('Failed to send message', 'info');
+        })
+        .finally(() => {
+          sendBtn.disabled = false;
+        });
+    }
+
+    // ================= CHAT MENU FUNCTIONS =================
+    function toggleChatMenu() {
+      const dropdown = document.getElementById('chatMenuDropdown');
+      dropdown.classList.toggle('active');
+    }
+
+    let pendingConfirmAction = null;
+
+    function showConfirmModal(title, message, onConfirm) {
+      document.getElementById('modalTitle').textContent = title;
+      document.getElementById('modalMessage').textContent = message;
+      pendingConfirmAction = onConfirm;
+      document.getElementById('confirmModal').classList.add('active');
+    }
+
+    function closeConfirmModal() {
+      document.getElementById('confirmModal').classList.remove('active');
+      pendingConfirmAction = null;
+    }
+
+    function executeConfirmAction() {
+      if (pendingConfirmAction) {
+        pendingConfirmAction();
+        closeConfirmModal();
+      }
+    }
+
+    function unfollowFriend() {
+      if (!currentChatFriend) return;
+
+      const friendName = currentChatFriend.split('@')[0];
+      showConfirmModal(
+        'Unfollow Friend',
+        `Are you sure you want to unfollow ${friendName}? This action cannot be undone.`,
+        function () {
+          const formData = new FormData();
+          formData.append('user_email', email);
+          formData.append('friend_email', currentChatFriend);
+
+          fetch('/user/api/remove-friend', {
+            method: 'POST',
+            body: formData
+          })
+            .then(res => res.json())
+            .then(data => {
+              if (data.status === 'success') {
+                showToast('Friend removed successfully! 👋', 'success');
+                closeChatAndShowTabs();
+
+                // Update all UI elements to reflect the status change
+                loadFriendsList();        // Update friends sidebar
+                loadAllUsers();            // Update all users list
+
+                // If there's an active search, reload search results
+                const searchInput = document.getElementById('searchUsers');
+                if (searchInput && searchInput.value.trim().length >= 2) {
+                  performSearch(searchInput.value.trim());
+                }
+              } else {
+                showToast(data.message || 'Failed to remove friend', 'info');
+              }
+            })
+            .catch(err => {
+              console.error('Error:', err);
+              showToast('Failed to remove friend', 'info');
+            });
+        }
+      );
+    }
+
+    function clearChatMessages() {
+      if (!currentChatFriend) return;
+
+      showConfirmModal(
+        'Clear Chat History',
+        'Are you sure you want to delete all messages with this friend? This action cannot be undone.',
+        function () {
+          const formData = new FormData();
+          formData.append('user_email', email);
+          formData.append('friend_email', currentChatFriend);
+
+          console.log('Clearing chat for:', email, 'and', currentChatFriend);
+
+          fetch('/user/api/clear-messages', {
+            method: 'POST',
+            body: formData
+          })
+            .then(res => {
+              console.log('Response status:', res.status);
+              return res.json();
+            })
+            .then(data => {
+              console.log('Response data:', data);
+              if (data.status === 'success') {
+                // Clear messages from UI
+                messages[currentChatFriend] = [];
+                displayMessages(currentChatFriend);
+                closeChatMenuDropdown();
+                showToast('Chat cleared! 🗑️', 'success');
+              } else {
+                showToast(data.message || 'Failed to clear chat', 'info');
+              }
+            })
+            .catch(err => {
+              console.error('Error clearing chat:', err);
+              showToast('Failed to clear chat', 'info');
+            });
+        }
+      );
+    }
+
+    function closeChatMenuDropdown() {
+      const dropdown = document.getElementById('chatMenuDropdown');
+      dropdown.classList.remove('active');
+    }
+
+    // Close menu when clicking outside
+    document.addEventListener('click', function (e) {
+      const menuContainer = document.querySelector('.chat-menu-container');
+      const dropdown = document.getElementById('chatMenuDropdown');
+
+      if (menuContainer && !menuContainer.contains(e.target)) {
+        dropdown.classList.remove('active');
+      }
+    });
+
+    // Allow Enter key to send message
+    document.addEventListener('keypress', function (e) {
+      if (e.key === 'Enter' && document.activeElement.id === 'chatInput') {
+        sendMessage();
+      }
+    });
+
+    // Load initial data
+    window.addEventListener('load', function () {
+      loadFriendsList();
+      loadAllUsers(); // Load all users on page load
+      loadIncomingRequests(); // Load incoming friend requests in Find Friends tab
+      startNotificationPolling(); // Start real-time notification polling
+    });
+  </script>
+
+  <script src="/static/js/user_notifications.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,1 @@
+DELETE FROM tutorials WHERE id = 3;

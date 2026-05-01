@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Attempt History</title>
+
+  <!-- Base styles -->
+  <link rel="stylesheet" href="/static/css/base.css">
+  <link rel="stylesheet" href="/static/css/dashboard.css">
+
+  <!-- Lucide icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body class="dashboard-body">
+
+  <!-- ================= SIDEBAR ================= -->
+  <aside class="sidebar">
+    <div class="brand">
+      <span class="shield">
+        <i data-lucide="shield"></i>
+      </span>
+      <div>
+        <h2>Hacker Portal</h2>
+        <p>Learn & Conquer</p>
+      </div>
+    </div>
+
+    <nav class="menu">
+
+      <a href="/user/dashboard?email={{EMAIL}}">
+        <i data-lucide="layout-grid"></i>
+        Dashboard
+      </a>
+
+      <a href="/user/tutorials?email={{EMAIL}}">
+        <i data-lucide="book-open"></i>
+        Tutorials
+      </a>
+
+      <a href="/user/tutorials/saved?email={{EMAIL}}">
+        <i data-lucide="star"></i>
+        Saved Tutorials
+      </a>
+
+      <a href="/user/challenges?email={{EMAIL}}">
+        <i data-lucide="target"></i>
+        Challenges
+      </a>
+
+      <a href="/user/quizzes?email={{EMAIL}}">
+        <i data-lucide="help-circle"></i>
+        Quizzes
+      </a>
+
+      <a class="active" href="/user/attempt-history?email={{EMAIL}}">
+        <i data-lucide="history"></i>
+        Attempt History
+      </a>
+
+      <a href="/user/leaderboard?email={{EMAIL}}">
+        <i data-lucide="trophy"></i>
+        Leaderboard
+      </a>
+
+      <a href="/user/friends?email={{EMAIL}}">
+        <i data-lucide="users"></i>
+        Friends
+      </a>
+
+      <a href="/user/progress?email={{EMAIL}}">
+        <i data-lucide="trending-up"></i>
+        Progress Graph
+      </a>
+
+      <a href="/user/profile?email={{EMAIL}}">
+        <i data-lucide="user"></i>
+        Profile
+      </a>
+
+    </nav>
+
+    <div class="sidebar-footer">
+      <a class="logout" href="/">
+        <i data-lucide="log-out"></i>
+        Logout
+      </a>
+    </div>
+  </aside>
+
+  <!-- ================= MAIN ================= -->
+  <main class="dashboard-main">
+
+    <!-- TOP BAR -->
+    <header class="topbar">
+      <h2>🕒 Attempt History</h2>
+
+      <div class="top-icons">
+        <div class="notif-wrapper">
+          <button id="notifBell" class="icon-btn" type="button">
+            <i data-lucide="bell"></i>
+          </button>
+          <div id="notifPanel" class="notif-panel">
+            <div class="notif-header">Notifications</div>
+            <div id="notifList" class="notif-list">
+              <!-- notifications will load here -->
+            </div>
+          </div>
+        </div>
+
+        <div class="profile-chip">
+          👤 {{USERNAME}} <small>Level {{LEVEL}}</small>
+        </div>
+      </div>
+    </header>
+
+    <!-- CONTENT -->
+    <section class="dashboard-grid"
+      style="padding: 20px; height: calc(100vh - 140px); display: flex; flex-direction: column;">
+
+      <!-- ATTEMPT HISTORY TABLE -->
+      <div class="card glow" style="flex: 1; display: flex; flex-direction: column; overflow: hidden; padding: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+          <h3 style="margin: 0; font-size: 18px;">📋 Your Activity History</h3>
+          <button id="clearAllBtn" class="delete-btn" style="display:none;">🗑️ Clear All History</button>
+        </div>
+        <div id="attemptContainer" style="flex: 1; overflow-y: auto; overflow-x: auto;">
+          <p style="text-align:center; color:#999;">Loading history...</p>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <style>
+    .delete-btn {
+      padding: 8px 14px;
+      background: #ff4444;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 12px;
+      transition: all 0.2s ease;
+    }
+
+    .delete-btn:hover {
+      background: #ff6666;
+      transform: scale(1.05);
+    }
+
+    .delete-btn:active {
+      transform: scale(0.98);
+    }
+
+    .delete-btn-small {
+      padding: 4px 8px;
+      background: #ff6b6b;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 500;
+      font-size: 11px;
+      transition: all 0.2s ease;
+    }
+
+    .delete-btn-small:hover {
+      background: #ff4444;
+    }
+
+    .attempt-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 0;
+      font-size: 13px;
+    }
+
+    .attempt-table thead {
+      background: rgba(20, 241, 178, 0.1);
+      border-bottom: 2px solid rgba(20, 241, 178, 0.3);
+    }
+
+    .attempt-table th {
+      padding: 10px 8px;
+      text-align: left;
+      color: #14f1b2;
+      font-weight: 600;
+      font-size: 12px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .attempt-table td {
+      padding: 8px;
+      border-bottom: 1px solid rgba(20, 241, 178, 0.15);
+      color: #ccc;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .attempt-table td:nth-child(2) {
+      white-space: normal;
+    }
+
+    .attempt-table tbody tr:hover {
+      background: rgba(20, 241, 178, 0.05);
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .badge.tutorial {
+      background: rgba(59, 130, 246, 0.2);
+      color: #3b82f6;
+    }
+
+    .badge.challenge {
+      background: rgba(239, 68, 68, 0.2);
+      color: #ef4444;
+    }
+
+    .badge.tutorials_list {
+      background: rgba(34, 197, 94, 0.2);
+      color: #22c55e;
+    }
+
+    .badge.challenges_list {
+      background: rgba(168, 85, 247, 0.2);
+      color: #a855f7;
+    }
+
+    /* Message Notifications */
+    .message-notification {
+      position: fixed;
+      top: 80px;
+      right: 20px;
+      padding: 16px 24px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 14px;
+      z-index: 9999;
+      animation: slideInDown 0.3s ease-out;
+      max-width: 350px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .message-notification.message-success {
+      background: linear-gradient(135deg, #14f1b2 0%, #10b981 100%);
+      color: #000;
+      border: 1px solid rgba(20, 241, 178, 0.5);
+    }
+
+    .message-notification.message-error {
+      background: linear-gradient(135deg, #ff4444 0%, #cc0000 100%);
+      color: #fff;
+      border: 1px solid rgba(255, 68, 68, 0.5);
+    }
+
+    .message-notification.message-info {
+      background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+      color: #fff;
+      border: 1px solid rgba(59, 130, 246, 0.5);
+    }
+
+    @keyframes slideInDown {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .message-notification.fade-out {
+      animation: slideOutUp 0.3s ease-in forwards;
+    }
+
+    @keyframes slideOutUp {
+      from {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      to {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+    }
+
+    .activity-icon {
+      font-size: 16px;
+      margin-right: 6px;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 20px;
+      color: #666;
+    }
+
+    .empty-state h3 {
+      color: #999;
+      margin-bottom: 10px;
+      font-size: 16px;
+    }
+
+    /* Confirmation Modal */
+    .confirmation-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 10000;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .confirmation-modal.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: 12px;
+      padding: 30px;
+      max-width: 400px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+      animation: modalSlideIn 0.3s ease-out;
+    }
+
+    @keyframes modalSlideIn {
+      from {
+        opacity: 0;
+        transform: scale(0.9);
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    .modal-header {
+      font-size: 18px;
+      font-weight: 700;
+      color: #333;
+      margin-bottom: 10px;
+    }
+
+    .modal-message {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 24px;
+      line-height: 1.5;
+    }
+
+    .modal-buttons {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+
+    .modal-btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 13px;
+      transition: all 0.2s ease;
+    }
+
+    .modal-btn-cancel {
+      background: #f0f0f0;
+      color: #333;
+    }
+
+    .modal-btn-cancel:hover {
+      background: #e0e0e0;
+    }
+
+    .modal-btn-confirm {
+      background: linear-gradient(135deg, #ff4444 0%, #cc0000 100%);
+      color: white;
+    }
+
+    .modal-btn-confirm:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(255, 68, 68, 0.3);
+    }
+  </style>
+
+  <!-- Confirmation Modal -->
+  <div id="confirmationModal" class="confirmation-modal">
+    <div class="modal-content">
+      <div class="modal-header">Delete Record</div>
+      <div class="modal-message">Are you sure you want to delete this record? This action cannot be undone.</div>
+      <div class="modal-buttons">
+        <button class="modal-btn modal-btn-cancel" onclick="closeModal()">Cancel</button>
+        <button class="modal-btn modal-btn-confirm" id="confirmBtn">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- INIT ICONS -->
+  <script>
+    lucide.createIcons();
+
+    const email = new URLSearchParams(window.location.search).get('email');
+
+    async function loadAttemptHistory() {
+      try {
+        const response = await fetch(`/user/api/attempt-history?email=${email}`);
+        const data = await response.json();
+
+        const container = document.getElementById('attemptContainer');
+
+        if (!data.attempts || data.attempts.length === 0) {
+          container.innerHTML = `
+          <div class="empty-state">
+            <h3>No Activity Yet</h3>
+            <p>Start exploring tutorials and challenges to build your history.</p>
+            <a href="/user/tutorials?email=${email}" style="margin-top: 15px; display: inline-block;">
+              <button class="primary-btn">Explore Tutorials</button>
+            </a>
+            <a href="/user/challenges?email=${email}" style="margin-left: 10px; display: inline-block;">
+              <button class="primary-btn">Try Challenges</button>
+            </a>
+          </div>
+        `;
+          return;
+        }
+
+        // Build table
+        let html = `
+        <table class="attempt-table">
+          <thead>
+            <tr>
+              <th>Activity</th>
+              <th>Resource</th>
+              <th>Type</th>
+              <th>Date & Time</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+
+        data.attempts.forEach(attempt => {
+          const date = new Date(attempt.visited_at);
+          const dateStr = date.toLocaleDateString();
+          const timeStr = date.toLocaleTimeString();
+
+          // Determine activity icon
+          let icon = '👁️';
+          if (attempt.activity_type === 'started') icon = '🚀';
+          if (attempt.activity_type === 'completed') icon = '✅';
+          if (attempt.activity_type === 'visited') icon = '📍';
+
+          // Determine badge color
+          let badgeClass = 'badge';
+          if (attempt.resource_type === 'tutorial') badgeClass += ' tutorial';
+          else if (attempt.resource_type === 'challenge') badgeClass += ' challenge';
+          else if (attempt.resource_type === 'tutorials_list') badgeClass += ' tutorials_list';
+          else if (attempt.resource_type === 'challenges_list') badgeClass += ' challenges_list';
+
+          html += `
+          <tr>
+            <td><span class="activity-icon">${icon}</span> ${attempt.activity_type}</td>
+            <td>${attempt.resource_name}</td>
+            <td><span class="${badgeClass}">${attempt.resource_type.replace('_', ' ')}</span></td>
+            <td>${dateStr} ${timeStr}</td>
+            <td><button class="delete-btn-small" onclick="deleteAttempt(${attempt.id}, '${email}')">Delete</button></td>
+          </tr>
+        `;
+        });
+
+        html += `
+          </tbody>
+        </table>
+      `;
+
+        container.innerHTML = html;
+
+        // Show clear all button if there are attempts
+        if (data.attempts.length > 0) {
+          document.getElementById('clearAllBtn').style.display = 'inline-block';
+        }
+      } catch (error) {
+        console.error('Error loading attempt history:', error);
+        document.getElementById('attemptContainer').innerHTML = `
+        <div class="empty-state" style="color: #ff4444;">
+          <p>Error loading history. Please try again.</p>
+        </div>
+      `;
+      }
+    }
+
+    // Show message notification
+    function showMessage(message, type = 'success') {
+      const messageDiv = document.createElement('div');
+      messageDiv.className = `message-notification message-${type}`;
+      messageDiv.textContent = message;
+      document.body.appendChild(messageDiv);
+
+      // Auto remove after 3 seconds
+      setTimeout(() => {
+        messageDiv.classList.add('fade-out');
+        setTimeout(() => messageDiv.remove(), 300);
+      }, 3000);
+    }
+
+    // Show confirmation modal with dynamic content
+    function showConfirmModal(title, message, callback) {
+      const modal = document.getElementById('confirmationModal');
+      const modalHeader = modal.querySelector('.modal-header');
+      const modalMessage = modal.querySelector('.modal-message');
+      const confirmBtn = document.getElementById('confirmBtn');
+
+      // Update modal content
+      modalHeader.textContent = title;
+      modalMessage.textContent = message;
+
+      modal.classList.add('active');
+
+      confirmBtn.onclick = () => {
+        modal.classList.remove('active');
+        callback();
+      };
+    }
+
+    // Close confirmation modal
+    function closeModal() {
+      const modal = document.getElementById('confirmationModal');
+      modal.classList.remove('active');
+    }
+
+    // Close modal when clicking outside
+    document.addEventListener('click', (e) => {
+      const modal = document.getElementById('confirmationModal');
+      if (e.target === modal) {
+        closeModal();
+      }
+    });
+
+    // Delete single attempt
+    function deleteAttempt(attemptId, email) {
+      showConfirmModal(
+        'Delete Record',
+        'Are you sure you want to delete this record? This action cannot be undone.',
+        () => performDelete(attemptId, email)
+      );
+    }
+
+    // Perform the actual delete
+    async function performDelete(attemptId, email) {
+      try {
+        const response = await fetch(`/user/api/attempt-history/${attemptId}?email=${email}`, {
+          method: 'DELETE'
+        });
+
+        if (response.ok) {
+          showMessage('✓ Record deleted successfully!', 'success');
+          // Reload the history after a short delay
+          setTimeout(() => loadAttemptHistory(), 500);
+        } else {
+          showMessage('✗ Failed to delete record. Please try again.', 'error');
+        }
+      } catch (error) {
+        console.error('Error deleting attempt:', error);
+        showMessage('✗ Error deleting record', 'error');
+      }
+    }
+
+    // Clear all history
+    function clearAllHistory() {
+      showConfirmModal(
+        'Clear All History',
+        'Are you sure you want to delete ALL attempt history? This action cannot be undone.',
+        performClearAll
+      );
+    }
+
+    // Perform the actual clear all
+    async function performClearAll() {
+      try {
+        const response = await fetch(`/user/api/attempt-history?email=${email}`, {
+          method: 'DELETE'
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          showMessage(`✓ ${data.message}`, 'success');
+          // Reload the history after a short delay
+          setTimeout(() => loadAttemptHistory(), 500);
+        } else {
+          showMessage('✗ Failed to clear history. Please try again.', 'error');
+        }
+      } catch (error) {
+        console.error('Error clearing history:', error);
+        showMessage('✗ Error clearing history', 'error');
+      }
+    }
+
+    // Attach clear all button handler
+    document.addEventListener('DOMContentLoaded', function () {
+      const clearAllBtn = document.getElementById('clearAllBtn');
+      if (clearAllBtn) {
+        clearAllBtn.addEventListener('click', clearAllHistory);
+      }
+    });
+
+    // Load history on page load
+    loadAttemptHistory();
+  </script>
+  <script src="/static/js/user_notifications.js"></script>
+</body>
+
+</html>

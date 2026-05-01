@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <style>
+    /* Create Challenge Modal */
+    #createChallengeModal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.85);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 10000;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+
+    #createChallengeModal.show {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .create-modal-content {
+      background: linear-gradient(135deg, rgba(20, 241, 178, 0.1) 0%, rgba(10, 13, 18, 0.95) 100%);
+      border: 2px solid rgba(20, 241, 178, 0.4);
+      border-radius: 20px;
+      padding: 40px 50px;
+      text-align: center;
+      box-shadow: 0 8px 32px rgba(20, 241, 178, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      animation: slideInUp 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      max-width: 500px;
+      width: 90%;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .create-modal-content h2 {
+      color: #14f1b2;
+      font-size: 24px;
+      margin-bottom: 8px;
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin: 25px 0;
+      text-align: left;
+    }
+
+    .create-modal-content input,
+    .create-modal-content select,
+    .create-modal-content textarea {
+      padding: 12px 14px;
+      border-radius: 10px;
+      background: rgba(10, 14, 18, 0.8);
+      border: 1.5px solid rgba(20, 241, 178, 0.3);
+      color: #e6faff;
+      font-size: 14px;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      transition: all 0.3s ease;
+    }
+
+    .create-modal-content input:focus,
+    .create-modal-content select:focus,
+    .create-modal-content textarea:focus {
+      border-color: rgba(20, 241, 178, 0.8);
+      background: rgba(10, 14, 18, 0.95);
+      box-shadow: 0 0 15px rgba(20, 241, 178, 0.2);
+      outline: none;
+    }
+
+    .create-modal-content input::placeholder,
+    .create-modal-content textarea::placeholder {
+      color: rgba(230, 250, 255, 0.5);
+    }
+
+    .create-btn {
+      padding: 14px 32px;
+      background: linear-gradient(135deg, #14f1b2 0%, #0ecaa0 100%);
+      border: none;
+      color: #000;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 700;
+      transition: all 0.3s ease;
+      font-size: 15px;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      margin-top: 15px;
+      width: 100%;
+    }
+
+    .create-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(20, 241, 178, 0.4);
+    }
+
+    .create-btn:active {
+      transform: translateY(0);
+    }
+
+    @keyframes slideInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .countdown {
+      font-size: 80px;
+      font-weight: 700;
+      color: #14f1b2;
+      text-shadow: 0 4px 15px rgba(20, 241, 178, 0.4);
+      animation: pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+      font-family: 'Courier New', monospace;
+    }
+
+    @keyframes pulse {
+      0% {
+        transform: scale(1);
+        opacity: 1;
+      }
+
+      50% {
+        transform: scale(1.1);
+        opacity: 0.8;
+      }
+
+      100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    /* COUNTDOWN MODAL */
+    #countdownModal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.85);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+
+    #countdownModal.show {
+      display: flex;
+    }
+
+    .countdown-modal-content {
+      background: linear-gradient(135deg, rgba(20, 241, 178, 0.1) 0%, rgba(10, 13, 18, 0.95) 100%);
+      border: 2px solid rgba(20, 241, 178, 0.5);
+      border-radius: 20px;
+      padding: 80px 100px;
+      text-align: center;
+      box-shadow: 0 8px 32px rgba(20, 241, 178, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      animation: slideInUp 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94), pulse2 2s ease-in-out infinite;
+    }
+
+    @keyframes slideInUp {
+      0% {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes pulse2 {
+
+      0%,
+      100% {
+        box-shadow: 0 8px 32px rgba(20, 241, 178, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      }
+
+      50% {
+        box-shadow: 0 8px 32px rgba(20, 241, 178, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      }
+    }
+
+    .countdown-text {
+      font-size: 28px;
+      color: #14f1b2;
+      font-weight: 700;
+      letter-spacing: 2px;
+      margin-bottom: 40px;
+      text-transform: uppercase;
+    }
+  </style>
+  <meta charset="UTF-8">
+  <title>Challenges</title>
+
+  <link rel="stylesheet" href="/static/css/base.css">
+  <link rel="stylesheet" href="/static/css/dashboard.css">
+  <link rel="stylesheet" href="/static/css/challenges.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body class="dashboard-body">
+
+  <!-- ================= SIDEBAR ================= -->
+  <aside class="sidebar">
+    <div class="brand">
+      <span class="shield">
+        <i data-lucide="shield"></i>
+      </span>
+      <div>
+        <h2>Hacker Portal</h2>
+        <p>Learn & Conquer</p>
+      </div>
+    </div>
+
+    <nav class="menu">
+      <a href="/user/dashboard?email={{EMAIL}}">
+        <i data-lucide="layout-grid"></i> Dashboard
+      </a>
+
+      <a href="/user/tutorials?email={{EMAIL}}">
+        <i data-lucide="book-open"></i> Tutorials
+      </a>
+
+      <a href="/user/tutorials/saved?email={{EMAIL}}">
+        <i data-lucide="star"></i> Saved Tutorials
+      </a>
+
+      <a class="active" href="/user/challenges?email={{EMAIL}}">
+        <i data-lucide="target"></i> Challenges
+      </a>
+
+      <a href="/user/quizzes?email={{EMAIL}}">
+        <i data-lucide="help-circle"></i> Quizzes
+      </a>
+
+      <a href="/user/attempt-history?email={{EMAIL}}">
+        <i data-lucide="history"></i> Attempt History
+      </a>
+
+      <a href="/user/leaderboard?email={{EMAIL}}">
+        <i data-lucide="trophy"></i> Leaderboard
+      </a>
+
+      <a href="/user/friends?email={{EMAIL}}">
+        <i data-lucide="users"></i> Friends
+      </a>
+
+      <a href="/user/progress?email={{EMAIL}}">
+        <i data-lucide="trending-up"></i> Progress Graph
+      </a>
+
+      <a href="/user/profile?email={{EMAIL}}">
+        <i data-lucide="user"></i> Profile
+      </a>
+
+    </nav>
+
+    <div class="sidebar-footer">
+      <a class="logout" href="/">
+        <i data-lucide="log-out"></i> Logout
+      </a>
+    </div>
+  </aside>
+  <!-- ================= MAIN ================= -->
+  <main class="dashboard-main">
+
+    <!-- COUNTDOWN MODAL (for challenge start) -->
+    <div id="countdownModal">
+      <div class="countdown-modal-content">
+        <div class="countdown-text">Starting Challenge...</div>
+        <div class="countdown" id="countdownNum">2</div>
+      </div>
+    </div>
+
+
+    <!-- ================= HEADER ================= -->
+    <header class="topbar">
+      <h2>Challenges</h2>
+      <div class="top-icons">
+        <div class="notif-wrapper">
+          <button id="notifBell" class="icon-btn" type="button">
+            <i data-lucide="bell"></i>
+          </button>
+          <div id="notifPanel" class="notif-panel">
+            <div class="notif-header">Notifications</div>
+            <div id="notifList" class="notif-list">
+              <!-- notifications will load here -->
+            </div>
+          </div>
+        </div>
+        <div class="profile-chip">
+          👤 {{USERNAME}} <small>Level {{LEVEL}}</small>
+        </div>
+      </div>
+    </header>
+
+    <!-- ================= CHALLENGES GRID ================= -->
+    <div id="challengeGrid" class="challenges-page">
+      <p style="grid-column: 1 / -1; color: #14f1b2; text-align: center; padding: 20px;">Loading...</p>
+    </div>
+
+  </main>
+
+  <style>
+    .challenges-page {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 24px;
+      padding: 30px;
+      animation: fadeInUp 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+      width: 100%;
+      max-width: 100%;
+    }
+
+    .challenge-card {
+      background: linear-gradient(135deg, rgba(20, 241, 178, 0.08) 0%, rgba(10, 13, 18, 0.95) 100%);
+      border: 1.5px solid rgba(20, 241, 178, 0.25);
+      border-radius: 16px;
+      padding: 24px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      backdrop-filter: blur(10px);
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .challenge-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(20, 241, 178, 0.1), transparent);
+      transition: left 0.5s ease;
+    }
+
+    .challenge-card:hover::before {
+      left: 100%;
+    }
+
+    .challenge-card:hover {
+      border-color: rgba(20, 241, 178, 0.7);
+      background: linear-gradient(135deg, rgba(20, 241, 178, 0.15) 0%, rgba(10, 13, 18, 0.98) 100%);
+      transform: translateY(-8px);
+      box-shadow:
+        0 12px 40px rgba(20, 241, 178, 0.25),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    }
+
+    .challenge-title {
+      color: #14f1b2;
+      font-size: 19px;
+      font-weight: 700;
+      margin: 0 0 12px 0;
+      letter-spacing: 0.5px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .challenge-meta {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .challenge-badge {
+      font-size: 11px;
+      padding: 6px 12px;
+      border-radius: 20px;
+      background: rgba(20, 241, 178, 0.2);
+      border: 1px solid rgba(20, 241, 178, 0.4);
+      color: #14f1b2;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .challenge-badge.difficulty-easy {
+      background: rgba(76, 175, 80, 0.2);
+      border-color: rgba(76, 175, 80, 0.5);
+      color: #81c784;
+    }
+
+    .challenge-badge.difficulty-medium {
+      background: rgba(255, 193, 7, 0.2);
+      border-color: rgba(255, 193, 7, 0.5);
+      color: #ffd54f;
+    }
+
+    .challenge-badge.difficulty-hard {
+      background: rgba(244, 67, 54, 0.2);
+      border-color: rgba(244, 67, 54, 0.5);
+      color: #ef5350;
+    }
+
+    .challenge-description {
+      color: #b9f7ff;
+      font-size: 14px;
+      line-height: 1.7;
+      margin-bottom: 16px;
+      flex: 1;
+      position: relative;
+      z-index: 1;
+      opacity: 0.95;
+    }
+
+    .challenge-points {
+      color: #14f1b2;
+      font-weight: 700;
+      margin-bottom: 18px;
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .challenge-footer {
+      display: flex;
+      gap: 12px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .btn-start {
+      flex: 1;
+      padding: 12px 16px;
+      background: linear-gradient(135deg, rgba(20, 241, 178, 0.3), rgba(20, 241, 178, 0.15));
+      border: 1.5px solid rgba(20, 241, 178, 0.7);
+      color: #14f1b2;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 700;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      text-decoration: none;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-size: 14px;
+      letter-spacing: 0.5px;
+    }
+
+    .btn-start:hover {
+      background: linear-gradient(135deg, rgba(20, 241, 178, 0.6), rgba(20, 241, 178, 0.4));
+      box-shadow:
+        0 0 20px rgba(20, 241, 178, 0.5),
+        inset 0 0 10px rgba(20, 241, 178, 0.2);
+      transform: scale(1.02);
+    }
+
+    .btn-start:active {
+      transform: scale(0.98);
+    }
+
+    /* Locked Challenge Styles */
+    .challenge-card.locked {
+      opacity: 0.6;
+      border-color: rgba(100, 100, 100, 0.4);
+      background: linear-gradient(135deg, rgba(60, 60, 60, 0.1) 0%, rgba(10, 13, 18, 0.8) 100%);
+      pointer-events: none;
+    }
+
+    .challenge-card.locked:hover {
+      transform: none;
+      border-color: rgba(100, 100, 100, 0.4);
+      background: linear-gradient(135deg, rgba(60, 60, 60, 0.1) 0%, rgba(10, 13, 18, 0.8) 100%);
+      box-shadow: none;
+    }
+
+    .lock-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.6);
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(4px);
+      z-index: 10;
+    }
+
+    .lock-content {
+      text-align: center;
+      color: #888;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .lock-content i {
+      color: #888;
+    }
+
+    .btn-start.locked {
+      background: linear-gradient(135deg, rgba(100, 100, 100, 0.2), rgba(100, 100, 100, 0.1));
+      border: 1.5px solid rgba(100, 100, 100, 0.4);
+      color: #888;
+      cursor: not-allowed;
+    }
+
+    .btn-start.locked:hover {
+      background: linear-gradient(135deg, rgba(100, 100, 100, 0.2), rgba(100, 100, 100, 0.1));
+      border: 1.5px solid rgba(100, 100, 100, 0.4);
+      color: #888;
+      transform: none;
+      box-shadow: none;
+    }
+
+    @media (max-width: 1200px) {
+      .challenges-page {
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 20px;
+        padding: 24px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .challenges-page {
+        grid-template-columns: 1fr;
+        gap: 16px;
+        padding: 20px;
+      }
+
+      .challenge-title {
+        font-size: 17px;
+      }
+
+      .challenge-card {
+        padding: 20px;
+      }
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+
+  <!-- 🔥 LUCIDE INITIALIZATION (CRITICAL) -->
+  <script>
+    // Wait for lucide library to load
+    let lucideReady = false;
+    const checkLucide = setInterval(() => {
+      if (typeof lucide !== 'undefined') {
+        clearInterval(checkLucide);
+        lucideReady = true;
+        // Initialize all icons
+        lucide.createIcons();
+      }
+    }, 50);
+
+    const email = new URLSearchParams(window.location.search).get('email');
+
+    // Function to reinitialize icons after DOM changes
+    function initializeIcons() {
+      if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+      }
+    }
+
+    async function loadChallenges() {
+      try {
+        // Add cache-busting query parameter to ensure fresh data
+        console.log('🔍 Loading challenges...');
+        console.log('📧 Using email:', email);
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
+        const response = await fetch(`/user/api/challenges?email=${email}&t=${Date.now()}`, {
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+
+        console.log('🔗 Response status:', response.status);
+        const data = await response.json();
+
+        console.log('📦 API Response:', data);
+        console.log('📊 Challenges found:', data.challenges ? data.challenges.length : 0);
+
+        const grid = document.getElementById('challengeGrid');
+        console.log('🎯 Grid element found:', grid !== null);
+
+        if (!data.success) {
+          console.log('❌ API returned success: false');
+          grid.innerHTML = '<p style="grid-column: 1 / -1; color: #ff6464; text-align: center;">Error: ' + (data.error || 'Unknown error') + '</p>';
+          return;
+        }
+
+        if (!data.challenges || data.challenges.length === 0) {
+          console.log('❌ No challenges found');
+          grid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px;"><p style="color: #999; font-size: 16px; margin-bottom: 20px;">No challenges available yet.</p><button id="createFirstChallengeBtn" class="btn-start" style="display: inline-flex; width: auto;"><i data-lucide="plus"></i>Create First Challenge</button></div>';
+
+          const firstChallengeBtn = document.getElementById('createFirstChallengeBtn');
+          if (firstChallengeBtn) {
+            firstChallengeBtn.addEventListener('click', () => {
+              modal.classList.add('show');
+            });
+          }
+          setTimeout(initializeIcons, 50);
+          return;
+        }
+
+        console.log('✅ Rendering', data.challenges.length, 'challenges...');
+        let html = '';
+        for (const challenge of data.challenges) {
+          console.log('🎨 Rendering challenge:', challenge.title, 'Locked:', challenge.is_locked);
+          const difficultyClass = `difficulty-${challenge.difficulty.toLowerCase()}`;
+          const lockedClass = challenge.is_locked ? 'locked' : '';
+          const lockedOverlay = challenge.is_locked ? `<div class="lock-overlay"><div class="lock-content"><i data-lucide="lock" style="width: 32px; height: 32px;"></i><p style="margin: 12px 0 0 0; font-size: 12px;">Complete previous challenge to unlock</p></div></div>` : '';
+
+          html += `
+              <div class="challenge-card ${lockedClass}" data-challenge-id="${challenge.id}">
+                  <h3 class="challenge-title">${challenge.title}</h3>
+                  <div class="progress-circle" id="progress-${challenge.id}"></div>
+                  <div class="challenge-meta">
+                      <span class="challenge-badge">${challenge.category}</span>
+                      <span class="challenge-badge ${difficultyClass}">${challenge.difficulty}</span>
+                  </div>
+                  <p class="challenge-description">${challenge.description}</p>
+                  <div class="challenge-points">⭐ ${challenge.points} Points</div>
+                  <div class="challenge-footer">
+                      <button onclick="${challenge.is_locked ? 'showLockedMessage()' : 'startChallengeCountdown(' + challenge.id + ')'}" class="btn-start ${lockedClass}">
+                          <i data-lucide="${challenge.is_locked ? 'lock' : 'play'}" style="width: 16px; height: 16px;"></i>
+                          ${challenge.is_locked ? 'Locked' : 'Start Challenge'}
+                      </button>
+                  </div>
+                  ${lockedOverlay}
+              </div>
+          `;
+        }
+
+        grid.innerHTML = html;
+        console.log('✨ Challenges rendered successfully');
+        setTimeout(initializeIcons, 50);
+
+        // Load progress for all unlocked challenges
+        data.challenges.forEach(challenge => {
+          // Only load progress for unlocked challenges
+          if (!challenge.is_locked) {
+            loadChallengeProgress(challenge.id);
+          }
+        });
+
+      } catch (error) {
+        console.error('❌ ERROR loading challenges:', error);
+        console.error('Error name:', error.name);
+        console.error('Error message:', error.message);
+        const grid = document.getElementById('challengeGrid');
+        if (grid) {
+          grid.innerHTML = '<p style="color: #ff6464; text-align: center; grid-column: 1 / -1;">Error: ' + error.message + '</p>';
+        }
+      }
+    }
+
+    // Show message when user tries to click locked challenge
+    function showLockedMessage() {
+      alert('Complete the previous challenge to unlock this one!');
+    }
+
+    // Start challenge with countdown
+    function startChallengeCountdown(challengeId) {
+      const countdownModal = document.getElementById('countdownModal');
+      const countdownNum = document.getElementById('countdownNum');
+
+      console.log('🎬 Starting challenge:', challengeId);
+      countdownModal.classList.add('show');
+
+      let count = 2;
+      countdownNum.textContent = count;
+
+      let elapsed = 0;
+      const interval = 500;
+      const duration = 2000;
+
+      const countdownInterval = setInterval(() => {
+        elapsed += interval;
+
+        if (elapsed >= duration) {
+          clearInterval(countdownInterval);
+          countdownModal.classList.remove('show');
+          window.location.href = `/user/challenge-preview?id=${challengeId}&email=${email}`;
+        } else if (elapsed >= 1000 && count === 2) {
+          count = 1;
+          countdownNum.textContent = count;
+        }
+      }, interval);
+    }
+
+    // Load and display challenge progress
+    async function loadChallengeProgress(challengeId) {
+      try {
+        const url = `/user/challenges/${challengeId}/progress?email=${email}`;
+        console.log(`[PROGRESS] Fetching challenge progress: ${url}`);
+
+        const res = await fetch(url);
+        console.log(`[PROGRESS] Response status: ${res.status}`);
+
+        if (res.ok) {
+          const data = await res.json();
+          console.log(`[PROGRESS] Response for challenge ${challengeId}:`, JSON.stringify(data));
+
+          const progressCircle = document.getElementById(`progress-${challengeId}`);
+          const card = document.querySelector(`[data-challenge-id="${challengeId}"]`);
+          console.log(`[PROGRESS] Circle element found: ${!!progressCircle}, progress value: ${data.progress}`);
+
+          if (progressCircle) {
+            // Show completion badge if progress is 100%
+            if (data.progress >= 100) {
+              const points = card ? card.querySelector('.challenge-points')?.textContent || '0 Points' : '0 Points';
+              const pointsValue = points.match(/\d+/)?.[0] || '0';
+
+              const html = `
+              <svg class="progress-ring" width="40" height="40" viewBox="0 0 60 60">
+                <circle class="progress-ring-background" cx="30" cy="30" r="27"></circle>
+                <circle class="progress-ring-fill" cx="30" cy="30" r="27"
+                  style="stroke-dasharray: 169.65 169.65;"></circle>
+              </svg>
+              <span class="progress-text">✓</span>
+            `;
+
+              progressCircle.innerHTML = html;
+              progressCircle.title = `Completed! +${pointsValue} pts`;
+              console.log(`[PROGRESS] ✓ COMPLETED - Challenge ${challengeId}: ${pointsValue} pts`);
+            } else if (data.progress >= 1) {
+              // Show progress percentage
+              const radius = 27;
+              const circumference = 2 * Math.PI * radius;
+              const progress = Math.min(data.progress, 99); // Cap at 99% while not completed
+              const offset = circumference - (progress / 100) * circumference;
+
+              const html = `
+              <svg class="progress-ring" width="40" height="40" viewBox="0 0 60 60">
+                <circle class="progress-ring-background" cx="30" cy="30" r="27"></circle>
+                <circle class="progress-ring-fill" cx="30" cy="30" r="27"
+                  style="stroke-dasharray: ${circumference}; stroke-dashoffset: ${offset};"></circle>
+              </svg>
+              <span class="progress-text">${progress}%</span>
+            `;
+
+              progressCircle.innerHTML = html;
+              progressCircle.title = `Progress: ${progress}%`;
+              console.log(`[PROGRESS] 🔄 IN PROGRESS - Challenge ${challengeId}: ${progress}%`);
+            }
+          }
+        }
+      } catch (err) {
+        console.error(`[PROGRESS] Error loading progress for challenge ${challengeId}:`, err);
+      }
+    }
+
+    // Load challenges when page loads
+    console.log('📄 Script initialized');
+    console.log('📧 Email:', email);
+
+    // Make sure DOM is ready before loading challenges
+    if (document.readyState === 'loading') {
+      console.log('⏳ Waiting for DOM to be ready...');
+      document.addEventListener('DOMContentLoaded', () => {
+        console.log('✅ DOM Ready - Loading challenges');
+        loadChallenges();
+      });
+    } else {
+      console.log('✅ DOM already ready - Loading challenges');
+      loadChallenges();
+    }
+  </script>
+
+</body>
+
+</html>

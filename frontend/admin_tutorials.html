@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Tutorial Management</title>
+
+    <link rel="stylesheet" href="/static/css/base.css">
+    <link rel="stylesheet" href="/static/css/dashboard.css">
+    <link rel="stylesheet" href="/static/css/admin_dashboard.css?v=1">
+    <link rel="stylesheet" href="/static/css/admin_tutorials.css?v=3">
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        /* Loading Overlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(5, 7, 11, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        .loading-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(0, 234, 255, 0.2);
+            border-top-color: #00eaff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* ---------- TOAST NOTIFICATION ---------- */
+        .toast {
+            position: fixed !important;
+            bottom: 20px !important;
+            right: 20px !important;
+            padding: 16px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            color: #fff;
+            z-index: 9999;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .toast.success {
+            background: #10b981;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+
+        .toast.error {
+            background: #ef4444;
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        }
+
+        .toast.hide {
+            animation: slideOut 0.3s ease-out forwards;
+        }
+
+        @keyframes slideOut {
+            to {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+        }
+
+        /* ---------- LOCAL FIXES (NO SIDEBAR CHANGE) ---------- */
+        .tutorial-layout {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .tutorial-list {
+            background: #0b0f14;
+            border-radius: 12px;
+            padding: 15px;
+        }
+
+        .new-btn {
+            width: 100%;
+            padding: 14px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 10px;
+            border: none;
+            background: #14f1b2;
+            color: #000;
+            cursor: pointer;
+            margin-bottom: 15px;
+        }
+
+        .editor {
+            background: #0b0f14;
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .editor input,
+        .editor select {
+            width: 100%;
+            margin-bottom: 14px;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #1f2937;
+            background: #121821;
+            color: #fff;
+        }
+
+        .save {
+            padding: 12px 18px;
+            border-radius: 10px;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            background: #14f1b2;
+            color: #000;
+            font-size: 15px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* ---------- CARD ---------- */
+        .tutorial-card {
+            background: linear-gradient(180deg, rgba(20, 241, 178, 0.08), rgba(0, 0, 0, 0.6));
+            border-left: 4px solid #14f1b2;
+            border-radius: 14px;
+            padding: 18px 20px;
+            margin-bottom: 18px;
+            box-shadow: 0 0 20px rgba(20, 241, 178, 0.15);
+        }
+
+        .tutorial-card h3 {
+            margin: 0 0 6px;
+            color: #14f1b2;
+        }
+
+        .tutorial-card p {
+            margin: 4px 0;
+            color: #d1d5db;
+        }
+
+        .tutorial-actions {
+            margin-top: 12px;
+        }
+
+        .edit-btn {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 999px;
+            font-weight: 600;
+            background: rgba(20, 241, 178, 0.15);
+            color: #14f1b2;
+            text-decoration: none;
+        }
+
+        /* Page Transition Animations */
+        .sidebar {
+            animation: slideInLeft 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+
+        main {
+            animation: slideInRight 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-50px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(50px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Content Animations */
+        .card {
+            animation: fadeInUp 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.3s forwards !important;
+            opacity: 0;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body class="dashboard-body">
+
+    <!-- LOADING OVERLAY -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- ================= SIDEBAR ================= -->
+    <aside class="sidebar">
+        <div class="brand">
+            <span class="shield">
+                <i data-lucide="shield"></i>
+            </span>
+            <div>
+                <h2>Hacker Portal</h2>
+                <p>Learn & Conquer</p>
+            </div>
+        </div>
+
+        <nav class="menu">
+            <a href="/admin/dashboard"><i data-lucide="layout-grid"></i> Dashboard</a>
+            <a href="/admin/users"><i data-lucide="users"></i> User Management</a>
+            <a href="/admin/challenges"><i data-lucide="target"></i> Challenges</a>
+            <a href="/admin/tutorials" class="active"><i data-lucide="book-open"></i> Tutorials</a>
+            <a href="/admin/quizzes"><i data-lucide="help-circle"></i> Quizzes</a>
+            <a href="/admin/leaderboard"><i data-lucide="trophy"></i> Leaderboard</a>
+            <a href="/admin/sandbox"><i data-lucide="cpu"></i> Sandbox Monitor</a>
+            <a href="/admin/notifications"><i data-lucide="bell"></i> Notifications</a>
+            <a href="/admin/analytics"><i data-lucide="bar-chart-2"></i> Analytics</a>
+        </nav>
+
+        <a class="logout" href="/">
+            <i data-lucide="log-out"></i> Logout
+        </a>
+    </aside>
+
+    <!-- ================= MAIN ================= -->
+    <main class="dashboard-main">
+
+        <header class="topbar">
+            <h2>Tutorial Management</h2>
+        </header>
+
+        <section class="tutorial-layout">
+
+            <div class="tutorial-list">
+
+                <button class="new-btn" id="createBtn">+ Create Tutorial</button>
+
+                <!-- ✅ EDITOR MOVED HERE -->
+                <div class="editor" id="editor">
+                    <h2 style="margin-bottom:15px;">Tutorial Details</h2>
+
+                    <input id="tutorialTitle" placeholder="Tutorial Title">
+
+                    <textarea id="intro" placeholder="Short Introduction (shown to users)"
+                        class="editor-textarea"></textarea>
+
+                    <select id="category">
+                        <option value="Web Security">Web Security</option>
+                        <option value="Cryptography">Cryptography</option>
+                        <option value="Binary Exploitation">Binary Exploitation</option>
+                        <option value="Network Security">Network Security</option>
+                        <option value="System Security">System Security</option>
+                        <option value="Basics">Basics</option>
+                    </select>
+
+                    <select id="difficulty">
+                        <option value="Beginner">Beginner</option>
+                        <option value="Intermediate">Intermediate</option>
+                        <option value="Advanced">Advanced</option>
+                    </select>
+
+                    <input id="duration" placeholder="Duration (eg: 45 min)">
+                    <input id="points" type="number" placeholder="Points (eg: 100)">
+
+                    <button class="save" onclick="saveAndProceed()">
+                        Save & Proceed →
+                    </button>
+                </div>
+
+                <!-- ✅ CARDS COME AFTER -->
+                <div id="tutorialList" style="margin-top:20px;"></div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- ================= CORE JS ================= -->
+    <script>
+        const createBtn = document.getElementById("createBtn");
+        const editor = document.getElementById("editor");
+        const tutorialList = document.getElementById("tutorialList");
+
+        createBtn.addEventListener("click", () => {
+
+            const createBtn = document.getElementById("createBtn");
+            const editor = document.getElementById("editor");
+            const tutorialList = document.getElementById("tutorialList");
+
+            createBtn.addEventListener("click", () => {
+                editor.classList.toggle("open");
+                tutorialList.classList.toggle("shifted");
+            });
+
+        });
+
+        async function saveAndProceed() {
+            const payload = {
+                title: document.getElementById("tutorialTitle").value.trim(),
+                category: document.getElementById("category").value,
+                difficulty: document.getElementById("difficulty").value,
+                estimated_time: document.getElementById("duration").value,
+                intro: document.getElementById("intro").value.trim(),
+                points: Number(document.getElementById("points").value) || 0
+            };
+
+            if (!payload.title) {
+                alert("Enter tutorial title");
+                return;
+            }
+
+            console.log("SENDING:", payload); // 🔥 DEBUG
+
+            const res = await fetch("/admin/tutorials/create", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await res.json()
+            window.location.href =
+                `/admin/tutorials/content?tutorial_id=${data.id}`;
+        }
+    </script>
+
+    <!-- ================= PUBLISH/UNPUBLISH FUNCTIONS ================= -->
+    <script>
+        // Show toast notification
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+
+            // Auto-remove after 4 seconds
+            setTimeout(() => {
+                toast.classList.add('hide');
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        }
+
+        // Publish tutorial function
+        async function publishTutorial(tutorialId) {
+            try {
+                console.log("Publishing tutorial ID:", tutorialId);
+                const res = await fetch(`/admin/tutorials/${tutorialId}/publish`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" }
+                });
+
+                const data = await res.json();
+                console.log("Publish response:", data);
+
+                if (data.success) {
+                    showToast("✅ Tutorial Published Successfully!", "success");
+                    // Reload the tutorials list to reflect changes
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    showToast("❌ Error: " + (data.error || "Failed to publish tutorial"), "error");
+                }
+            } catch (err) {
+                console.error("Publish error:", err);
+                showToast("❌ Error publishing tutorial: " + err.message, "error");
+            }
+        }
+
+        // Unpublish tutorial function
+        async function unpublishTutorial(tutorialId) {
+            try {
+                console.log("Unpublishing tutorial ID:", tutorialId);
+                const res = await fetch(`/admin/tutorials/${tutorialId}/unpublish`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" }
+                });
+
+                const data = await res.json();
+                console.log("Unpublish response:", data);
+
+                if (data.success) {
+                    showToast("✅ Tutorial Unpublished Successfully!", "success");
+                    // Reload the tutorials list to reflect changes
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    showToast("❌ Error: " + (data.error || "Failed to unpublish tutorial"), "error");
+                }
+            } catch (err) {
+                console.error("Unpublish error:", err);
+                showToast("❌ Error unpublishing tutorial: " + err.message, "error");
+            }
+        }
+
+        // Upgrade and Publish tutorial function
+        async function upgradeAndPublish(tutorialId) {
+            try {
+                console.log("Upgrade & Publishing tutorial ID:", tutorialId);
+                const res = await fetch(`/admin/tutorials/${tutorialId}/upgrade-publish`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" }
+                });
+
+                const data = await res.json();
+                console.log("Upgrade & Publish response:", data);
+
+                if (data.success) {
+                    showToast("⚡ Tutorial Upgraded & Published Successfully!", "success");
+                    // Reload the tutorials list to reflect changes
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    showToast("❌ Error: " + (data.error || "Failed to upgrade & publish tutorial"), "error");
+                }
+            } catch (err) {
+                console.error("Upgrade & Publish error:", err);
+                showToast("❌ Error upgrading & publishing tutorial: " + err.message, "error");
+            }
+        }
+    </script>
+
+    <!-- ================= BACKEND RENDER (ACTIVE) ================= -->
+    <script>
+        document.addEventListener("DOMContentLoaded", loadTutorials);
+
+
+        async function loadTutorials() {
+            const container = document.getElementById("tutorialList");
+
+            try {
+                const res = await fetch("/admin/tutorials/list");
+                const tutorials = await res.json();
+
+                container.innerHTML = "";
+
+                if (!tutorials.length) {
+                    container.innerHTML =
+                        "<p style='color:#9ca3af'>No tutorials created yet</p>";
+                    return;
+                }
+                tutorials.forEach(t => {
+                    container.innerHTML += `
+            <div class="tutorial-card">
+                <h3>${t.title}</h3>
+
+                <p class="tutorial-meta">
+                    ${t.category ?? "No category"} •
+                    ${t.difficulty ?? "No difficulty"} •
+                    ${t.estimated_time ?? "-"} min •
+                    ⭐ ${t.points ?? 0} pts
+                </p>
+
+                ${t.intro ? `<p class="tutorial-intro">${t.intro}</p>` : ""}
+                 <div class="tutorial-actions">
+                    <a class="edit-btn"
+                    href="/admin/tutorials/content?tutorial_id=${t.id}">
+                    ✏ Edit Classes
+                    </a>
+                   <div class="secondary-actions">
+                        <a class="preview-link" href="/admin/tutorials/${t.id}/preview">
+                        👁 Preview
+                        </a>
+
+                        <button class="publish-link"
+                            onclick="publishTutorial(${t.id})">
+                            🚀 Publish
+                        </button>
+
+                        <button class="publish-link upgrade"
+                            onclick="upgradeAndPublish(${t.id})">
+                            ⚡ Upgrade & Publish
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        `;
+                });
+
+
+            } catch (err) {
+                console.error(err);
+                container.innerHTML =
+                    "<p style='color:#ff6b6b'>Failed to load tutorials</p>";
+            }
+        }
+    </script>
+    <script>lucide.createIcons();</script>
+    <script src="/static/js/admin_tutorials.js"></script>
+
+    <script>
+        // Loading animation on sidebar navigation
+        document.querySelectorAll('.sidebar a').forEach(link => {
+            link.addEventListener('click', function (e) {
+                if (this.href.includes('/admin/') && !this.href.endsWith('#')) {
+                    document.getElementById('loadingOverlay').classList.add('active');
+                }
+            });
+        });
+    </script>
+
+</body>
+
+</html>

@@ -1,0 +1,161 @@
+/* ================= LANDING PAGE ================= */
+
+.hero {
+  min-height: 100vh;
+  width: 100%;
+  background: radial-gradient(circle at top, #05070b, #020409);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+/* LOGO */
+.hero-logo {
+  margin-bottom: 40px;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 1;
+}
+
+.hero-logo i {
+  font-size: 75px !important;
+  color: #00cfff !important;
+  width: 75px !important;
+  height: 75px !important;
+  stroke-width: 1.2 !important;
+  display: flex !important;
+  min-width: 75px !important;
+  min-height: 75px !important;
+  stroke: #00cfff !important;
+}
+
+.hero-logo svg {
+  width: 75px !important;
+  height: 75px !important;
+  font-size: 75px !important;
+  color: #00cfff !important;
+  stroke: #00cfff !important;
+  stroke-width: 1.2 !important;
+}
+
+/* TITLE */
+.hero h1 {
+  font-size: 32px;
+  color: #00cfff;
+  margin: 0;
+}
+
+/* SUBTITLE */
+.hero p {
+  max-width: 650px;
+  margin-top: 12px;
+  font-size: 15px;
+  color: #9fbfcf;
+}
+
+/* FEATURES */
+.hero-features {
+  display: flex;
+  gap: 22px;
+  margin-top: 22px;
+  font-size: 14px;
+  color: #00ffb4;
+}
+
+/* ================= ROLE CARDS ================= */
+
+.role-wrapper {
+  display: flex;
+  gap: 40px;
+  margin-top: 70px;
+}
+
+/* CARD */
+.role-card {
+  width: 360px;
+  background: rgba(12, 18, 24, 0.96);
+  border-radius: 18px;
+  padding: 32px;
+  box-shadow: 0 0 35px rgba(0,255,255,0.18);
+  transition: 0.35s ease;
+}
+
+.role-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 0 55px rgba(0,255,255,0.4);
+}
+
+/* ICON */
+.role-icon {
+  width: 72px;
+  height: 72px;
+  margin: auto;
+  border-radius: 50%;
+  background: rgba(0,255,255,0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30px;
+  color: #00ffb4;
+}
+
+/* TEXT */
+.role-card h2 {
+  margin-top: 18px;
+  color: #00cfff;
+}
+
+.role-card p {
+  font-size: 14px;
+  margin: 12px 0;
+  color: #9fbfcf;
+}
+
+/* ================= LIST (FIXED ALIGNMENT) ================= */
+
+.role-card ul {
+  margin: 18px 0;
+  padding-left: 0;        /* remove default indent */
+  list-style: none;      /* remove browser bullets */
+  text-align: left;      /* force left alignment */
+}
+
+.role-card li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  margin: 10px 0;
+  color: #7fdfff;
+}
+
+/* CUSTOM DOT */
+.role-card li::before {
+  content: "•";
+  color: #00ffb4;
+  font-size: 18px;
+  line-height: 1;
+}
+
+/* LINK */
+.role-card a {
+  display: inline-block;
+  margin-top: 18px;
+  color: #00ffb4;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 14px;
+}
+/* ================= FOOTER TAGLINE ================= */
+
+.footer-text {
+  margin-top: 80px;
+  margin-bottom: 20px;
+  font-size: 13px;
+  color: #7fdfff;
+  opacity: 0.85;
+  text-align: center;
+}

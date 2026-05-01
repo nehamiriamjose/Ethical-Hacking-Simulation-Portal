@@ -1,0 +1,205 @@
+/* ================= PAGE WRAPPER ================= */
+.challenges-page {
+  padding-bottom: 40px;
+}
+
+/* ================= SEARCH ================= */
+.search-bar input {
+  width: 100%;
+  padding: 14px 18px;
+  border-radius: 14px;
+  background: rgba(10, 14, 18, 0.95);
+  border: 1px solid rgba(0,255,255,0.15);
+  color: #e6faff;
+  font-size: 15px;
+}
+
+/* ================= FILTER PILLS ================= */
+.filter-row {
+  display: flex;
+  gap: 10px;
+  margin: 16px 0 26px;
+}
+
+.filter-row .pill {
+  padding: 8px 18px;
+  border-radius: 20px;
+  background: rgba(255,255,255,0.06);
+  color: #b9f7ff;
+  border: none;
+  cursor: pointer;
+}
+
+.filter-row .pill.active {
+  background: #00e5ff;
+  color: #00141a;
+  font-weight: 600;
+}
+
+/* ================= GRID ================= */
+.challenge-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 26px;
+}
+
+/* ================= CARD ================= */
+.challenge-card {
+  position: relative;
+  padding: 22px;
+  border-radius: 18px;
+  background: rgba(12,18,24,0.96);
+  box-shadow:
+    0 0 18px rgba(0,255,255,0.12),
+    inset 0 0 10px rgba(0,255,255,0.05);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.challenge-card:hover {
+  transform: translateY(-4px);
+  box-shadow:
+    0 0 30px rgba(0,255,255,0.25),
+    inset 0 0 12px rgba(0,255,255,0.08);
+}
+
+/* ================= BADGES ================= */
+.badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 14px;
+  font-size: 12px;
+  margin-bottom: 10px;
+}
+
+.badge.easy {
+  background: rgba(0,255,180,0.18);
+  color: #00ffb4;
+}
+
+.badge.medium {
+  background: rgba(255,200,0,0.18);
+  color: #ffcc00;
+}
+
+.badge.hard {
+  background: rgba(255,80,80,0.18);
+  color: #ff6b6b;
+}
+
+/* ================= TITLE ================= */
+.challenge-card h3 {
+  font-size: 17px;
+  margin: 6px 0 10px;
+  color: #eaffff;
+}
+
+/* ================= DESCRIPTION ================= */
+.challenge-card p {
+  font-size: 14px;
+  line-height: 1.5;
+  opacity: 0.9;
+}
+
+/* ================= META ROW ================= */
+.meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 14px;
+}
+
+/* Points pill */
+.points {
+  background: rgba(0,255,180,0.15);
+  color: #00ffb4;
+  padding: 4px 12px;
+  border-radius: 14px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* Solves */
+.solves {
+  font-size: 13px;
+  opacity: 0.7;
+}
+
+/* ================= CATEGORY LINK ================= */
+.tag {
+  display: inline-block;
+  margin-top: 14px;
+  font-size: 13px;
+  color: #00cfff;
+  cursor: pointer;
+}
+
+.tag:hover {
+  text-decoration: underline;
+}
+
+/* ================= CHECKMARK ================= */
+.checkmark {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  color: #00ff88;
+  font-size: 18px;
+}
+
+/* ================= START MACHINE BUTTON ================= */
+.challenge-card .primary-btn {
+  margin-top: 18px;
+  width: 100%;
+  padding: 14px;
+  border-radius: 14px;
+  border: none;
+  font-size: 15px;
+  font-weight: 600;
+  background: linear-gradient(90deg, #00cfff, #00ffb4);
+  cursor: pointer;
+}
+
+/* ================= PROGRESS CIRCLE ================= */
+.progress-circle {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+/* Show progress circle when it has content */
+.progress-circle:not(:empty) {
+  opacity: 1;
+}
+
+.progress-circle svg {
+  transform: rotate(-90deg);
+}
+
+.progress-ring-background {
+  fill: none;
+  stroke: rgba(20, 241, 178, 0.15);
+  stroke-width: 3;
+}
+
+.progress-ring-fill {
+  fill: none;
+  stroke: #14f1b2;
+  stroke-width: 3;
+  stroke-linecap: round;
+  transition: stroke-dasharray 0.3s ease;
+}
+
+.progress-text {
+  position: absolute;
+  font-size: 12px;
+  font-weight: 700;
+  color: #14f1b2;
+  text-shadow: 0 0 8px rgba(20, 241, 178, 0.5);
+}

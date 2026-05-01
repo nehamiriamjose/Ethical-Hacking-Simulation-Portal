@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GlobalShield | Operations Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --primary: #c3002f;
+            --primary-glow: rgba(195, 0, 47, 0.4);
+            --bg: #030712;
+            --surface: #0f172a;
+            --card: rgba(30, 41, 59, 0.6);
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+            --border: rgba(255, 255, 255, 0.08);
+            --accent: #f59e0b;
+            --success: #10b981;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text-main);
+            min-height: 100vh;
+            background-image:
+                radial-gradient(circle at 50% 10%, rgba(195, 0, 47, 0.1) 0%, transparent 60%);
+        }
+
+        nav {
+            padding: 1.25rem 4rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(3, 7, 18, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: #fff;
+        }
+
+        .logo-box {
+            width: 28px;
+            height: 28px;
+            background: var(--primary);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-intel-toggle {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            color: var(--accent);
+            padding: 0.5rem 1rem;
+            border-radius: 99px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .btn-intel-toggle:hover {
+            background: var(--accent);
+            color: #000;
+        }
+
+        main {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 4rem;
+        }
+
+        .header-sec {
+            margin-bottom: 3rem;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+        }
+
+        .status-pill {
+            padding: 0.25rem 0.75rem;
+            border-radius: 99px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            background: var(--success);
+            color: #000;
+            margin-left: 0.5rem;
+            vertical-align: middle;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+        }
+
+        .glass-card {
+            background: var(--card);
+            backdrop-filter: blur(24px);
+            border-radius: 2rem;
+            border: 1px solid var(--border);
+            padding: 2.5rem;
+        }
+
+        .flag-box {
+            margin-top: 2rem;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px dashed var(--success);
+            padding: 2rem;
+            border-radius: 1.5rem;
+            text-align: center;
+        }
+
+        .flag-text {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.5rem;
+            color: var(--success);
+            font-weight: 700;
+            margin-top: 1rem;
+            display: block;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .stat-item {
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 1rem;
+            border: 1px solid var(--border);
+        }
+
+        .stat-label {
+            font-size: 0.7rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-value {
+            font-size: 1.25rem;
+            font-weight: 800;
+        }
+
+        .logout-link {
+            display: inline-block;
+            margin-top: 2rem;
+            color: var(--text-dim);
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 600;
+            transition: 0.2s;
+        }
+
+        .logout-link:hover {
+            color: var(--primary);
+        }
+
+        /* --- Intel Panel --- */
+        #intel-panel {
+            position: fixed;
+            top: 0;
+            right: -420px;
+            width: 420px;
+            height: 100vh;
+            background: rgba(15, 23, 42, 0.98);
+            backdrop-filter: blur(40px);
+            border-left: 1px solid var(--border);
+            z-index: 1000;
+            padding: 3rem 2.5rem;
+            transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: -20px 0 60px rgba(0, 0, 0, 0.6);
+            overflow-y: auto;
+        }
+
+        #intel-panel.open {
+            right: 0;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            cursor: pointer;
+            opacity: 0.6;
+        }
+
+        .intel-h {
+            color: var(--accent);
+            font-weight: 800;
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .intel-body h3 {
+            color: var(--primary);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            margin-bottom: 0.75rem;
+        }
+
+        .intel-body p {
+            font-size: 0.9rem;
+            line-height: 1.7;
+            color: var(--text-dim);
+            margin-bottom: 2rem;
+        }
+
+        .step-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+
+<body>
+    <nav>
+        <div class="brand">
+            <div class="logo-box">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                </svg>
+            </div>
+            GlobalShield
+        </div>
+        <button class="btn-intel-toggle" onclick="toggleIntel()">Mission Intel</button>
+    </nav>
+
+    <main>
+        <div class="header-sec">
+            <h1>Welcome, Administrator<span class="status-pill">S-LEVEL ACCESS</span></h1>
+            <p style="color: var(--text-dim);">Global Access Sentinel - Terminal Node 01</p>
+        </div>
+
+        <div class="dashboard-grid">
+            <div class="glass-card">
+                <h2>System Integrated</h2>
+                <p style="color: var(--text-dim); margin-top: 0.5rem;">The brute force attack was successful.
+                    High-privileged access has been established.</p>
+
+                <div class="flag-box">
+                    <p
+                        style="font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.2em; font-weight: 700;">
+                        Confidential Access Token Recovered</p>
+                    <span class="flag-text">FLAG{BRUT3_F0RC3_SUCCESS_2026}</span>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <p class="stat-label">Encryption Strength</p>
+                        <p class="stat-value">NONE (Weak)</p>
+                    </div>
+                    <div class="stat-item">
+                        <p class="stat-label">Login Defenses</p>
+                        <p class="stat-value">BYPASSED</p>
+                    </div>
+                </div>
+
+                <a href="/logout" class="logout-link">→ Terminate Secure Session (Logout)</a>
+            </div>
+
+            <div class="glass-card">
+                <h3>Sentinel Status</h3>
+                <div style="margin-top: 1.5rem;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
+                        <span style="font-size: 0.8rem; color: var(--text-dim);">Traffic Encryption</span>
+                        <span style="font-size: 0.8rem; color: var(--success); font-weight: 700;">100%</span>
+                    </div>
+                    <div style="height: 4px; background: rgba(255,255,255,0.05); border-radius: 2px;">
+                        <div style="width: 100%; height: 100%; background: var(--success); border-radius: 2px;"></div>
+                    </div>
+                </div>
+                <div style="margin-top: 1.5rem;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
+                        <span style="font-size: 0.8rem; color: var(--text-dim);">Threat Detection</span>
+                        <span style="font-size: 0.8rem; color: var(--primary); font-weight: 700;">DISABLED</span>
+                    </div>
+                    <div style="height: 4px; background: rgba(255,255,255,0.05); border-radius: 2px;">
+                        <div style="width: 0%; height: 100%; background: var(--primary); border-radius: 2px;"></div>
+                    </div>
+                </div>
+                <p style="font-size: 0.75rem; color: var(--text-dim); margin-top: 2rem;">Sentinel is currently offline.
+                    Account lockout policies are not active.</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- MISSION INTEL PANEL -->
+    <div id="intel-panel">
+        <div class="close-btn" onclick="toggleIntel()">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+        </div>
+        <div class="intel-h">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+            </svg>
+            MISSION INTEL
+        </div>
+
+        <div class="intel-body">
+            <h3>Knowledge Base: Brute Force</h3>
+            <p>
+                <strong>What is Brute Force?</strong><br>
+                A brute-force attack is a trial-and-error method used to guess login credentials, encryption keys, or
+                hidden URLs. Instead of looking for intellectual flaws, it uses exhaustive effort to try every possible
+                combination until the correct one is found.
+            </p>
+
+            <h3>Why a Simulation?</h3>
+            <p>
+                In this simulation, the "GlobalShield" gateway has a professional facade but lacks <strong>Rate
+                    Limiting</strong> and <strong>Account Lockout</strong>.
+                <br><br>
+                This allows an attacker to try common passwords (like "p@ssword123") indefinitely without the system
+                blocking them. This simulation teaches why strong password policies and server-side throttles are
+                mandatory.
+            </p>
+
+            <h3>Mission Debrief</h3>
+            <div class="step-card">
+                <p style="font-size: 0.8rem;"><strong style="color: var(--primary);">SUCCESS:</strong> High-privileged
+                    session established.</p>
+            </div>
+            <div class="step-card">
+                <p style="font-size: 0.8rem;"><strong style="color: var(--primary);">RECOVERED:</strong> System Flag
+                    captured from the dashboard.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleIntel() {
+            document.getElementById('intel-panel').classList.toggle('open');
+        }
+    </script>
+</body>
+
+</html>

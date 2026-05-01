@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NetOps Pro | Network Intelligence Terminal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Plus+Jakarta+Sans:wght@700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --primary: #00ff41;
+            --primary-glow: rgba(0, 255, 65, 0.4);
+            --bg: #050505;
+            --surface: rgba(20, 20, 25, 0.7);
+            --surface-solid: #141419;
+            --border: rgba(0, 255, 65, 0.15);
+            --accent: #f59e0b;
+            --danger: #ef4444;
+            --text-main: #e2e8f0;
+            --text-dim: #94a3b8;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'JetBrains Mono', monospace;
+            background: var(--bg);
+            background-image:
+                radial-gradient(circle at 50% 50%, rgba(0, 255, 65, 0.05) 0%, transparent 50%),
+                linear-gradient(rgba(0, 255, 65, 0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 65, 0.02) 1px, transparent 1px);
+            background-size: 100% 100%, 30px 30px, 30px 30px;
+            color: var(--text-main);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        nav {
+            padding: 1.25rem 2.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(10, 10, 15, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+            z-index: 10;
+        }
+
+        .brand {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 800;
+            font-size: 1.4rem;
+            color: white;
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .brand span {
+            color: var(--primary);
+            text-shadow: 0 0 10px var(--primary-glow);
+        }
+
+        .status-tag {
+            font-size: 0.7rem;
+            padding: 0.35rem 0.85rem;
+            background: rgba(0, 255, 65, 0.1);
+            border: 1px solid var(--primary);
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 700;
+            color: var(--primary);
+            box-shadow: 0 0 15px rgba(0, 255, 65, 0.1);
+        }
+
+        .btn-intel {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid var(--accent);
+            color: var(--accent);
+            padding: 0.5rem 1.25rem;
+            border-radius: 6px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-intel:hover {
+            background: rgba(245, 158, 11, 0.2);
+            box-shadow: 0 0 20px rgba(245, 158, 11, 0.2);
+            transform: translateY(-1px);
+        }
+
+        main {
+            flex: 1;
+            padding: 2.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .terminal-container {
+            width: 100%;
+            max-width: 1000px;
+            height: 80vh;
+            display: flex;
+            flex-direction: column;
+            background: var(--surface);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+            overflow: hidden;
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .term-header {
+            background: rgba(30, 30, 35, 0.9);
+            padding: 1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .window-controls {
+            display: flex;
+            gap: 0.6rem;
+        }
+
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .term-title {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            letter-spacing: 0.5px;
+            font-weight: 500;
+        }
+
+        .term-body {
+            padding: 2rem;
+            flex: 1;
+            overflow-y: auto;
+            font-size: 1rem;
+            line-height: 1.6;
+            scrollbar-width: thin;
+            scrollbar-color: var(--border) transparent;
+        }
+
+        .term-body::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .term-body::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 10px;
+        }
+
+        .output-line {
+            margin-bottom: 0.5rem;
+            word-break: break-all;
+            white-space: pre-wrap;
+        }
+
+        .res-success {
+            color: var(--primary);
+        }
+
+        .res-error {
+            color: var(--danger);
+        }
+
+        .res-info {
+            color: var(--text-dim);
+        }
+
+        .command-input-area {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 1.5rem 2rem;
+            border-top: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .prompt {
+            color: var(--primary);
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        input {
+            flex: 1;
+            background: none;
+            border: none;
+            color: var(--text-main);
+            font-family: inherit;
+            font-size: 1.1rem;
+            caret-color: var(--primary);
+        }
+
+        input:focus {
+            outline: none;
+        }
+
+        /* --- Intel Panel --- */
+        #intel-panel {
+            position: fixed;
+            top: 0;
+            right: -450px;
+            width: 450px;
+            height: 100vh;
+            background: rgba(10, 10, 15, 0.95);
+            backdrop-filter: blur(25px);
+            border-left: 1px solid var(--accent);
+            z-index: 1000;
+            padding: 4rem 2.5rem;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: -20px 0 50px rgba(0, 0, 0, 0.8);
+            overflow-y: auto;
+        }
+
+        #intel-panel.open {
+            right: 0;
+        }
+
+        .intel-h {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            color: var(--accent);
+            font-weight: 800;
+            font-size: 1.75rem;
+            margin-bottom: 2.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .intel-h::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(90deg, var(--accent), transparent);
+        }
+
+        .intel-sec {
+            margin-bottom: 2.5rem;
+        }
+
+        .intel-sec h3 {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 0.9rem;
+            color: white;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .intel-sec h3::before {
+            content: '';
+            width: 4px;
+            height: 16px;
+            background: var(--accent);
+            border-radius: 2px;
+        }
+
+        .intel-sec p {
+            font-size: 0.95rem;
+            color: var(--text-dim);
+            line-height: 1.7;
+        }
+
+        .intel-sec code {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--primary);
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+
+        .payload-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .code-snippet {
+            background: #000;
+            color: var(--danger);
+            padding: 1rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            position: relative;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .code-snippet:hover {
+            border-color: var(--danger);
+            background: rgba(239, 68, 68, 0.05);
+        }
+
+        .code-snippet::after {
+            content: 'CLICK TO COPY';
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            font-size: 0.6rem;
+            color: var(--text-dim);
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .code-snippet:hover::after {
+            opacity: 1;
+        }
+
+        .intel-close {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            background: none;
+            border: none;
+            color: var(--text-dim);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .intel-close:hover {
+            color: white;
+        }
+
+        .cursor {
+            display: inline-block;
+            width: 8px;
+            height: 1.2em;
+            background: var(--primary);
+            margin-left: 2px;
+            vertical-align: middle;
+            animation: blink 1s step-end infinite;
+        }
+
+        @keyframes blink {
+            50% {
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <nav>
+        <div class="brand">NETOPS <span>PRO</span></div>
+        <div style="display: flex; gap: 2rem; align-items: center;">
+            <div class="status-tag">System Live</div>
+            <button class="btn-intel" onclick="toggleIntel()">Mission Intel</button>
+        </div>
+    </nav>
+
+    <main>
+        <div class="terminal-container">
+            <div class="term-header">
+                <div class="window-controls">
+                    <div class="dot" style="background: #ff5f56; box-shadow: 0 0 10px rgba(255, 95, 86, 0.3);"></div>
+                    <div class="dot" style="background: #ffbd2e; box-shadow: 0 0 10px rgba(255, 189, 46, 0.3);"></div>
+                    <div class="dot" style="background: #27c93f; box-shadow: 0 0 10px rgba(39, 201, 63, 0.3);"></div>
+                </div>
+                <div class="term-title">guest@netops: /diagnostics/network_testing</div>
+                <div style="width: 50px;"></div>
+            </div>
+
+            <div class="term-body" id="terminal">
+                <div class="output-line res-info">NETOPS Diagnostic Shell [Version 4.2.1-STABLE]</div>
+                <div class="output-line res-info">(c) 2026 NetOps Intelligence Systems. All rights reserved.</div>
+                <br>
+                <div class="output-line">Type 'ping [target]' to verify network reachability or utilize the interface
+                    below.</div>
+                <div class="output-line">System ready...<span class="cursor"></span></div>
+                <div class="output-line">
+                    --------------------------------------------------------------------------------</div>
+
+                {% if result %}
+                <div class="output-line res-success">{{ result }}</div>
+                {% endif %}
+            </div>
+
+            <form action="/" method="POST" class="command-input-area" id="commandForm">
+                <span class="prompt">guest@netops:~$ ping</span>
+                <input type="text" name="host" id="commandInput" placeholder="Enter target host IP/Domain..." required
+                    autofocus autocomplete="off">
+            </form>
+        </div>
+    </main>
+
+    <div id="intel-panel">
+        <button class="intel-close" onclick="toggleIntel()">&times;</button>
+        <div class="intel-h">Mission Briefing</div>
+
+        <div class="intel-sec">
+            <h3>Intel Found</h3>
+            <p>During reconnaissance, you discovered a vulnerable network diagnostic tool. The server-side script takes
+                the user-provided hostname and executes a system-level <code>ping</code> command using
+                <code>subprocess.check_output(command, shell=True)</code>.</p>
+        </div>
+
+        <div class="intel-sec">
+            <h3>The Vulnerability</h3>
+            <p><strong>OS Command Injection.</strong> Because the application uses <code>shell=True</code> and does not
+                sanitize input, an attacker can use shell metacharacters (like <code>;</code>, <code>&</code>,
+                <code>|</code>) to append additional commands. These commands will execute with the same privileges as
+                the web application.</p>
+        </div>
+
+        <div class="intel-sec">
+            <h3>Your Objective</h3>
+            <p>The system's secret flag is stored in a file called <code>/flag</code>. Use command injection techniques
+                to leak the contents of this file.</p>
+        </div>
+
+        <div class="intel-sec">
+            <h3>Payload Arsenal</h3>
+            <div class="payload-list">
+                <div class="code-snippet" onclick="copyToInput('8.8.8.8 ; ls /')">8.8.8.8 ; ls /</div>
+                <div class="code-snippet" onclick="copyToInput('8.8.8.8 && cat /flag')">8.8.8.8 && cat /flag</div>
+                <div class="code-snippet" onclick="copyToInput('8.8.8.8 | cat /etc/passwd')">8.8.8.8 | cat /etc/passwd
+                </div>
+            </div>
+            <p style="margin-top: 1rem; font-size: 0.8rem;"><em>Note: The test environment is Linux-based.</em></p>
+        </div>
+    </div>
+
+    <script>
+        function toggleIntel() {
+            document.getElementById('intel-panel').classList.toggle('open');
+        }
+
+        function copyToInput(text) {
+            const input = document.getElementById('commandInput');
+            input.value = text;
+            input.focus();
+            // Optional: Auto-submit? Let's leave it for the user to see what happened.
+            toggleIntel();
+        }
+
+        // Auto-scroll terminal to bottom
+        const terminal = document.getElementById('terminal');
+        terminal.scrollTop = terminal.scrollHeight;
+
+        // Visual feedback on form submit
+        document.getElementById('commandForm').onsubmit = function () {
+            const input = document.getElementById('commandInput');
+            const output = document.createElement('div');
+            output.className = 'output-line';
+            output.innerHTML = `<span class="prompt">guest@netops:~$ ping ${input.value}</span>`;
+            document.getElementById('terminal').appendChild(output);
+            terminal.scrollTop = terminal.scrollHeight;
+        };
+
+        // Focus input on any click
+        document.addEventListener('click', function (e) {
+            if (e.target.tagName !== 'BUTTON' && e.target.tagName !== 'INPUT' && !e.target.closest('.code-snippet')) {
+                document.getElementById('commandInput').focus();
+            }
+        });
+    </script>
+</body>
+
+</html>

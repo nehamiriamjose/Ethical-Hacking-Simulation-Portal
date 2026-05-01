@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecureTrust Bank - Account</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            min-height: 100vh;
+        }
+        
+        .navbar {
+            background: white;
+            border-bottom: 1px solid #ddd;
+            padding: 15px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #1e3a5f;
+        }
+        
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+        }
+        
+        .nav-links a {
+            color: #666;
+            text-decoration: none;
+            font-size: 0.95em;
+            transition: color 0.3s;
+        }
+        
+        .nav-links a:hover {
+            color: #4a90e2;
+        }
+        
+        .logout-btn {
+            background: #e74c3c;
+            color: white !important;
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+        
+        .logout-btn:hover {
+            background: #c0392b;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+        
+        .welcome-section {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        
+        .welcome-section h1 {
+            color: #1e3a5f;
+            margin-bottom: 15px;
+            font-size: 1.6em;
+        }
+        
+        .welcome-section p {
+            color: #666;
+            font-size: 1.05em;
+            margin-bottom: 10px;
+        }
+        
+        .account-card {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        
+        .account-card h2 {
+            color: #1e3a5f;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .account-info {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .info-item {
+            padding: 15px;
+            background: #f9f9f9;
+            border-left: 3px solid #4a90e2;
+            border-radius: 4px;
+        }
+        
+        .info-item label {
+            display: block;
+            color: #999;
+            font-size: 0.85em;
+            margin-bottom: 5px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .info-item .value {
+            font-size: 1.1em;
+            color: #1e3a5f;
+            font-weight: 500;
+        }
+        
+        .flag-box {
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+            border: 2px solid #ff9800;
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .flag-box::before {
+            content: "🚩";
+            font-size: 3em;
+            position: absolute;
+            top: -20px;
+            right: 20px;
+            opacity: 0.2;
+        }
+        
+        .flag-label {
+            color: #ff6f00;
+            font-weight: bold;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+        }
+        
+        .flag-text {
+            font-family: 'Courier New', monospace;
+            font-size: 1.2em;
+            color: #e65100;
+            font-weight: bold;
+            word-break: break-all;
+            background: rgba(255, 255, 255, 0.7);
+            padding: 15px;
+            border-radius: 4px;
+            user-select: all;
+            cursor: pointer;
+        }
+        
+        .flag-text:hover {
+            background: rgba(255, 255, 255, 0.9);
+        }
+        
+        .copy-btn {
+            background: #ff9800;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            margin-top: 15px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+        
+        .copy-btn:hover {
+            background: #ff6f00;
+        }
+        
+        .success-message {
+            background: #d5f4e6;
+            border-left: 4px solid #27ae60;
+            color: #27ae60;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: bold;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.95em;
+        }
+        
+        .btn-primary {
+            background: #1e3a5f;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #152a45;
+        }
+        
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #7f8c8d;
+        }
+        
+        @media (max-width: 768px) {
+            .account-info {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div class="logo">
+            <div class="logo-icon">🛡️</div>
+            <span>SecureTrust Bank</span>
+        </div>
+        <div class="nav-links">
+            <a href="/" class="logout-btn">Logout</a>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="success-message">
+            ✓ Successfully logged in! You've bypassed authentication using SQL Injection.
+        </div>
+        
+        <div class="welcome-section">
+            <h1>Welcome, {{ username }}! 👋</h1>
+            <p>You have successfully accessed your bank account by exploiting a SQL Injection vulnerability.</p>
+            <p>This demonstrates the critical importance of secure coding practices.</p>
+        </div>
+        
+        <div class="account-card">
+            <h2>💰 Account Details</h2>
+            
+            <div class="account-info">
+                <div class="info-item">
+                    <label>Account Holder</label>
+                    <div class="value">{{ username|capitalize }}</div>
+                </div>
+                <div class="info-item">
+                    <label>Account Number</label>
+                    <div class="value">****1234</div>
+                </div>
+                <div class="info-item">
+                    <label>Account Type</label>
+                    <div class="value">Premium Checking</div>
+                </div>
+                <div class="info-item">
+                    <label>Current Balance</label>
+                    <div class="value">$12,345.67</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="account-card">
+            <h2>🎯 Challenge Flag</h2>
+            <p style="color: #666; margin-bottom: 20px;">
+                Congratulations! You successfully exploited the SQL Injection vulnerability. Here's your flag:
+            </p>
+            
+            <div class="flag-box">
+                <div class="flag-label">🚩 Your Flag</div>
+                <div class="flag-text" onclick="copyToClipboard()">{{ flag }}</div>
+                <button class="copy-btn" onclick="copyToClipboard()">📋 Copy Flag</button>
+            </div>
+            
+            <div style="margin-top: 25px; padding: 20px; background: #f0f0f0; border-radius: 4px;">
+                <h3 style="color: #1e3a5f; margin-bottom: 10px;">📚 What You Learned</h3>
+                <ul style="color: #666; line-height: 1.8; margin-left: 20px;">
+                    <li>SQL Injection exploits unvalidated user input</li>
+                    <li>Using string concatenation in SQL queries is dangerous</li>
+                    <li><strong>Always use parameterized queries</strong> to prevent this</li>
+                    <li>Input validation alone is not sufficient</li>
+                    <li>Follow OWASP guidelines for secure coding</li>
+                </ul>
+            </div>
+            
+            <div class="button-group">
+                <a href="/" class="btn btn-primary">← Back to Lab</a>
+                <a href="/logout" class="btn btn-secondary">Logout</a>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function copyToClipboard() {
+            const flag = "{{ flag }}";
+            navigator.clipboard.writeText(flag).then(() => {
+                alert('Flag copied to clipboard!');
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+            });
+        }
+    </script>
+</body>
+</html>

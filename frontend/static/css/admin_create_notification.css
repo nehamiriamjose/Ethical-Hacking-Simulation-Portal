@@ -1,0 +1,72 @@
+/* ===============================
+   CREATE NOTIFICATION PAGE
+================================ */
+
+.create-btn {
+  margin-top: 20px;
+  background: linear-gradient(135deg, #00ffb3, #00c2ff);
+  color: #000;
+  border: none;
+  padding: 12px 22px;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 0 15px rgba(0, 255, 179, 0.6);
+}
+
+.create-btn:hover {
+  box-shadow: 0 0 25px rgba(0, 255, 179, 0.9);
+}
+
+.notification-form {
+  margin-top: 25px;
+  max-width: 650px;
+  background: rgba(0, 0, 0, 0.55);
+  padding: 22px;
+  border-radius: 14px;
+  display: none;
+  flex-direction: column;
+  gap: 14px;
+  border: 1px solid rgba(0, 255, 200, 0.25);
+}
+
+.notification-form.show {
+  display: flex;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-row {
+  display: flex;
+  gap: 16px;
+}
+
+.form-row .form-group {
+  flex: 1;
+}
+
+.notification-form input,
+.notification-form textarea,
+.notification-form select {
+  background: #0b1e22;
+  border: 1px solid rgba(0, 255, 200, 0.35);
+  color: #eaffff;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.primary-btn {
+  margin-top: 10px;
+  background: linear-gradient(135deg, #00ffa6, #00d9ff);
+  border: none;
+  padding: 12px;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+

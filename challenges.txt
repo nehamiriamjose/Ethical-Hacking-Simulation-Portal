@@ -1,0 +1,933 @@
+================================================================================
+                    ETHICAL HACKING SIMULATION PORTAL
+                     CHALLENGES ARCHITECTURE & WORKFLOW
+================================================================================
+
+PROJECT REVIEW DOCUMENT
+For: Admin-Side Challenge Creation & User-Side Interaction
+Date: March 2026
+
+================================================================================
+1. SYSTEM OVERVIEW
+================================================================================
+
+The Challenge System is a comprehensive platform for creating and managing 
+ethical hacking learning experiences. It follows a client-server architecture 
+with FastAPI backend and HTML/JavaScript frontend, utilizing Docker containers 
+for isolated challenge environments.
+
+Key Components:
+- Admin Panel: Challenge creation and management
+- User Portal: Challenge discovery and completion
+- Docker Integration: Containerized challenge environments
+- Database: SQLite3 with Foreign Key constraints
+- API Layer: RESTful endpoints for all operations
+
+================================================================================
+2. DATABASE SCHEMA & STRUCTURE
+================================================================================
+
+2.1 CHALLENGES TABLE
+--------------------
+CREATE TABLE challenges (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,
+    category TEXT,              # e.g., 'Web', 'Network', 'Cryptography'
+    difficulty TEXT,            # 'Easy', 'Medium', 'Hard'
+    points INTEGER,             # XP points awarded for completion
+    description TEXT,           # Challenge description/instructions
+    flag TEXT,                  # Secret flag users must find
+    docker_image TEXT NOT NULL, # Docker image to run for this challenge
+    is_published INTEGER DEFAULT 0,  # 0=Draft, 1=Published
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+)
+
+2.2 USER_CHALLENGES TABLE (User-Challenge Relationship)
+---------
+CREATE TABLE user_challenges (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER,
+    challenge_id INTEGER,
+    solved_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    progress INTEGER DEFAULT 0,    # 0-100% completion
+    UNIQUE(user_id, challenge_id), # One entry per user-challenge pair
+    FOREIGN KEY(user_id) REFERENCES users(id),
+    FOREIGN KEY(challenge_id) REFERENCES challenges(id)
+)
+
+Purpose: Tracks which challenges each user has solved and their progress
+
+2.3 RUNNING_CONTAINERS TABLE (Active Sessions)
+----------
+CREATE TABLE running_containers (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    challenge_id INTEGER NOT NULL,
+    user_id INTEGER NOT NULL,
+    container_id TEXT NOT NULL,     # Docker container ID
+    container_name TEXT,
+    port_mapping TEXT,              # Port exposed to user
+    status TEXT DEFAULT 'running',  # Status: 'running'/'stopped'
+    started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    stopped_at TIMESTAMP,
+    duration_minutes INTEGER DEFAULT 30,
+    FOREIGN KEY(user_id) REFERENCES users(id),
+    FOREIGN KEY(challenge_id) REFERENCES challenges(id)
+)
+
+Purpose: Tracks active Docker containers for each user-challenge session
+
+2.4 CHALLENGE_SOLVES TABLE (Statistics)
+----------
+CREATE TABLE challenge_solves (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    challenge_id INTEGER UNIQUE NOT NULL,
+    title TEXT NOT NULL,
+    category TEXT,
+    count INTEGER DEFAULT 0,        # Number of users who solved it
+    FOREIGN KEY(challenge_id) REFERENCES challenges(id) ON DELETE CASCADE
+)
+
+Purpose: Tracks completion statistics for analytics
+
+================================================================================
+3. ADMIN-SIDE: CHALLENGE CREATION WORKFLOW
+================================================================================
+
+3.1 CHALLENGE CREATION PROCESS
+-------------------------------
+
+Step 1: Admin navigates to Admin Panel → Challenges
+        URL: /admin/challenges
+
+Step 2: Admin clicks "Create Challenge" button
+        - Modal opens: create-modal-content
+        - UI Components:
+          * Title input field
+          * Category dropdown (Web, Network, Cryptography, etc.)
+          * Difficulty dropdown (Easy, Medium, Hard)
+          * Points input (XP value for completion)
+          * Description textarea (with markdown support)
+          * Flag input (secret answer users must find)
+          * Docker Image selector (with preview modal)
+
+Step 3: Admin fills challenge details
+        Example:
+        {
+            "title": "SQL Injection Attack",
+            "category": "Web",
+            "difficulty": "Medium",
+            "points": 250,
+            "description": "Exploit a vulnerable login page using SQL injection...",
+            "flag": "FLAG{sql_admin_password}",
+            "docker_image": "sql-injection-challenge:latest"
+        }
+
+Step 4: Admin clicks "Create" button
+        - Form data sent via POST to /admin/challenges/create
+        - Validation occurs (all required fields checked)
+        - Challenge inserted into database with is_published=0 (Draft)
+        - Success message shows: "Challenge saved successfully"
+        - Challenge ID returned to admin
+
+3.2 CHALLENGE CREATION ENDPOINT
+-------------------------------
+
+POST /admin/challenges/create
+
+Request Body:
+{
+    "title": string (required),
+    "category": string,
+    "difficulty": string,
+    "points": integer,
+    "description": string (required),
+    "flag": string (required),
+    "docker_image": string (required)
+}
+
+Validation:
+- Title, Description, Flag are required and non-empty
+- Docker image is mandatory (challenge needs container)
+- All fields are trimmed of whitespace
+
+Response (Success):
+{
+    "success": true,
+    "id": 5,
+    "message": "Challenge saved successfully"
+}
+
+Response (Failure):
+{
+    "success": false,
+    "error": "Missing required fields"
+}
+
+Database Effect:
+INSERT INTO challenges (title, category, difficulty, points, 
+description, flag, docker_image, is_published)
+VALUES (..., ..., ..., ..., ..., ..., ..., 0)
+
+3.3 CHALLENGE UPDATE PROCESS
+-----------------------------
+
+Admin can edit unpublished or published challenges:
+
+POST /admin/challenges/{challenge_id}/update
+
+Process:
+1. Admin locates challenge in admin panel
+2. Clicks "Edit" button
+3. Modal pre-fills with current challenge data
+4. Admin makes changes to any field
+5. Clicks "Update" button
+6. PUT request sent with updated data
+
+SQL Update:
+UPDATE challenges 
+SET title=?, category=?, difficulty=?, points=?, 
+    description=?, flag=?, docker_image=?
+WHERE id=?
+
+3.4 DOCKER IMAGE SETUP
+---------------------
+
+Each challenge requires a Docker image that:
+- Contains the vulnerable application or system to hack
+- Is pre-built and available in Docker registry or local
+- Can be started with a specific port mapping
+- Contains the flag or the means to find it
+
+Example Challenge Docker Structure:
+
+challenges/
+├── sql-injection/
+│   ├── Dockerfile           # Image blueprint
+│   ├── requirements.txt      # Python dependencies
+│   ├── app.py              # Flask/FastAPI app
+│   └── templates/
+│       └── login.html      # Vulnerable login form
+│
+└── xss-challenge/
+    ├── Dockerfile
+    ├── app.py
+    └── templates/
+        └── vulnerable_page.html
+
+Docker Images Used:
+- SQL Injection: sql-injection-challenge:latest
+- XSS: xss-challenge:latest
+- CSRF: csrf-challenge:latest
+- File Upload: file-upload-vulnerability:latest
+- Command Injection: command-injection:latest
+- SSTI: ssti-challenge:latest
+- LFI: lfi-challenge:latest
+- IDOR: idor-challenge:latest
+- Brute Force: brute-force:latest
+
+================================================================================
+4. CHALLENGE PUBLICATION & MANAGEMENT
+================================================================================
+
+4.1 PUBLISH CHALLENGE (Make Available to Users)
+-----------------------------------------------
+
+POST /admin/challenges/{challenge_id}/publish
+
+Purpose: Change is_published from 0 to 1
+
+Before Publishing:
+- Challenge is only visible to admins
+- Users cannot see or attempt it
+- Status shows as "Draft"
+
+After Publishing:
+- Challenge becomes available to all users
+- Appears in user challenge list
+- Users can start attempting if unlocked
+
+Database Update:
+UPDATE challenges SET is_published=1 WHERE id=?
+
+4.2 UNPUBLISH CHALLENGE
+-----------------------
+
+POST /admin/challenges/{challenge_id}/unpublish
+
+Purpose: Hide challenge from users (is_published: 1 → 0)
+- Remove from user view
+- Stop new user attempts
+- Existing attempts not affected
+
+4.3 DELETE CHALLENGE
+--------------------
+
+POST /admin/challenges/{challenge_id}/delete
+
+Purpose: Permanently remove challenge
+- Deletes from challenges table
+- Cascades to user_challenges (foreign key)
+- Stops all running containers
+- Removes from challenge_solves statistics
+
+Cascade Cleanup:
+- user_challenges records deleted
+- challenge_solves records deleted
+- running_containers stopped
+
+4.4 ADMIN CHALLENGE LIST VIEW
+-----------------------------
+
+GET /admin/api/challenges
+
+Returns all challenges (published & draft) with full details:
+
+Response:
+[
+    {
+        "id": 1,
+        "title": "SQL Injection Attack",
+        "category": "Web",
+        "difficulty": "Medium",
+        "points": 250,
+        "description": "..."
+        "flag": "FLAG{...}",
+        "docker_image": "sql-injection-challenge:latest",
+        "is_published": 1,
+        "created_at": "2026-03-20T10:30:00"
+    },
+    ...
+]
+
+Admin UI Features:
+✓ See all challenges (draft & published)
+✓ Filter by category
+✓ Filter by difficulty
+✓ Sort by creation date
+✓ Edit challenge details
+✓ Publish/Unpublish
+✓ Delete challenges
+✓ View challenge solves count
+✓ Preview challenge before publishing
+
+================================================================================
+5. USER-SIDE: CHALLENGE DISCOVERY & ACCESS
+================================================================================
+
+5.1 USERS VIEW AVAILABLE CHALLENGES
+----------------------------------
+
+GET /user/api/challenges?email=user@example.com
+
+Purpose: Fetch list of published challenges with lock status
+
+Response:
+{
+    "success": true,
+    "challenges": [
+        {
+            "id": 1,
+            "title": "SQL Injection Attack",
+            "category": "Web",
+            "difficulty": "Medium",
+            "points": 250,
+            "description": "...",
+            "docker_image": "sql-injection-challenge:latest",
+            "created_at": "2026-03-20",
+            "is_locked": false,
+            "is_completed": false
+        },
+        {
+            "id": 2,
+            "title": "XSS Vulnerability",
+            "category": "Web",
+            "difficulty": "Easy",
+            "points": 150,
+            "description": "...",
+            "docker_image": "xss-challenge:latest",
+            "created_at": "2026-03-21",
+            "is_locked": true,          # Must complete Challenge 1 first
+            "is_completed": false
+        },
+        ...
+    ]
+}
+
+5.2 CHALLENGE LOCKING MECHANISM
+------------------------------
+
+Progressive Unlocking:
+- First challenge (by creation order) is always UNLOCKED
+- Subsequent challenges are LOCKED until previous is completed
+- Users must solve challenges sequentially
+
+Lock Status Logic:
+if challenge_position > 0:
+    previous_challenge_id = all_challenges[challenge_position - 1]
+    if previous_challenge_id NOT IN completed_challenges:
+        is_locked = true  # Cannot attempt until unlocked
+
+Benefits:
+✓ Ensures learning progression
+✓ Prevents users from skipping foundational concepts
+✓ Gamification element (unlock as you succeed)
+✓ Ordered difficulty progression
+
+5.3 USER CHALLENGE LIST UI
+--------------------------
+
+Location: /user/challenges
+
+Visual Display:
+- Challenge cards showing:
+  * Title
+  * Category badge
+  * Difficulty indicator (Easy/Medium/Hard with color coding)
+  * Points value
+  * Description preview
+  * Completion status (✓ Completed / In Progress / Not Started)
+  * Lock indicator (🔒 if locked)
+  
+User Actions:
+- Click "Start Challenge" → Begin attempting
+- If Locked: "Complete [Previous Challenge] First" message shown
+- If Attempted: "Resume Challenge" button shown
+- If Completed: "✓ Completed" badge shown
+
+================================================================================
+6. CHALLENGE ATTEMPT WORKFLOW
+================================================================================
+
+6.1 STARTING A CHALLENGE
+-----------------------
+
+User clicks "Start Challenge" button on challenge card
+
+Step 1: Request validation
+        - Check if user exists
+        - Check if challenge exists
+        - Check if challenge is published
+        - Check if challenge is unlocked
+
+Step 2: Container Start
+        POST /user/challenges/{challenge_id}/start-container?email=user@example.com
+        
+        Process:
+        a) Fetch challenge Docker image from database
+        b) Call DockerManager.start_container()
+        c) Docker container spins up on random available port
+        d) Container health checked
+        e) Running container info stored in database
+
+Step 3: Container Registration
+        INSERT INTO running_containers (
+            challenge_id, user_id, container_id, 
+            container_name, port_mapping, status='running'
+        ) VALUES (...)
+
+Step 4: User Redirected
+        - Redirect to challenge attempt page
+        - Container port/URL provided to user
+        - User can now interact with vulnerable application in container
+
+Cleanup of Old Containers:
+If user already has running container for same challenge:
+- Stop previous container
+- Delete old record
+- Start fresh container (prevents conflicts)
+
+6.2 CONTAINER STATUS TRACKING
+----------------------------
+
+GET /user/challenges/{challenge_id}/container-status?email=user@example.com
+
+Real-time Status:
+
+Response (Container Running):
+{
+    "success": true,
+    "has_container": true,
+    "container_id": "a1b2c3d4e5f6...",
+    "container_name": "challenge_1_user_42",
+    "port": 5001,
+    "status": "running",
+    "docker_status": "running",
+    "started_at": "2026-03-20T14:30:00",
+    "access_url": "http://127.0.0.1:5001"
+}
+
+Response (No Container):
+{
+    "success": true,
+    "has_container": false,
+    "status": null
+}
+
+User Can:
+✓ See container port
+✓ Access vulnerable app via URL
+✓ Monitor time remaining (30 minutes default)
+✓ See when challenge started
+
+6.3 FLAG SUBMISSION & VERIFICATION
+---------------------------------
+
+User finds flag in the vulnerable application or environment
+
+POST /user/api/challenges/{challenge_id}/verify-flag
+
+Request:
+{
+    "email": "user@example.com",
+    "flag": "FLAG{sql_admin_password}"
+}
+
+Verification Process:
+1. Fetch challenge from database
+2. Retrieve stored flag: SELECT flag FROM challenges
+3. Compare: submitted_flag == stored_flag
+4. String trimmed and compared
+
+Response (Correct):
+{
+    "success": true,
+    "message": "Challenge solved! +250 XP",
+    "points_earned": 250,
+    "user_level": 5,
+    "user_xp": 1250
+}
+
+Response (Incorrect):
+{
+    "success": false,
+    "message": "Flag is incorrect. Try again!",
+    "points_earned": 0
+}
+
+On Correct Flag:
+1. Mark challenge as completed: progress=100
+2. Award XP to user: user.xp += challenge.points
+3. Increment challenges_solved counter
+4. Record solve time
+5. Update ranking table
+6. Unlock next challenge
+
+6.4 STOPPING A CHALLENGE
+-----------------------
+
+User clicks "Stop Challenge" or time expires
+
+POST /user/challenges/{challenge_id}/stop-container?email=user@example.com
+
+Process:
+1. Get running container ID for user-challenge
+2. Call DockerManager.stop_container(container_id)
+3. Container stops and cleans up resources
+4. Update database: status='stopped', stopped_at=NOW
+
+Database Update:
+UPDATE running_containers 
+SET status='stopped', stopped_at=CURRENT_TIMESTAMP 
+WHERE container_id=?
+
+Resources Freed:
+✓ Container stopped
+✓ Port released for reuse
+✓ Memory freed
+✓ Network connections closed
+✓ Database record marked as stopped
+
+================================================================================
+7. PROGRESS TRACKING & STATISTICS
+================================================================================
+
+7.1 USER PROGRESS PER CHALLENGE
+-------------------------------
+
+GET /user/challenges/{challenge_id}/progress?email=user@example.com
+
+Returns:
+{
+    "challenge_id": 1,
+    "user_id": 42,
+    "progress": 0,           # 0-100%
+    "is_completed": false,
+    "solved_at": null
+}
+
+Progress Values:
+- 0: Not started
+- 1-99: In progress
+- 100: Completed (flag verified)
+
+7.2 DASHBOARD STATISTICS
+-----------------------
+
+User Dashboard shows:
+- Total challenges: COUNT(*) WHERE is_published=1
+- Challenges completed: COUNT(*) FROM user_challenges WHERE progress=100
+- Challenges in progress: COUNT(*) WHERE progress BETWEEN 1 AND 99
+- Daily challenge: First incomplete challenge (ordered by ID)
+- Overall progress percentage: (completed + in_progress) / total * 100
+
+API: GET /user/api/dashboard?email=user@example.com
+
+Response includes:
+{
+    "total_challenges": 9,
+    "challenges_completed": 3,
+    "challenges_in_progress": 1,
+    "overall_progress": 44,          # 3 + 1 / 9 = 44%
+    "daily_challenge": {
+        "id": 4,
+        "title": "XSS Vulnerability",
+        "points": 150,
+        ...
+    }
+}
+
+7.3 CHALLENGE COMPLETION STATISTICS
+----------------------------------
+
+Table: challenge_solves
+
+{
+    "challenge_id": 1,
+    "title": "SQL Injection Attack",
+    "category": "Web",
+    "count": 8           # 8 users have solved this
+}
+
+Purpose:
+✓ Admin sees how many users completed each challenge
+✓ Identify difficult challenges
+✓ Gauge engagement
+✓ Balance difficulty
+
+=================================================================================
+8. BACKEND API ENDPOINTS SUMMARY
+=================================================================================
+
+ADMIN ENDPOINTS:
+═══════════════════════════════════════════════════════════════════════════════
+
+POST   /admin/challenges/create
+       Create new challenge (ADMIN_ONLY)
+       Body: {title, category, difficulty, points, description, flag, docker_image}
+
+POST   /admin/challenges/{id}/update
+       Update existing challenge
+       Body: Same as create
+
+GET    /admin/api/challenges
+       List all challenges (published & draft)
+
+GET    /admin/api/challenges/{id}
+       Get single challenge details
+
+POST   /admin/challenges/{id}/publish
+       Publish challenge (make visible to users)
+
+POST   /admin/challenges/{id}/unpublish
+       Hide challenge from users
+
+POST   /admin/challenges/{id}/delete
+       Permanently delete challenge
+
+POST   /admin/challenges/clear-all
+       Delete all challenges (DANGEROUS - admin only)
+
+
+USER ENDPOINTS:
+═══════════════════════════════════════════════════════════════════════════════
+
+GET    /user/api/challenges
+       Get published challenges with lock status
+       Query: ?email=user@example.com
+
+POST   /user/challenges/{id}/start-container
+       Start Docker container for challenge
+       Query: ?email=user@example.com
+
+POST   /user/challenges/{id}/stop-container
+       Stop running container
+       Query: ?email=user@example.com
+
+GET    /user/challenges/{id}/container-status
+       Get container status and port
+       Query: ?email=user@example.com
+
+GET    /user/challenges/{id}/progress
+       Get user's progress on specific challenge
+       Query: ?email=user@example.com
+
+POST   /user/api/challenges/{id}/verify-flag
+       Submit and verify flag
+       Body: {email, flag}
+
+GET    /user/challenges/{id}/my-containers
+       List all running containers for user
+       Query: ?email=user@example.com
+
+GET    /user/challenges
+       Render challenge list page (HTTP)
+
+=================================================================================
+9. TECHNOLOGY STACK
+================================================================================
+
+Backend:
+- Framework: FastAPI (Python)
+- Database: SQLite3 with WAL mode (improved concurrency)
+- Container Management: Docker SDK for Python
+- Server: Uvicorn (ASGI)
+
+Frontend:
+- Template Engine: Jinja2 (dynamic HTML)
+- Styling: CSS3 with gradients and animations
+- JavaScript: Vanilla JS + Lucide icons
+- HTTP Client: Fetch API
+
+Docker:
+- Container Runtime: Docker
+- Orchestration: Docker SDK Python
+- Images: Custom per challenge
+- Network: Random port mapping
+
+=================================================================================
+10. SECURITY FEATURES
+================================================================================
+
+Challenge Isolation:
+✓ Each user gets separate container
+✓ No cross-user data access
+✓ Network isolation between containers
+✓ Resource limits (memory, CPU)
+
+Flag Protection:
+✓ Flags stored in database (not visible to users)
+✓ Flag verification done server-side
+✓ Case-sensitive comparison available
+✓ Attempt logging enabled
+
+User Auth:
+✓ Email-based authentication
+✓ Session validation before container access
+✓ Challenge ownership verification
+✓ Admin-only endpoints protected
+
+=================================================================================
+11. EXAMPLE CHALLENGE FLOW (Complete Scenario)
+================================================================================
+
+ADMIN CREATES "SQL INJECTION" CHALLENGE:
+────────────────────────────────────────────────────────────────────────────
+
+1. Admin → /admin/challenges
+2. Clicks "Create Challenge" button
+3. Modal opens with form
+4. Admin fills:
+   - Title: "SQL Injection Attack"
+   - Category: "Web"
+   - Difficulty: "Medium"
+   - Points: 250
+   - Description: "Exploit vulnerable login..."
+   - Flag: "FLAG{admin_password_123}"
+   - Docker Image: "sql-injection-challenge:latest"
+
+5. Clicks "Create" 
+   → POST /admin/challenges/create
+   → Challenge ID 5 created with is_published=0
+
+6. Admin previews challenge (optional)
+   → POST /admin/challenges/5/preview
+   → Test container starts temporarily
+
+7. Admin clicks "Publish"
+   → POST /admin/challenges/5/publish
+   → is_published changed to 1
+
+8. Challenge now visible in user interface
+
+
+USER ATTEMPTS "SQL INJECTION" CHALLENGE:
+────────────────────────────────────────────────────────────────────────────
+
+1. User logs in → /user/dashboard
+2. Navigates to /user/challenges
+3. Sees "SQL Injection Attack" challenge card (if previous challenges complete)
+4. Clicks "Start Challenge"
+   → POST /user/challenges/5/start-container?email=user@example.com
+   → DockerManager starts container on port 5001
+   → Container record inserted in database
+
+5. Redirected to /user/challenge-attempt?id=5&email=user@example.com
+6. Sees challenge page with:
+   - Challenge instructions
+   - Access URL: http://127.0.0.1:5001
+   - Timer: 30 minutes
+   - Flag input field
+
+7. User navigates to http://127.0.0.1:5001 in browser
+8. Sees vulnerable SQL login form
+9. Attempts SQL injection: ' OR '1'='1
+10. Discovers flag: FLAG{admin_password_123}
+11. Copies flag and pastes in flag input field
+12. Clicks "Submit Flag"
+    → POST /user/api/challenges/5/verify-flag
+    → Body: {email: "user@example.com", flag: "FLAG{admin_password_123}"}
+    → Flag matches! ✓
+    → +250 XP awarded
+    → Challenge marked completed (progress=100)
+    → Next challenge unlocked
+
+13. User sees success message
+    → "Challenge solved! +250 XP"
+    → Redirected to /user/challenges
+
+14. User clicks "Stop Challenge" or time expires
+    → POST /user/challenges/5/stop-container
+    → Container stopped and cleaned up
+
+15. On user's next visit to challenges:
+    → Challenge 5 shows "✓ Completed"
+    → Challenge 6 now "Unlocked" (was locked)
+    → XP added to user profile
+    → "1/9 challenges completed" indicator updated
+
+
+=================================================================================
+12. KEY METRICS FOR PROJECT REVIEW
+================================================================================
+
+ADMIN CAPABILITIES:
+✓ Create challenges with Docker integration
+✓ Edit and update challenge content
+✓ Publish/unpublish challenges
+✓ Delete challenges with cascading cleanup
+✓ View challenge completion stats
+✓ Preview challenges before publishing
+✓ Manage Docker images from UI
+
+USER CAPABILITIES:
+✓ View published challenges
+✓ Progressive challenge unlocking
+✓ Attempt challenges (Docker container per attempt)
+✓ Submit and verify flags
+✓ Track progress per challenge
+✓ View completion statistics
+✓ Earn XP and level up
+
+SYSTEM ROBUSTNESS:
+✓ Database row-level locking (PRAGMA busy_timeout)
+✓ Write-Ahead Logging (WAL mode) for concurrency
+✓ Docker container cleanup on errors
+✓ Exponential backoff retry logic
+✓ Foreign key constraints enforced
+✓ UNIQUE constraints prevent duplicates
+✓ Cascade delete prevents orphaned records
+
+DATA INTEGRITY:
+✓ Foreign keys: user_id → users, challenge_id → challenges
+✓ Unique constraints: one solve per user per challenge
+✓ Progress tracking: 0-100% completion
+✓ Lock status: computed based on completion order
+✓ Statistics: accurate solve counts and rankings
+
+================================================================================
+13. SCALABILITY & PERFORMANCE CONSIDERATIONS
+================================================================================
+
+Database Optimization:
+- WAL Mode: Reduces write lock contention
+- Deferred Transactions: Better concurrency
+- PRAGMA busy_timeout: 45 seconds (handles high load)
+- Connection retries with exponential backoff
+
+Container Management:
+- Per-user isolation: No resource conflicts
+- Automatic cleanup: Prevents zombie containers
+- Port mapping: Random ports prevent collisions
+- Duration limits: Containers cleaned after 30 min
+
+Response Optimization:
+- Cache-Control headers
+- Selective data fetching
+- Query filtering by published status
+- Pagination ready
+
+================================================================================
+14. MAINTENANCE & TROUBLESHOOTING
+================================================================================
+
+If Challenges Don't Appear:
+→ Check is_published = 1
+→ Verify Docker image exists
+→ Ensure database connection valid
+
+If Users Can't Start Challenges:
+→ Verify Docker daemon running
+→ Check available ports
+→ Review running_containers table
+→ Check user authentication
+
+If Flag Verification Fails:
+→ Verify flag text in challenges table
+→ Check flag trimming/whitespace
+→ Review case sensitivity
+→ Check user email validation
+
+Container Issues:
+→ Manual cleanup: docker ps -a
+→ Database cleanup: DELETE FROM running_containers
+→ Restart Docker service: service docker restart
+
+Database Lock Issues:
+→ Check busy connections
+→ Increase busy_timeout if needed
+→ Review concurrent operations
+→ Monitor database.db-wal file size
+
+================================================================================
+15. FUTURE ENHANCEMENT OPPORTUNITIES
+================================================================================
+
+Potential Improvements:
+1. Hint system per challenge
+2. Time-based leaderboards
+3. Team/Group challenges
+4. Challenge difficulty scoring
+5. Automated Docker image deployment
+6. Challenge clone from template
+7. Bulk import/export
+8. Challenge versioning
+9. Analytics dashboard
+10. Challenge preview for users
+11. Estimated time tracking
+12. Difficulty auto-adjustment based on completion
+13. Custom Docker resource limits
+14. WebSocket real-time progress updates
+15. Challenge scheduling system
+
+================================================================================
+
+END OF DOCUMENT
+
+Summary for Project Review:
+───────────────────────────
+✓ Admin creates challenges with Docker images
+✓ Admins publish/unpublish to control availability
+✓ Users see published, unlocked challenges
+✓ Progressive unlocking ensures learning path
+✓ Docker containers provide isolated environments
+✓ Flag submission triggers completion and XP award
+✓ Statistics tracked for analytics
+✓ Database designed for concurrent access
+✓ Full CRUD operations for admins
+✓ RESTful API architecture
+
+This represents a complete, production-ready challenge platform with proper
+separation of admin and user concerns, robust error handling, and scalable
+database design.
+
+================================================================================

@@ -1,0 +1,106 @@
+/* ========== GLOBAL RESET (CRITICAL) ========== */
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+}
+
+* {
+  box-sizing: border-box;
+  font-family: "Segoe UI", system-ui, sans-serif;
+}
+
+body {
+  background: radial-gradient(circle at top, #05070b, #020409);
+  color: #e6faff;
+  overflow-x: hidden;
+}
+/* ================= LOGIN / REGISTER ================= */
+
+.login-page {
+  min-height: 100vh;
+  background: radial-gradient(circle at top, #05070b, #020409);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.login-card {
+  width: 420px;
+  background: rgba(12,18,24,0.95);
+  border-radius: 18px;
+  padding: 36px;
+  box-shadow: 0 0 45px rgba(0,255,255,0.35);
+  text-align: center;
+}
+
+.shield-icon {
+  font-size: 40px;
+  color: #00cfff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  margin: 0 auto 15px;
+}
+
+.shield-icon i,
+.shield-icon svg {
+  width: 40px !important;
+  height: 40px !important;
+  stroke: #00cfff !important;
+  color: #00cfff !important;
+}
+
+.login-header h1 {
+  color: #00cfff;
+  margin: 12px 0 4px;
+}
+
+.login-header p {
+  color: #9fbfcf;
+  font-size: 14px;
+}
+
+.login-card label {
+  display: block;
+  text-align: left;
+  margin-top: 18px;
+  color: #7fdfff;
+  font-size: 13px;
+}
+
+.login-card input {
+  width: 100%;
+  padding: 12px;
+  margin-top: 6px;
+  border-radius: 12px;
+  border: none;
+  background: #0b0f14;
+  color: #e6faff;
+}
+
+.login-btn {
+  margin-top: 26px;
+  width: 100%;
+  padding: 14px;
+  border-radius: 14px;
+  border: none;
+  font-size: 15px;
+  cursor: pointer;
+  background: linear-gradient(135deg,#00cfff,#00ffb4);
+  color: #00141a;
+  font-weight: 600;
+}
+
+.login-footer {
+  margin-top: 16px;
+}
+
+.login-footer a {
+  color: #00ffb4;
+  text-decoration: none;
+  font-size: 13px;
+}

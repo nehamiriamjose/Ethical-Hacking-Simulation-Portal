@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecureVault Bank - Login</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            max-width: 1000px;
+            width: 100%;
+        }
+
+        .login-box {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .demo-box {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            overflow-y: auto;
+            max-height: 600px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .message {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 6px;
+            display: none;
+            font-size: 14px;
+        }
+
+        .message.error {
+            background: #fed7d7;
+            color: #c53030;
+            border: 1px solid #fc8181;
+            display: block;
+        }
+
+        .message.success {
+            background: #c6f6d5;
+            color: #22543d;
+            border: 1px solid #9ae6b4;
+            display: block;
+        }
+
+        .demo-account {
+            background: #edf2f7;
+            padding: 12px;
+            margin-bottom: 15px;
+            border-radius: 6px;
+            border-left: 4px solid #667eea;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .demo-account:hover {
+            background: #e2e8f0;
+        }
+
+        .demo-account strong {
+            display: block;
+            color: #2d3748;
+        }
+
+        .demo-account small {
+            color: #718096;
+            font-size: 12px;
+        }
+
+        .info-section {
+            background: #f7fafc;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 20px;
+            border-left: 4px solid #f6ad55;
+        }
+
+        .info-section h3 {
+            color: #c05621;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .info-section p {
+            color: #4a5568;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .demo-box {
+                max-height: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="login-box">
+            <h1>🏦 SecureVault Bank</h1>
+            <p class="subtitle">Account Takeover Simulation Lab</p>
+            
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input 
+                        type="text" 
+                        id="username" 
+                        name="username" 
+                        placeholder="alice, bob, or charlie"
+                        autocomplete="off"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input 
+                        type="password" 
+                        id="password" 
+                        name="password" 
+                        placeholder="Enter password"
+                        autocomplete="off"
+                    >
+                </div>
+
+                <button type="submit" id="loginBtn">Login</button>
+            </form>
+
+            <div id="message" class="message"></div>
+        </div>
+
+        <div class="demo-box">
+            <h3 style="color: #667eea; margin-bottom: 20px;">📋 Demo Accounts</h3>
+            
+            <div class="demo-account" onclick="setCredentials('alice', 'alice123')">
+                <strong>Alice</strong>
+                <small>Balance: $5,000 • Password: alice123</small>
+            </div>
+
+            <div class="demo-account" onclick="setCredentials('bob', 'bob456')">
+                <strong>Bob</strong>
+                <small>Balance: $10,000 • Password: bob456</small>
+            </div>
+
+            <div class="demo-account" onclick="setCredentials('charlie', 'charlie789')">
+                <strong>Charlie</strong>
+                <small>Balance: $2,500 • Password: charlie789</small>
+            </div>
+
+            <div class="info-section">
+                <h3>🎯 Your Objective</h3>
+                <p>
+                    <strong>1. Log in with any account (e.g., alice)</strong><br>
+                    <strong>2. Exploit vulnerabilities to transfer money FROM another user (e.g., bob) TO your account (e.g., alice)</strong><br>
+                    <strong>3. Capture the flag when successful</strong>
+                </p>
+            </div>
+
+            <div class="info-section" style="border-left-color: #e74c3c; margin-top: 20px;">
+                <h3 style="color: #c53030;">🔓 SQL Injection Hints</h3>
+                <p>
+                    The login form is vulnerable to SQL injection. Try these payloads in the username field:<br><br>
+                    <strong>• admin' --</strong><br>
+                    <strong>• admin' #</strong><br>
+                    <strong>• ' or '1'='1</strong><br><br>
+                    Leave the password field empty and submit. The SQL comment removes the password check!
+                </p>
+            </div>
+
+            <div style="margin-top: 20px;">
+                <a href="/" style="color: #667eea; text-decoration: none; font-size: 13px;">← Back to Introduction</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function setCredentials(username, password) {
+            document.getElementById('username').value = username;
+            document.getElementById('password').value = password;
+        }
+
+        const form = document.getElementById('loginForm');
+        const messageDiv = document.getElementById('message');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+
+            if (!username || !password) {
+                messageDiv.textContent = '⚠️ Please enter both username and password';
+                messageDiv.className = 'message error';
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    messageDiv.textContent = `✅ ${data.message}`;
+                    messageDiv.className = 'message success';
+                    
+                    // Store session and redirect
+                    localStorage.setItem('sessionId', data.session_id);
+                    localStorage.setItem('username', data.username);
+                    
+                    setTimeout(() => {
+                        window.location.href = '/dashboard?session=' + data.session_id;
+                    }, 1500);
+                } else {
+                    messageDiv.textContent = `❌ ${data.detail}`;
+                    messageDiv.className = 'message error';
+                }
+            } catch (error) {
+                messageDiv.textContent = `❌ Error: ${error.message}`;
+                messageDiv.className = 'message error';
+            }
+        });
+    </script>
+</body>
+</html>

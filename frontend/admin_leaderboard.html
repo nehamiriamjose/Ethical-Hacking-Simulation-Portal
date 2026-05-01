@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Leaderboard Monitoring</title>
+
+    <link rel="stylesheet" href="/static/css/base.css">
+    <link rel="stylesheet" href="/static/css/dashboard.css">
+    <link rel="stylesheet" href="/static/css/admin_dashboard.css">
+    <link rel="stylesheet" href="/static/css/admin_leaderboard.css">
+    <link rel="stylesheet" href="/static/css/leaderboard.css">
+
+    <!-- Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Loading Overlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(5, 7, 11, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        .loading-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(0, 234, 255, 0.2);
+            border-top-color: #00eaff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Page Transition Animations */
+        .sidebar {
+            animation: slideInLeft 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+
+        .dashboard-main {
+            animation: slideInRight 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-50px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(50px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Staggered content animations */
+        .stat-card {
+            animation: fadeInUp 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+            opacity: 0;
+        }
+
+        .stat-card:nth-child(1) {
+            animation-delay: 0.1s;
+        }
+
+        .stat-card:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .stat-card:nth-child(3) {
+            animation-delay: 0.3s;
+        }
+
+        .stat-card:nth-child(4) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body class="dashboard-body">
+
+    <!-- LOADING OVERLAY -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="brand">
+            <span class="shield">
+                <i data-lucide="shield"></i>
+            </span>
+            <div>
+                <h2>Hacker Portal</h2>
+                <p>Learn & Conquer</p>
+            </div>
+        </div>
+
+        <nav class="menu">
+            <a href="/admin/dashboard"><i data-lucide="layout-grid"></i> Dashboard</a>
+            <a href="/admin/users"><i data-lucide="users"></i> User Management</a>
+            <a href="/admin/challenges"><i data-lucide="target"></i> Challenges</a>
+            <a href="/admin/tutorials"><i data-lucide="book-open"></i> Tutorials</a>
+            <a href="/admin/quizzes"><i data-lucide="help-circle"></i> Quizzes</a>
+            <a href="/admin/leaderboard" class="active"><i data-lucide="trophy"></i> Leaderboard</a>
+            <a href="/admin/sandbox"><i data-lucide="cpu"></i> Sandbox Monitor</a>
+            <a href="/admin/notifications"><i data-lucide="bell"></i> Notifications</a>
+            <a href="/admin/analytics"><i data-lucide="bar-chart-2"></i> Analytics</a>
+        </nav>
+
+        <a class="logout" href="/">
+            <i data-lucide="log-out"></i> Logout
+        </a>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="dashboard-main">
+
+        <!-- TOP BAR -->
+        <header class="topbar">
+            <h2>Leaderboard Monitoring</h2>
+        </header>
+
+        <!-- SUMMARY CARDS -->
+        <section class="admin-stats-grid">
+
+            <div class="stat-card glow">
+                <i data-lucide="users"></i>
+                <div>
+                    <p>Total Users</p>
+                    <h3>{{TOTAL_USERS}}</h3>
+                </div>
+            </div>
+
+            <div class="stat-card glow">
+                <i data-lucide="trending-up"></i>
+                <div>
+                    <p>Active Today</p>
+                    <h3>{{ACTIVE_TODAY}}</h3>
+                </div>
+            </div>
+
+            <div class="stat-card glow highlight-gold">
+                <i data-lucide="trophy"></i>
+                <div>
+                    <p>Top Scorer</p>
+                    <h3>{{TOP_SCORE}}</h3>
+                </div>
+            </div>
+
+            <div class="stat-card glow">
+                <i data-lucide="award"></i>
+                <div>
+                    <p>Avg Score</p>
+                    <h3>{{AVG_SCORE}}</h3>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- PODIUM -->
+        <section class="leaderboard-podium">
+
+            <div class="podium-card silver">
+                <span class="medal">🥈</span>
+                <h4>{{SECOND_NAME}}</h4>
+                <p class="score">{{SECOND_SCORE}}</p>
+                <small>{{SECOND_SOLVED}} solved</small>
+                <small>{{SECOND_EMAIL}}</small>
+            </div>
+
+            <div class="podium-card gold">
+                <span class="medal">👑</span>
+                <h4>{{FIRST_NAME}}</h4>
+                <p class="score">{{FIRST_SCORE}}</p>
+                <small>{{FIRST_SOLVED}} solved</small>
+                <small>{{FIRST_EMAIL}}</small>
+            </div>
+
+            <div class="podium-card bronze">
+                <span class="medal">🥉</span>
+                <h4>{{THIRD_NAME}}</h4>
+                <p class="score">{{THIRD_SCORE}}</p>
+                <small>{{THIRD_SOLVED}} solved</small>
+                <small>{{THIRD_EMAIL}}</small>
+            </div>
+
+        </section>
+
+        <!-- FULL RANKINGS -->
+        <section class="leaderboard-full glow">
+            <br>
+            <h3 class="section-title">Full Rankings</h3>
+
+            <table class="leaderboard-table">
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>User</th>
+                        <th>Score</th>
+                        <th>Challenges Solved</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{FULL_RANKING_ROWS}}
+                </tbody>
+            </table>
+        </section>
+
+    </main>
+
+    <script>
+        // Loading animation on sidebar navigation
+        document.querySelectorAll('.sidebar a').forEach(link => {
+            link.addEventListener('click', function (e) {
+                if (this.href.includes('/admin/') && !this.href.endsWith('#')) {
+                    document.getElementById('loadingOverlay').classList.add('active');
+                }
+            });
+        });
+    </script>
+    <script>
+        lucide.createIcons();
+    </script>
+
+</body>
+
+</html>

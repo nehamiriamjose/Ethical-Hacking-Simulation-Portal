@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 - Node Not Found</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        .error-container {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 8rem;
+            margin: 0;
+            color: var(--danger);
+            opacity: 0.8;
+        }
+
+        p {
+            color: var(--text-muted);
+            font-size: 1.5rem;
+            margin-top: -1rem;
+        }
+
+        .back-link {
+            margin-top: 2rem;
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="error-container">
+        <h1 class="animate-up">404</h1>
+        <p class="animate-up" style="animation-delay: 0.1s">Access Denied: Node Identity Unknown</p>
+        <a href="/" class="back-link animate-up" style="animation-delay: 0.2s">← Return to Gateway</a>
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Challenge Preview</title>
+    <link rel="stylesheet" href="/static/css/base.css">
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: transparent;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: rgba(20, 241, 178, 0.05);
+            border-bottom: 1px solid rgba(20, 241, 178, 0.2);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-text {
+            color: #14f1b2;
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .back-btn {
+            padding: 10px 20px;
+            background: rgba(20, 241, 178, 0.2);
+            border: 1px solid rgba(20, 241, 178, 0.4);
+            color: #14f1b2;
+            border-radius: 6px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        .back-btn:hover {
+            background: rgba(20, 241, 178, 0.3);
+            border-color: rgba(20, 241, 178, 0.6);
+        }
+
+        .content {
+            flex: 1;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            width: 100%;
+            height: 100%;
+        }
+
+        .preview-container {
+            flex: 1;
+            background: transparent;
+            border-radius: 0;
+            overflow: hidden;
+            box-shadow: none;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+        }
+
+        .preview-content {
+            flex: 1;
+            overflow: auto;
+        }
+
+        #previewFrame {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .error-container {
+            display: none;
+            padding: 40px;
+            text-align: center;
+            flex: 1;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .error-container.show {
+            display: flex;
+        }
+
+        .error-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        .error-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #14f1b2;
+            margin-bottom: 10px;
+        }
+
+        .error-message {
+            font-size: 16px;
+            color: #aaa;
+            margin-bottom: 20px;
+            max-width: 500px;
+            line-height: 1.6;
+        }
+
+        .error-code {
+            background: rgba(20, 241, 178, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            color: #ff6464;
+            font-size: 14px;
+            margin-bottom: 20px;
+            text-align: left;
+            max-width: 600px;
+            border: 1px solid rgba(20, 241, 178, 0.2);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .retry-btn {
+            padding: 12px 30px;
+            background: rgba(20, 241, 178, 0.4);
+            color: #14f1b2;
+            border: 1px solid rgba(20, 241, 178, 0.6);
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .retry-btn:hover {
+            background: rgba(20, 241, 178, 0.6);
+            transform: translateY(-2px);
+        }
+
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            flex: 1;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .loading-spinner.show {
+            display: flex;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(20, 241, 178, 0.2);
+            border-top-color: #14f1b2;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .loading-text {
+            font-size: 16px;
+            color: #14f1b2;
+        }
+
+        .tips {
+            margin-top: 20px;
+            padding: 20px;
+            background: rgba(20, 241, 178, 0.05);
+            border: 1px solid rgba(20, 241, 178, 0.2);
+            border-radius: 8px;
+            color: #aaa;
+        }
+
+        .tips h3 {
+            margin-bottom: 10px;
+            color: #14f1b2;
+        }
+
+        .tips ul {
+            margin-left: 20px;
+        }
+
+        .tips li {
+            margin-bottom: 8px;
+            line-height: 1.5;
+        }
+
+        /* Flag Submission Modal */
+        .flag-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .flag-modal.show {
+            display: flex;
+        }
+
+        .flag-modal-content {
+            background: rgba(20, 241, 178, 0.1);
+            border: 2px solid rgba(20, 241, 178, 0.4);
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .flag-modal h2 {
+            color: #14f1b2;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+
+        .flag-modal label {
+            display: block;
+            color: #aaa;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .flag-modal input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid rgba(20, 241, 178, 0.3);
+            border-radius: 6px;
+            font-size: 14px;
+            margin-bottom: 20px;
+            font-family: monospace;
+            box-sizing: border-box;
+            background: rgba(10, 13, 18, 0.8);
+            color: #14f1b2;
+        }
+
+        .flag-modal input:focus {
+            outline: none;
+            border-color: rgba(20, 241, 178, 0.8);
+            box-shadow: 0 0 8px rgba(20, 241, 178, 0.3);
+        }
+
+        .flag-modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .flag-modal-buttons button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .submit-flag-btn-modal {
+            background: rgba(20, 241, 178, 0.5);
+            color: #0a0d12;
+            border: 1px solid rgba(20, 241, 178, 0.8);
+        }
+
+        .submit-flag-btn-modal:hover {
+            background: #14f1b2;
+            transform: translateY(-2px);
+        }
+
+        .cancel-flag-btn {
+            background: rgba(100, 100, 100, 0.3);
+            color: #aaa;
+            border: 1px solid rgba(100, 100, 100, 0.5);
+        }
+
+        .cancel-flag-btn:hover {
+            background: rgba(100, 100, 100, 0.5);
+        }
+
+        .flag-submit-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            padding: 15px 25px;
+            background: rgba(20, 241, 178, 0.5);
+            color: #0a0d12;
+            border: 1.5px solid rgba(20, 241, 178, 0.7);
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 4px 12px rgba(20, 241, 178, 0.3);
+        }
+
+        .flag-submit-btn.show {
+            display: block;
+        }
+
+        .flag-submit-btn:hover {
+            background: rgba(20, 241, 178, 0.8);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 16px rgba(20, 241, 178, 0.5);
+        }
+
+        .flag-status {
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-weight: 600;
+            display: none;
+        }
+
+        .flag-status.show {
+            display: block;
+        }
+
+        .flag-status.success {
+            background: rgba(20, 241, 178, 0.2);
+            color: #14f1b2;
+            border: 1px solid rgba(20, 241, 178, 0.4);
+        }
+
+        .flag-status.error {
+            background: rgba(255, 100, 100, 0.2);
+            color: #ff6464;
+            border: 1px solid rgba(255, 100, 100, 0.4);
+        }
+
+        /* Success Modal */
+        .success-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10001;
+        }
+
+        .success-modal.show {
+            display: flex;
+        }
+
+        .success-content {
+            background: linear-gradient(135deg, rgba(20, 241, 178, 0.1) 0%, rgba(10, 13, 18, 0.95) 100%);
+            border: 2px solid rgba(20, 241, 178, 0.5);
+            border-radius: 30px;
+            padding: 60px 50px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(20, 241, 178, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            animation: bounceIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            max-width: 600px;
+            width: 90%;
+        }
+
+        @keyframes bounceIn {
+            0% {
+                opacity: 0;
+                transform: scale(0.3);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1.05);
+            }
+            70% {
+                transform: scale(0.9);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .success-icon {
+            font-size: 100px;
+            margin-bottom: 20px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.15);
+                opacity: 0.8;
+            }
+        }
+
+        .success-title {
+            color: #14f1b2;
+            font-size: 40px;
+            font-weight: 700;
+            margin: 20px 0;
+            text-shadow: 0 4px 15px rgba(20, 241, 178, 0.4);
+            letter-spacing: 2px;
+        }
+
+        .success-message {
+            color: #aaa;
+            font-size: 18px;
+            line-height: 1.6;
+            margin: 20px 0;
+        }
+
+        .success-points {
+            background: rgba(20, 241, 178, 0.2);
+            border: 2px solid rgba(20, 241, 178, 0.5);
+            color: #14f1b2;
+            padding: 25px;
+            border-radius: 15px;
+            margin: 30px 0;
+            font-weight: 700;
+            font-size: 32px;
+            text-shadow: 0 0 20px rgba(20, 241, 178, 0.4);
+            letter-spacing: 1px;
+        }
+
+        .success-url {
+            background: rgba(10, 13, 18, 0.8);
+            border: 1px solid rgba(20, 241, 178, 0.3);
+            color: #14f1b2;
+            padding: 12px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 12px;
+            margin: 15px 0;
+            word-break: break-all;
+        }
+
+        .success-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 40px;
+            justify-content: center;
+        }
+
+        .btn-exit {
+            background: linear-gradient(135deg, #14f1b2 0%, #0ecaa0 100%);
+            color: #0a0d12;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 20px rgba(20, 241, 178, 0.3);
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-exit:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(20, 241, 178, 0.5);
+        }
+
+        .btn-exit:active {
+            transform: translateY(-1px);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">
+            <span class="logo-text">🛡️ Challenge Simulator</span>
+        </div>
+        <div class="controls">
+            <button class="back-btn" onclick="history.back()">← Back to Challenges</button>
+        </div>
+    </div>
+
+    <div class="content">
+        <div class="preview-container">
+            <div class="loading-spinner show" id="loadingSpinner">
+                <div class="spinner"></div>
+                <div class="loading-text">Starting challenge container...</div>
+            </div>
+            <div class="preview-content" id="previewContent">
+                <iframe id="previewFrame"></iframe>
+            </div>
+            <div class="error-container" id="errorContainer">
+                <div class="error-icon">⚠️</div>
+                <div class="error-title">Challenge Simulation Error</div>
+                <div class="error-message">Unable to start the challenge container. Please ensure Docker is running and try again.</div>
+                <div class="error-code" id="errorCode"></div>
+                <div class="action-buttons">
+                    <button class="retry-btn" onclick="location.reload()">🔄 Retry</button>
+                    <button class="retry-btn" onclick="history.back()">← Go Back</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Flag Submission Modal -->
+    <div class="flag-modal" id="flagModal">
+        <div class="flag-modal-content">
+            <h2>🚩 Submit Flag</h2>
+            <div class="flag-status" id="flagStatus"></div>
+            <label for="flagInput">Enter the flag you discovered:</label>
+            <input type="text" id="flagInput" placeholder="FLAG{...}" />
+            <div class="flag-modal-buttons">
+                <button class="cancel-flag-btn" onclick="closeFlagModal()">Cancel</button>
+                <button class="submit-flag-btn-modal" onclick="submitFlag()">Submit Flag</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Flag Submit Button (appears when challenge is loaded) -->
+    <button class="flag-submit-btn" id="flagSubmitBtn" onclick="openFlagModal()">📤 Submit Flag</button>
+
+    <script>
+        const challengeId = new URLSearchParams(window.location.search).get('id');
+        const email = new URLSearchParams(window.location.search).get('email');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const previewContent = document.getElementById('previewContent');
+        const errorContainer = document.getElementById('errorContainer');
+        const errorCode = document.getElementById('errorCode');
+        const previewFrame = document.getElementById('previewFrame');
+
+        function openFlagModal() {
+            document.getElementById('flagModal').classList.add('show');
+            document.getElementById('flagInput').focus();
+            document.getElementById('flagStatus').classList.remove('show', 'success', 'error');
+        }
+
+        function closeFlagModal() {
+            document.getElementById('flagModal').classList.remove('show');
+            document.getElementById('flagInput').value = '';
+            document.getElementById('flagStatus').classList.remove('show', 'success', 'error');
+        }
+
+        async function submitFlag() {
+            const flag = document.getElementById('flagInput').value.trim();
+            const statusDiv = document.getElementById('flagStatus');
+
+            if (!flag) {
+                statusDiv.textContent = 'Please enter a flag';
+                statusDiv.className = 'flag-status show error';
+                return;
+            }
+
+            try {
+                statusDiv.textContent = '🔍 Verifying flag...';
+                statusDiv.className = 'flag-status show';
+
+                const response = await fetch(`/user/api/challenges/${challengeId}/verify-flag`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        flag: flag,
+                        email: email
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    statusDiv.textContent = '✅ ' + (data.message || 'Flag is correct!');
+                    statusDiv.className = 'flag-status show success';
+                    
+                    // Show beautiful success modal after delay
+                    setTimeout(() => {
+                        showSuccessModal(data.points || 100, data);
+                        // Stop container
+                        fetch(`/user/challenges/${challengeId}/stop-container?email=${email}`, {
+                            method: 'POST'
+                        }).catch(err => console.log('Container stop:', err));
+                    }, 1500);
+                } else {
+                    statusDiv.textContent = data.error || 'Flag verification failed';
+                    statusDiv.className = 'flag-status show error';
+                }
+            } catch (error) {
+                statusDiv.textContent = 'Error: ' + error.message;
+                statusDiv.className = 'flag-status show error';
+                console.error('Flag submission error:', error);
+            }
+        }
+
+        async function startChallenge() {
+            try {
+                if (!challengeId || !email) {
+                    throw new Error('Missing challenge ID or email');
+                }
+
+                console.log('🚀 Starting challenge container for ID:', challengeId);
+
+                // Start the Docker container
+                const res = await fetch(`/user/challenges/${challengeId}/start-container?email=${email}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                const data = await res.json();
+                console.log('Container response:', data);
+
+                if (!data.success) {
+                    throw new Error(data.error || 'Failed to start container');
+                }
+
+                // Get the access URL
+                const accessUrl = data.access_url || `http://localhost:${data.port}`;
+                console.log('Access URL:', accessUrl);
+
+                // Wait 2 seconds for container to fully initialize
+                console.log('⏳ Waiting 2 seconds for container to be ready...');
+                await new Promise(resolve => setTimeout(resolve, 2000));
+
+                // Load the container in iframe
+                previewFrame.src = accessUrl;
+                console.log('📱 Iframe src set to:', accessUrl);
+
+                // Hide loading after 1 more second
+                setTimeout(() => {
+                    loadingSpinner.classList.remove('show');
+                    errorContainer.classList.remove('show');
+                    previewContent.style.display = 'flex';
+                    // Show the flag submit button
+                    document.getElementById('flagSubmitBtn').classList.add('show');
+                    console.log('✅ Simulation loaded and visible');
+                }, 1000);
+
+            } catch (error) {
+                console.error('❌ Error starting challenge:', error);
+                loadingSpinner.classList.remove('show');
+                errorContainer.classList.add('show');
+                errorCode.textContent = error.message;
+            }
+        }
+
+        // Start challenge when page loads
+        document.addEventListener('DOMContentLoaded', startChallenge);
+
+        // Close modal when clicking outside of it
+        document.getElementById('flagModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeFlagModal();
+            }
+        });
+
+        // Allow pressing Enter to submit flag
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && document.getElementById('flagModal').classList.contains('show')) {
+                submitFlag();
+            }
+        });
+
+        // Return to challenges page
+        function returnToChallenges() {
+            window.location.href = `/user/challenges?email=${encodeURIComponent(email)}`;
+        }
+
+        // Show success modal
+        function showSuccessModal(points, data) {
+            const successModal = document.getElementById('successModal');
+            const successPoints = document.getElementById('successPoints');
+            const successUrl = document.getElementById('successUrl');
+            
+            successPoints.textContent = `+${points} Points`;
+            
+            if (data && data.access_url) {
+                successUrl.textContent = `Accessed at: ${data.access_url}`;
+            }
+            
+            closeFlagModal();
+            successModal.classList.add('show');
+        }
+    </script>
+
+    <!-- Success Modal -->
+    <div class="success-modal" id="successModal">
+        <div class="success-content">
+            <div class="success-icon">🏆</div>
+            <div class="success-title">Challenge Completed!</div>
+            <div class="success-message">Congratulations! You've successfully solved this challenge.</div>
+            <div class="success-points" id="successPoints">+100 Points</div>
+            <div class="success-url" id="successUrl"></div>
+            <div class="success-actions">
+                <button class="btn-exit" onclick="returnToChallenges()">← Return to Challenges</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

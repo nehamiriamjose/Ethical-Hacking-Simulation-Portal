@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Tutorials</title>
+
+  <!-- GLOBAL -->
+
+  <link rel="stylesheet" href="/static/css/base.css">
+
+  <!-- DASHBOARD LAYOUT -->
+  <link rel="stylesheet" href="/static/css/dashboard.css">
+
+  <!-- TUTORIALS PAGE -->
+  <link rel="stylesheet" href="/static/css/tutorials.css?v=2">
+
+  <style>
+    /* Start Learning Modal */
+    #startLearningModal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.85);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 10000;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+
+    #startLearningModal.show {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .exit-modal-content {
+      background: linear-gradient(135deg, rgba(20, 241, 178, 0.1) 0%, rgba(10, 13, 18, 0.9) 100%);
+      border: 2px solid rgba(20, 241, 178, 0.4);
+      border-radius: 20px;
+      padding: 40px 60px;
+      text-align: center;
+      box-shadow: 0 8px 32px rgba(20, 241, 178, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      animation: slideInUp 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+
+    .exit-modal-content h2 {
+      font-size: 32px;
+      color: #14f1b2;
+      margin: 0 0 20px 0;
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+
+    .countdown {
+      font-size: 80px;
+      font-weight: 700;
+      color: #14f1b2;
+      text-shadow: 0 4px 15px rgba(20, 241, 178, 0.4);
+      animation: pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+      font-family: 'Courier New', monospace;
+    }
+
+    @keyframes slideInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes pulse {
+      0% {
+        transform: scale(1);
+        opacity: 1;
+      }
+
+      50% {
+        transform: scale(1.1);
+        opacity: 0.8;
+      }
+
+      100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+  </style>
+
+</head>
+<!-- Lucide Icons -->
+<script src="https://unpkg.com/lucide@latest"></script>
+<script>
+  lucide.createIcons();
+</script>
+
+<body class="dashboard-body">
+
+  <!-- ================= SIDEBAR ================= -->
+  <aside class="sidebar">
+    <div class="brand">
+      <span class="shield">
+        <i data-lucide="shield"></i>
+      </span>
+      <div>
+        <h2>Hacker Portal</h2>
+        <p>Learn & Conquer</p>
+      </div>
+    </div>
+    <nav class="menu">
+      <a href="/user/dashboard?email={{EMAIL}}">
+        <i data-lucide="layout-grid"></i>
+        Dashboard
+      </a>
+
+      <a class="active" href="/user/tutorials?email={{EMAIL}}">
+        <i data-lucide="book-open"></i>
+        Tutorials
+      </a>
+
+      <a href="/user/tutorials/saved?email={{EMAIL}}">
+        <i data-lucide="star"></i>
+        Saved Tutorials
+      </a>
+
+      <a href="/user/challenges?email={{EMAIL}}">
+        <i data-lucide="target"></i>
+        Challenges
+      </a>
+
+      <a href="/user/quizzes?email={{EMAIL}}">
+        <i data-lucide="help-circle"></i>
+        Quizzes
+      </a>
+
+      <a href="/user/attempt-history?email={{EMAIL}}">
+        <i data-lucide="history"></i>
+        Attempt History
+      </a>
+
+      <a href="/user/leaderboard?email={{EMAIL}}">
+        <i data-lucide="trophy"></i>
+        Leaderboard
+      </a>
+
+      <a href="/user/progress?email={{EMAIL}}">
+        <i data-lucide="trending-up"></i>
+        Progress Graph
+      </a>
+
+      <a href="/user/profile?email={{EMAIL}}">
+        <i data-lucide="user"></i>
+        Profile
+      </a>
+    </nav>
+
+    <a class="logout" href="/">
+      <i data-lucide="log-out"></i>
+      Logout
+    </a>
+  </aside>
+
+  <!-- ================= MAIN ================= -->
+  <main class="dashboard-main tutorials-page">
+
+    <div class="tutorials-container">
+
+      <!-- HEADER -->
+      <header class="figma-header">
+        <h1>Tutorials</h1>
+
+        <div class="figma-actions">
+          <div class="notif-wrapper">
+            <button id="notifBell" class="icon-btn" type="button">
+              <i data-lucide="bell"></i>
+            </button>
+            <div id="notifPanel" class="notif-panel">
+              <div class="notif-header">Notifications</div>
+              <div id="notifList" class="notif-list">
+                <!-- notifications will load here -->
+              </div>
+            </div>
+          </div>
+
+          <div class="figma-user">
+            <div class="figma-avatar">👤</div>
+            <div>
+              <strong>{{USERNAME}}</strong>
+              <small>Level {{LEVEL}}</small>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- SEARCH BAR -->
+      <div class="figma-search">
+        <input type="text" placeholder="Search tutorials...">
+      </div>
+
+      <!-- FILTERS -->
+      <div class="figma-filters">
+        <button class="active">All</button>
+        <button>Web Security</button>
+        <button>Binary Exploitation</button>
+        <button>Network Security</button>
+        <button>Cryptography</button>
+        <button>System Security</button>
+      </div>
+
+      <!-- ================= TUTORIAL GRID ================= -->
+      <section class="figma-grid" id="tutorialGrid">
+
+        <!-- Tutorials will be loaded here dynamically -->
+
+      </section>
+
+    </div>
+
+    <!-- 🔥 LUCIDE INITIALIZATION (CRITICAL) -->
+    <script>
+      lucide.createIcons();
+    </script>
+
+    <!-- Load published tutorials -->
+    <script>
+      async function loadPublishedTutorials() {
+        const grid = document.getElementById("tutorialGrid");
+
+        try {
+          console.log("Fetching published tutorials...");
+          const res = await fetch("/user/tutorials/api/published");
+          console.log("API response status:", res.status);
+
+          const tutorials = await res.json();
+          console.log("Tutorials received:", tutorials);
+
+          if (!Array.isArray(tutorials)) {
+            console.warn("Tutorials is not an array:", tutorials);
+            grid.innerHTML = "<p style='color:#9ca3af; text-align: center;'>No tutorials available yet</p>";
+            return;
+          }
+
+          if (tutorials.length === 0) {
+            console.log("No tutorials found");
+            grid.innerHTML = "<p style='color:#9ca3af; text-align: center;'>No tutorials available yet</p>";
+            return;
+          }
+
+          console.log("Loading " + tutorials.length + " tutorials");
+          grid.innerHTML = "";
+
+          tutorials.forEach(tutorial => {
+            const difficultyClass = (tutorial.difficulty || "beginner").toLowerCase();
+            const categoryClass = (tutorial.category || "").toLowerCase().replace(/\s+/g, "-");
+
+            const card = document.createElement("article");
+            card.className = "figma-card";
+            card.setAttribute("data-tutorial-id", tutorial.id);
+            card.innerHTML = `
+                <span class="badge ${difficultyClass}">${tutorial.difficulty || "Beginner"}</span>
+                <div class="progress-circle" id="progress-${tutorial.id}"></div>
+
+                <h3>${tutorial.title}</h3>
+                <p>${tutorial.intro || "No description available"}</p>
+                
+                <div class="rating-bar">
+                    <span class="rating-display" id="rating-${tutorial.id}">⭐ 0.0 (0)</span>
+                    <span class="completion-badge" id="completion-${tutorial.id}">📊 0%</span>
+                </div>
+                
+                <span class="star inline" onclick="toggleSaveTutorial(event, ${tutorial.id})">☆ Add to Favorites</span>
+
+                <div class="figma-meta">
+                    <span>⏱ ${tutorial.estimated_time || "-"} min</span>
+                    <span>⭐ ${tutorial.points || 0} pts</span>
+                </div>
+
+                <span class="chip ${categoryClass}">${tutorial.category || "General"}</span>
+                <button onclick="startLearning(${tutorial.id})">Start Learning →</button>
+            `;
+            grid.appendChild(card);
+
+            // Check if tutorial is already saved and update star
+            checkIfSaved(tutorial.id);
+
+            // Load and display user's progress
+            loadTutorialProgress(tutorial.id);
+
+            // Load and display rating and completion rate
+            loadTutorialRating(tutorial.id);
+          });
+
+        } catch (err) {
+          console.error("Error loading tutorials:", err);
+          grid.innerHTML = "<p style='color:#ff6b6b; text-align: center;'>Error loading tutorials</p>";
+        }
+      }
+
+      // Load tutorials when page loads
+      document.addEventListener("DOMContentLoaded", () => {
+        loadPublishedTutorials();
+
+        // Also refresh every 2 seconds to catch updates
+        setInterval(refreshAllProgress, 2000);
+      });
+
+      // Refresh progress when user comes back to the page
+      window.addEventListener("focus", () => {
+        console.log("Window focused, refreshing progress circles...");
+        refreshAllProgress();
+      });
+
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible") {
+          console.log("Page became visible, refreshing progress circles...");
+          refreshAllProgress();
+        }
+      });
+
+      // Refresh all progress circles
+      async function refreshAllProgress() {
+        const userEmail = new URLSearchParams(window.location.search).get('email') || 'unknown';
+        const progressCircles = document.querySelectorAll('[id^="progress-"]');
+
+        console.log(`[REFRESH] Refreshing ${progressCircles.length} progress circles`);
+
+        progressCircles.forEach(circle => {
+          const tutorialId = circle.id.replace('progress-', '');
+          console.log(`[REFRESH] Calling loadTutorialProgress for tutorial ${tutorialId}`);
+          loadTutorialProgress(parseInt(tutorialId));
+        });
+      }
+
+      // Check if tutorial is saved
+      async function checkIfSaved(tutorialId) {
+        const userEmail = new URLSearchParams(window.location.search).get('email') || 'unknown';
+        try {
+          const res = await fetch(`/user/tutorials/${tutorialId}/is-saved?email=${userEmail}`);
+          const data = await res.json();
+          if (data.saved) {
+            const card = document.querySelector(`[data-tutorial-id="${tutorialId}"]`);
+            if (card) {
+              const star = card.querySelector('.star');
+              star.textContent = '★ Remove from Favorites';
+              star.classList.add('saved');
+            }
+          }
+        } catch (err) {
+          console.error("Error checking if tutorial is saved:", err);
+        }
+      }
+
+      // Load and display tutorial progress
+      async function loadTutorialProgress(tutorialId) {
+        const userEmail = new URLSearchParams(window.location.search).get('email') || 'unknown';
+
+        try {
+          const url = `/user/tutorials/${tutorialId}/progress?email=${userEmail}`;
+          console.log(`[PROGRESS] Fetching: ${url}`);
+
+          const res = await fetch(url);
+          console.log(`[PROGRESS] Response status: ${res.status}`);
+
+          if (res.ok) {
+            const data = await res.json();
+            console.log(`[PROGRESS] Response for tutorial ${tutorialId}:`, JSON.stringify(data));
+
+            const progressCircle = document.getElementById(`progress-${tutorialId}`);
+            const card = document.querySelector(`[data-tutorial-id="${tutorialId}"]`);
+            console.log(`[PROGRESS] Circle element found: ${!!progressCircle}, progress value: ${data.progress}`);
+
+            if (progressCircle) {
+              // Show completion badge if progress is 100%
+              if (data.progress >= 100) {
+                const points = card ? card.querySelector('.figma-meta span:last-child')?.textContent || '0 pts' : '0 pts';
+                const pointsValue = points.match(/\d+/)?.[0] || '0';
+
+                const html = `
+            <svg class="progress-ring" width="40" height="40" viewBox="0 0 60 60">
+              <circle class="progress-ring-background" cx="30" cy="30" r="27"></circle>
+              <circle class="progress-ring-fill" cx="30" cy="30" r="27"
+                style="stroke-dasharray: 169.65 169.65;"></circle>
+            </svg>
+            <span class="progress-text">✓</span>
+          `;
+
+                progressCircle.innerHTML = html;
+                progressCircle.title = `Completed! +${pointsValue} pts`;
+                console.log(`[PROGRESS] ✓ COMPLETED - Tutorial ${tutorialId}: ${pointsValue} pts`);
+              } else if (data.progress >= 1) {
+                // Show progress circle if progress is >= 1 (even 1%)
+                const radius = 27;
+                const circumference = 2 * Math.PI * radius;
+                const strokeDasharray = circumference * data.progress / 100;
+
+                const html = `
+            <svg class="progress-ring" width="40" height="40" viewBox="0 0 60 60">
+              <circle class="progress-ring-background" cx="30" cy="30" r="27"></circle>
+              <circle class="progress-ring-fill" cx="30" cy="30" r="27"
+                style="stroke-dasharray: ${strokeDasharray} ${circumference};"></circle>
+            </svg>
+            <span class="progress-text">${data.progress}%</span>
+          `;
+
+                progressCircle.innerHTML = html;
+                console.log(`[PROGRESS] ✓ UPDATED circle for tutorial ${tutorialId}: ${data.progress}%`);
+              } else {
+                console.log(`[PROGRESS] No progress to show (${data.progress}%), clearing circle`);
+                progressCircle.innerHTML = '';
+              }
+            } else {
+              console.warn(`[PROGRESS] ⚠ Circle element NOT found for tutorial ${tutorialId}`);
+            }
+          } else {
+            console.warn(`[PROGRESS] Fetch failed: ${res.status}`);
+          }
+        } catch (err) {
+          console.error(`[PROGRESS] Error:`, err);
+        }
+      }
+
+      // Toggle save tutorial
+      async function toggleSaveTutorial(event, tutorialId) {
+        event.stopPropagation();
+        const userEmail = new URLSearchParams(window.location.search).get('email') || 'unknown';
+        const card = document.querySelector(`[data-tutorial-id="${tutorialId}"]`);
+        const star = card.querySelector('.star');
+
+        console.log("Toggling save for tutorial:", tutorialId, "Email:", userEmail);
+
+        try {
+          if (star.classList.contains('saved')) {
+            // Unsave
+            const url = `/user/tutorials/${tutorialId}/unsave?email=${userEmail}`;
+            console.log("Unsaving from:", url);
+            const res = await fetch(url, {
+              method: 'DELETE'
+            });
+            console.log("Response status:", res.status);
+            const data = await res.json();
+            console.log("Response data:", data);
+            if (data.success) {
+              star.textContent = '☆ Add to Favorites';
+              star.classList.remove('saved');
+            }
+          } else {
+            // Save
+            const url = `/user/tutorials/${tutorialId}/save?email=${userEmail}`;
+            console.log("Saving from:", url);
+            const res = await fetch(url, {
+              method: 'POST'
+            });
+            console.log("Response status:", res.status);
+            const data = await res.json();
+            console.log("Response data:", data);
+            if (data.success) {
+              star.textContent = '★ Remove from Favorites';
+              star.classList.add('saved');
+            }
+          }
+        } catch (err) {
+          console.error("Error toggling save tutorial:", err);
+        }
+      }
+
+      // Start learning countdown function
+      function startLearning(tutorialId) {
+        const userEmail = new URLSearchParams(window.location.search).get('email') || 'unknown';
+        const startModal = document.getElementById('startLearningModal');
+        const countdownNum = document.getElementById('startCountdownNum');
+
+        startModal.classList.add('show');
+
+        let count = 3;
+        countdownNum.textContent = count;
+
+        const countdownInterval = setInterval(() => {
+          count--;
+          if (count >= 0) {
+            countdownNum.textContent = count;
+          } else {
+            clearInterval(countdownInterval);
+            // Redirect to tutorial - when user comes back, visibilitychange will refresh progress
+            window.location.href = `/user/tutorial/${tutorialId}?email=${userEmail}`;
+          }
+        }, 1000);
+      }
+
+      // Load and display tutorial rating and completion rate
+      async function loadTutorialRating(tutorialId) {
+        const userEmail = new URLSearchParams(window.location.search).get('email') || 'unknown';
+
+        try {
+          const url = `/user/tutorials/${tutorialId}/rating?email=${userEmail}`;
+          console.log('Fetching rating from:', url);
+          const res = await fetch(url);
+          console.log('Rating response status:', res.status);
+
+          if (res.ok) {
+            const data = await res.json();
+            console.log('Rating data:', data);
+
+            // Update rating display
+            const ratingDisplay = document.getElementById(`rating-${tutorialId}`);
+            console.log('Rating display element:', ratingDisplay);
+            if (ratingDisplay) {
+              const avgRating = data.average_rating || 0;
+              const ratingCount = data.rating_count || 0;
+              ratingDisplay.textContent = `⭐ ${avgRating.toFixed(1)} (${ratingCount})`;
+              ratingDisplay.style.cursor = 'pointer';
+
+              // Add click listener with proper event delegation
+              ratingDisplay.addEventListener('click', function (e) {
+                e.stopPropagation();
+                console.log('Rating clicked! Opening modal for tutorial:', tutorialId, 'Current rating:', data.user_rating);
+                showRatingModal(tutorialId, data.user_rating || 0);
+              });
+            }
+
+            // Update completion rate display
+            const completionDisplay = document.getElementById(`completion-${tutorialId}`);
+            if (completionDisplay) {
+              const completionRate = data.completion_rate || 0;
+              completionDisplay.textContent = `📊 ${completionRate}%`;
+            }
+          }
+        } catch (err) {
+          console.error(`Error loading rating for tutorial ${tutorialId}:`, err);
+        }
+      }
+
+      // Show rating modal
+      function showRatingModal(tutorialId, currentRating = 0) {
+        console.log('showRatingModal called with tutorialId:', tutorialId, 'currentRating:', currentRating);
+        const userEmail = new URLSearchParams(window.location.search).get('email') || 'unknown';
+
+        const ratingModal = document.createElement('div');
+        ratingModal.className = 'rating-modal show';
+        ratingModal.setAttribute('id', `rating-modal-${tutorialId}`);
+
+        let starsHTML = '';
+        for (let i = 1; i <= 5; i++) {
+          const isActive = i <= currentRating ? 'active' : '';
+          starsHTML += `<span class="star-rating-item ${isActive}" data-rating="${i}">★</span>`;
+        }
+
+        ratingModal.innerHTML = `
+    <div class="rating-modal-content">
+      <h3>Rate this Tutorial</h3>
+      <div class="star-rating" id="star-rating-${tutorialId}">
+        ${starsHTML}
+      </div>
+      <button class="close-rating">✕</button>
+    </div>
+  `;
+
+        document.body.appendChild(ratingModal);
+        console.log('Modal appended to body');
+
+        // Add event listeners to stars
+        const starRatingDiv = document.getElementById(`star-rating-${tutorialId}`);
+        if (starRatingDiv) {
+          const stars = starRatingDiv.querySelectorAll('.star-rating-item');
+          stars.forEach(star => {
+            star.addEventListener('click', function (e) {
+              e.stopPropagation();
+              const rating = parseInt(this.getAttribute('data-rating'));
+              console.log('Star clicked:', rating);
+              submitRating(tutorialId, rating, userEmail);
+            });
+          });
+        }
+
+        // Close button
+        const closeBtn = ratingModal.querySelector('.close-rating');
+        if (closeBtn) {
+          closeBtn.addEventListener('click', () => {
+            console.log('Close button clicked');
+            ratingModal.remove();
+          });
+        }
+
+        // Close when clicking outside
+        ratingModal.addEventListener('click', (e) => {
+          if (e.target === ratingModal) {
+            console.log('Clicked outside modal');
+            ratingModal.remove();
+          }
+        });
+
+        console.log('Modal setup complete');
+      }
+
+      // Submit rating
+      async function submitRating(tutorialId, rating, userEmail) {
+        console.log('submitRating called:', { tutorialId, rating, userEmail });
+        try {
+          const url = `/user/tutorials/${tutorialId}/rate?email=${userEmail}&rating=${rating}`;
+          console.log('Submitting rating to:', url);
+          const res = await fetch(url, {
+            method: 'POST'
+          });
+
+          console.log('Submit response status:', res.status);
+          if (res.ok) {
+            const data = await res.json();
+            console.log('Submit response data:', data);
+
+            // Update rating display and close modal
+            const ratingDisplay = document.getElementById(`rating-${tutorialId}`);
+            if (ratingDisplay) {
+              const avgRating = data.average_rating || 0;
+              const ratingCount = data.rating_count || 0;
+              ratingDisplay.textContent = `⭐ ${avgRating.toFixed(1)} (${ratingCount})`;
+            }
+
+            // Close rating modal
+            const modal = document.getElementById(`rating-modal-${tutorialId}`);
+            if (modal) {
+              modal.remove();
+            }
+
+            // Show success message
+            const successMsg = document.createElement('div');
+            successMsg.textContent = '✓ Rating submitted!';
+            successMsg.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #51cf66; color: white; padding: 15px 20px; border-radius: 8px; z-index: 9999;';
+            document.body.appendChild(successMsg);
+
+            setTimeout(() => successMsg.remove(), 2000);
+          }
+        } catch (err) {
+          console.error('Error submitting rating:', err);
+        }
+      }
+
+    </script>
+    <script src="/static/js/user_notifications.js"></script>
+  </main>
+
+  <!-- Start Learning Modal -->
+  <div id="startLearningModal" class="start-learning-modal">
+    <div class="exit-modal-content">
+      <h2>Starting Tutorial...</h2>
+      <div class="countdown" id="startCountdownNum">3</div>
+    </div>
+  </div>
+
+</body>
+
+</html>

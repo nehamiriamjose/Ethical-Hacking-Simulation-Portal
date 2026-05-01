@@ -1,0 +1,41 @@
+.leaderboard-card {
+  padding: 24px;
+  border-radius: 14px;
+}
+
+.leaderboard-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #00ffd5;
+  margin-bottom: 16px;
+}
+
+.leaderboard-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.leaderboard-table th {
+  text-align: left;
+  padding: 12px;
+  color: #00ffd5;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.leaderboard-table td {
+  padding: 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.leaderboard-table tr:hover {
+  background: rgba(0,255,213,0.05);
+}
+
+.score {
+  color: #00ff99;
+  font-weight: 600;
+}
+
+.rank-1 td { color: gold; }
+.rank-2 td { color: silver; }
+.rank-3 td { color: #cd7f32; }

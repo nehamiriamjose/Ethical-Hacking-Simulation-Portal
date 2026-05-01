@@ -1,0 +1,2171 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - User Management</title>
+    <link rel="stylesheet" href="/static/css/base.css">
+    <link rel="stylesheet" href="/static/css/dashboard.css">
+    <link rel="stylesheet" href="/static/css/admin_dashboard.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        .dashboard-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .topbar h2 {
+            color: #14f1b2;
+            margin: 0;
+        }
+
+        .icon-btn {
+            background: none;
+            border: none;
+            color: #14f1b2;
+            cursor: pointer;
+            padding: 8px;
+        }
+
+        .users-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            padding: 0;
+            overflow-y: auto;
+        }
+
+        .users-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 10px;
+            flex: 1;
+            min-width: 300px;
+            max-width: 600px;
+        }
+
+        .search-box input {
+            flex: 1;
+            padding: 12px 16px;
+            background: rgba(20, 241, 178, 0.08);
+            border: 1px solid rgba(20, 241, 178, 0.25);
+            border-radius: 10px;
+            color: #fff;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .search-box input:focus {
+            background: rgba(20, 241, 178, 0.12);
+            border-color: rgba(20, 241, 178, 0.5);
+            box-shadow: 0 0 12px rgba(20, 241, 178, 0.15);
+            outline: none;
+        }
+
+        .search-box input::placeholder {
+            color: #666;
+        }
+
+        .users-table {
+            overflow-x: auto;
+            background: linear-gradient(135deg, rgba(20, 241, 178, 0.05) 0%, rgba(10, 13, 18, 0.9) 100%);
+            border: 1px solid rgba(20, 241, 178, 0.2);
+            border-radius: 15px;
+            padding: 0;
+            flex: 1;
+            margin: 0 20px 20px 20px;
+        }
+
+        .users-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .users-table thead {
+            background: rgba(20, 241, 178, 0.08);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: rgba(20, 241, 178, 0.08);
+            color: #14f1b2;
+            padding: 18px 16px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 13px;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid rgba(20, 241, 178, 0.25);
+            text-transform: uppercase;
+        }
+
+        td {
+            padding: 14px 16px;
+            border-bottom: 1px solid rgba(20, 241, 178, 0.08);
+            color: #ccc;
+            vertical-align: middle;
+        }
+
+        tbody tr {
+            transition: all 0.2s ease;
+            background: transparent;
+        }
+
+        tbody tr:hover {
+            background: rgba(20, 241, 178, 0.08);
+            border-left: 3px solid rgba(20, 241, 178, 0.4);
+            padding-left: -3px;
+        }
+
+        .user-name {
+            color: #14f1b2;
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 3px;
+        }
+
+        .user-email {
+            font-size: 12px;
+            color: #777;
+            font-weight: 400;
+        }
+
+        .stats-cell {
+            text-align: center;
+            color: #fff;
+            font-weight: 500;
+        }
+
+        .actions {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-sm {
+            padding: 7px 11px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.25s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
+            font-weight: 500;
+        }
+
+        .btn-sm:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-sm i {
+            width: 14px;
+            height: 14px;
+        }
+
+        .btn-edit {
+            background: rgba(100, 200, 255, 0.25);
+            color: #64c8ff;
+            border: 1px solid rgba(100, 200, 255, 0.4);
+        }
+
+        .btn-edit:hover {
+            background: rgba(100, 200, 255, 0.4);
+            border-color: rgba(100, 200, 255, 0.6);
+        }
+
+        .btn-delete {
+            background: rgba(255, 100, 100, 0.25);
+            color: #ff6464;
+            border: 1px solid rgba(255, 100, 100, 0.4);
+        }
+
+        .btn-delete:hover {
+            background: rgba(255, 100, 100, 0.4);
+            border-color: rgba(255, 100, 100, 0.6);
+        }
+
+        .btn-reset {
+            background: rgba(255, 200, 100, 0.25);
+            color: #ffc864;
+            border: 1px solid rgba(255, 200, 100, 0.4);
+        }
+
+        .btn-reset:hover {
+            background: rgba(255, 200, 100, 0.4);
+            border-color: rgba(255, 200, 100, 0.6);
+        }
+
+        .btn-ban {
+            background: rgba(255, 100, 100, 0.25);
+            color: #ff6464;
+            border: 1px solid rgba(255, 100, 100, 0.4);
+        }
+
+        .btn-ban:hover {
+            background: rgba(255, 100, 100, 0.4);
+            border-color: rgba(255, 100, 100, 0.6);
+        }
+
+        .btn-lock {
+            background: rgba(255, 200, 100, 0.25);
+            color: #ffc864;
+            border: 1px solid rgba(255, 200, 100, 0.4);
+        }
+
+        .btn-lock:hover {
+            background: rgba(255, 200, 100, 0.4);
+            border-color: rgba(255, 200, 100, 0.6);
+        }
+
+        .btn-history {
+            background: rgba(100, 150, 255, 0.25);
+            color: #6496ff;
+            border: 1px solid rgba(100, 150, 255, 0.4);
+        }
+
+        .btn-history:hover {
+            background: rgba(100, 150, 255, 0.4);
+            border-color: rgba(100, 150, 255, 0.6);
+        }
+
+        .stats-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 18px;
+            margin-bottom: 25px;
+            padding: 0 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, rgba(20, 241, 178, 0.08), rgba(20, 241, 178, 0.03));
+            border: 1px solid rgba(20, 241, 178, 0.25);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            border-color: rgba(20, 241, 178, 0.4);
+            box-shadow: 0 6px 20px rgba(20, 241, 178, 0.1);
+        }
+
+        .stat-label {
+            color: #777;
+            font-size: 12px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 500;
+        }
+
+        .stat-value {
+            color: #14f1b2;
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, rgba(20, 241, 178, 0.05) 0%, rgba(10, 13, 18, 0.95) 100%);
+            border: 1px solid rgba(20, 241, 178, 0.3);
+            border-radius: 15px;
+            padding: 32px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 12px 48px rgba(0, 0, 0, 0.6), 0 0 40px rgba(20, 241, 178, 0.15);
+            animation: modalSlideIn 0.25s ease-out;
+        }
+
+        .modal-header {
+            color: #14f1b2;
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: #14f1b2;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            color: #14f1b2;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 11px 14px;
+            background: rgba(20, 241, 178, 0.08);
+            border: 1px solid rgba(20, 241, 178, 0.25);
+            border-radius: 8px;
+            color: #fff;
+            font-size: 14px;
+            transition: all 0.25s ease;
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            background: rgba(20, 241, 178, 0.12);
+            border-color: rgba(20, 241, 178, 0.5);
+            box-shadow: 0 0 12px rgba(20, 241, 178, 0.15);
+            outline: none;
+        }
+
+        .form-group-select {
+            width: 100%;
+            padding: 11px 14px;
+            background: rgba(20, 241, 178, 0.08);
+            border: 1px solid rgba(20, 241, 178, 0.25);
+            border-radius: 8px;
+            color: #fff;
+            font-size: 14px;
+            transition: all 0.25s ease;
+            font-family: inherit;
+            cursor: pointer;
+        }
+
+        .form-group-select:focus {
+            background: rgba(20, 241, 178, 0.12);
+            border-color: rgba(20, 241, 178, 0.5);
+            box-shadow: 0 0 12px rgba(20, 241, 178, 0.15);
+            outline: none;
+        }
+
+        .form-group-select option {
+            background: #0a0d12;
+            color: #fff;
+            padding: 10px;
+        }
+
+        .form-group-select option:hover {
+            background: rgba(20, 241, 178, 0.2);
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        .btn-primary {
+            padding: 11px 22px;
+            background: rgba(20, 241, 178, 0.6);
+            border: 1px solid rgba(20, 241, 178, 0.8);
+            color: #14f1b2;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            transition: all 0.25s ease;
+        }
+
+        .btn-primary:hover {
+            background: rgba(20, 241, 178, 0.75);
+            box-shadow: 0 4px 12px rgba(20, 241, 178, 0.25);
+        }
+
+        .btn-secondary {
+            padding: 11px 22px;
+            background: rgba(100, 100, 100, 0.25);
+            border: 1px solid rgba(100, 100, 100, 0.4);
+            color: #aaa;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 13px;
+            transition: all 0.25s ease;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(100, 100, 100, 0.4);
+            color: #fff;
+        }
+
+        .no-users {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+            font-size: 16px;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 28px;
+        }
+
+        /* Notification System */
+        .notification-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-width: 420px;
+        }
+
+        .notification {
+            background: linear-gradient(135deg, rgba(20, 241, 178, 0.12) 0%, rgba(10, 13, 18, 0.98) 100%);
+            border: 1px solid rgba(20, 241, 178, 0.35);
+            border-radius: 12px;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6), 0 0 40px rgba(20, 241, 178, 0.12);
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .notification.removing {
+            animation: slideOut 0.3s ease-out forwards;
+        }
+
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+
+            to {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+        }
+
+        .notification-icon {
+            flex-shrink: 0;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .notification-content {
+            flex: 1;
+        }
+
+        .notification-title {
+            color: #14f1b2;
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 2px;
+        }
+
+        .notification-message {
+            color: #ccc;
+            font-size: 13px;
+        }
+
+        .notification-close {
+            background: none;
+            border: none;
+            color: #14f1b2;
+            cursor: pointer;
+            font-size: 20px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+
+        .notification-close:hover {
+            opacity: 1;
+        }
+
+        .notification.success {
+            border-left: 4px solid #14f1b2;
+        }
+
+        .notification.error {
+            border-left: 4px solid #ff6464;
+        }
+
+        .notification.success .notification-icon {
+            color: #14f1b2;
+        }
+
+        .notification.error .notification-icon {
+            color: #ff6464;
+        }
+
+        .notification.error .notification-title {
+            color: #ff6464;
+        }
+
+        /* Confirmation Modal */
+        .confirm-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1500;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .confirm-modal.show {
+            display: flex;
+        }
+
+        .confirm-content {
+            background: linear-gradient(135deg, rgba(20, 241, 178, 0.05) 0%, rgba(10, 13, 18, 0.95) 100%);
+            border: 1px solid rgba(20, 241, 178, 0.3);
+            border-radius: 15px;
+            padding: 30px;
+            width: 90%;
+            max-width: 450px;
+            box-shadow: 0 0 40px rgba(20, 241, 178, 0.2);
+            animation: modalSlideIn 0.3s ease-out;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                transform: scale(0.95);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .confirm-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .confirm-icon {
+            font-size: 28px;
+            color: #ffc864;
+        }
+
+        .confirm-title {
+            color: #14f1b2;
+            font-size: 18px;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .confirm-message {
+            color: #ccc;
+            font-size: 14px;
+            margin-bottom: 24px;
+            line-height: 1.5;
+        }
+
+        .confirm-message strong {
+            color: #14f1b2;
+        }
+
+        .confirm-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .btn-confirm-cancel {
+            padding: 10px 20px;
+            background: rgba(100, 100, 100, 0.3);
+            border: 1px solid rgba(100, 100, 100, 0.5);
+            color: #aaa;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            pointer-events: auto;
+        }
+
+        .btn-confirm-cancel:hover {
+            background: rgba(100, 100, 100, 0.5);
+            color: #fff;
+        }
+
+        .btn-confirm-action {
+            padding: 10px 20px;
+            background: rgba(20, 241, 178, 0.5);
+            border: 1px solid rgba(20, 241, 178, 0.8);
+            color: #14f1b2;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            pointer-events: auto;
+        }
+
+        .btn-confirm-action:hover {
+            background: rgba(20, 241, 178, 0.7);
+            box-shadow: 0 0 20px rgba(20, 241, 178, 0.3);
+        }
+
+        .btn-confirm-action.danger {
+            background: rgba(255, 100, 100, 0.3);
+            color: #ff6464;
+            border-color: rgba(255, 100, 100, 0.6);
+        }
+
+        .btn-confirm-action.danger:hover {
+            background: rgba(255, 100, 100, 0.5);
+            box-shadow: 0 0 20px rgba(255, 100, 100, 0.3);
+        }
+
+        /* Enterprise Features Styles */
+        .toolbar-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 25px;
+            padding: 0 20px;
+        }
+
+        .btn-toolbar {
+            padding: 10px 18px;
+            background: rgba(20, 241, 178, 0.15);
+            border: 1px solid rgba(20, 241, 178, 0.35);
+            color: #14f1b2;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.25s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+        }
+
+        .btn-toolbar:hover {
+            background: rgba(20, 241, 178, 0.3);
+            border-color: rgba(20, 241, 178, 0.6);
+            box-shadow: 0 4px 12px rgba(20, 241, 178, 0.15);
+        }
+
+        .btn-toolbar i {
+            width: 16px;
+            height: 16px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-active {
+            background: rgba(20, 241, 178, 0.25);
+            color: #14f1b2;
+            border: 1px solid rgba(20, 241, 178, 0.4);
+        }
+
+        .status-banned {
+            background: rgba(255, 100, 100, 0.25);
+            color: #ff6464;
+            border: 1px solid rgba(255, 100, 100, 0.4);
+        }
+
+        .status-locked {
+            background: rgba(255, 200, 100, 0.25);
+            color: #ffc864;
+            border: 1px solid rgba(255, 200, 100, 0.4);
+        }
+
+        .status-inactive {
+            background: rgba(150, 150, 150, 0.25);
+            color: #999;
+            border: 1px solid rgba(150, 150, 150, 0.4);
+        }
+
+        .checkbox-cell {
+            text-align: center;
+            width: 40px;
+        }
+
+        .checkbox-cell input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+            accent-color: #14f1b2;
+        }
+
+        .bulk-actions {
+            display: flex;
+            gap: 12px;
+            padding: 16px 20px;
+            background: linear-gradient(135deg, rgba(20, 241, 178, 0.08) 0%, rgba(20, 241, 178, 0.03) 100%);
+            border: 1px solid rgba(20, 241, 178, 0.25);
+            border-radius: 10px;
+            margin-top: 16px;
+            align-items: center;
+        }
+
+        .bulk-actions.hidden {
+            display: none;
+        }
+
+        .bulk-count {
+            color: #14f1b2;
+            font-weight: 600;
+            margin-right: auto;
+            display: flex;
+            align-items: center;
+            font-size: 13px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 25px;
+            padding: 0 20px;
+            border-bottom: 1px solid rgba(20, 241, 178, 0.15);
+        }
+
+        .tab-btn {
+            padding: 12px 18px;
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            font-weight: 500;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+            font-size: 13px;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            white-space: nowrap;
+        }
+
+        .tab-btn:hover {
+            color: #14f1b2;
+        }
+
+        .tab-btn.active {
+            color: #14f1b2;
+            border-bottom-color: #14f1b2;
+        }
+
+        .tab-btn i {
+            width: 16px;
+            height: 16px;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+            gap: 18px;
+            margin-top: 20px;
+            padding: 0 20px 20px 20px;
+        }
+
+        .analytics-card {
+            background: linear-gradient(135deg, rgba(20, 241, 178, 0.08), rgba(20, 241, 178, 0.03));
+            border: 1px solid rgba(20, 241, 178, 0.25);
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .analytics-card:hover {
+            border-color: rgba(20, 241, 178, 0.4);
+            box-shadow: 0 6px 20px rgba(20, 241, 178, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .analytics-label {
+            color: #777;
+            font-size: 12px;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 500;
+        }
+
+        .analytics-value {
+            color: #14f1b2;
+            font-size: 34px;
+            font-weight: 700;
+        }
+
+        .audit-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        .audit-table th {
+            text-align: left;
+            padding: 12px;
+            background: rgba(20, 241, 178, 0.1);
+            color: #14f1b2;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 1px solid rgba(20, 241, 178, 0.2);
+        }
+
+        .audit-table td {
+            padding: 12px;
+            border-bottom: 1px solid rgba(20, 241, 178, 0.05);
+            font-size: 12px;
+            color: #ccc;
+            vertical-align: top;
+        }
+
+        .audit-table tr:hover {
+            background: rgba(20, 241, 178, 0.05);
+        }
+
+        .audit-action {
+            color: #14f1b2;
+            font-weight: 700;
+        }
+
+        .audit-time {
+            color: #888;
+            white-space: nowrap;
+        }
+
+        .audit-detail-cell {
+            color: #aaa;
+            max-width: 300px;
+            word-wrap: break-word;
+        }
+
+        .history-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            padding: 10px;
+            border-bottom: 1px solid rgba(20, 241, 178, 0.1);
+            font-size: 13px;
+        }
+
+        .history-time {
+            color: #888;
+            font-size: 11px;
+        }
+
+        .message-box {
+            max-height: 300px;
+            overflow-y: auto;
+            margin: 15px 0;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            border: 1px solid rgba(20, 241, 178, 0.2);
+        }
+
+        .message-item {
+            padding: 10px;
+            background: rgba(20, 241, 178, 0.1);
+            border-radius: 6px;
+            margin-bottom: 10px;
+            border-left: 3px solid #14f1b2;
+        }
+
+        .message-from {
+            color: #14f1b2;
+            font-weight: 600;
+            font-size: 12px;
+        }
+
+        .message-text {
+            color: #ccc;
+            margin-top: 5px;
+            font-size: 13px;
+        }
+
+        .btn-ban {
+            background: rgba(255, 100, 100, 0.3);
+            color: #ff6464;
+        }
+
+        .btn-ban:hover {
+            background: rgba(255, 100, 100, 0.5);
+        }
+
+        .btn-lock {
+            background: rgba(255, 200, 100, 0.3);
+            color: #ffc864;
+        }
+
+        .btn-lock:hover {
+            background: rgba(255, 200, 100, 0.5);
+        }
+
+        .btn-history {
+            background: rgba(100, 150, 255, 0.3);
+            color: #6496ff;
+        }
+
+        .btn-history:hover {
+            background: rgba(100, 150, 255, 0.5);
+        }
+
+        .analytics-charts {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-top: 20px;
+            padding: 0 20px;
+            margin-bottom: 20px;
+        }
+
+        .chart-container {
+            background: rgba(10, 15, 20, 0.4);
+            border: 1px solid rgba(20, 241, 178, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            min-height: 280px;
+            max-height: 320px;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chart-container:hover {
+            border-color: rgba(20, 241, 178, 0.3);
+            box-shadow: 0 8px 32px rgba(20, 241, 178, 0.05);
+        }
+
+        .chart-container h4 {
+            color: #14f1b2;
+            margin: 0 0 16px 0;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            font-weight: 600;
+        }
+
+        .chart-container canvas {
+            flex: 1;
+            min-height: 200px;
+        }
+
+        @media (max-width: 1024px) {
+            .analytics-charts {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body class="dashboard-body">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="brand">
+            <span class="shield">
+                <i data-lucide="shield"></i>
+            </span>
+            <div>
+                <h2>Hacker Portal</h2>
+                <p>Learn & Conquer</p>
+            </div>
+        </div>
+
+        <nav class="menu">
+            <a href="/admin/dashboard"><i data-lucide="layout-grid"></i> Dashboard</a>
+            <a href="/admin/users" class="active"><i data-lucide="users"></i> User Management</a>
+            <a href="/admin/challenges"><i data-lucide="target"></i> Challenges</a>
+            <a href="/admin/tutorials"><i data-lucide="book-open"></i> Tutorials</a>
+            <a href="/admin/quizzes"><i data-lucide="help-circle"></i> Quizzes</a>
+            <a href="/admin/leaderboard"><i data-lucide="trophy"></i> Leaderboard</a>
+            <a href="/admin/sandbox"><i data-lucide="cpu"></i> Sandbox Monitor</a>
+            <a href="/admin/notifications"><i data-lucide="bell"></i> Notifications</a>
+            <a href="/admin/analytics"><i data-lucide="bar-chart-2"></i> Analytics</a>
+        </nav>
+
+        <a class="logout" href="/">
+            <i data-lucide="log-out"></i> Logout
+        </a>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="dashboard-main">
+        <header class="topbar">
+            <h2>User Management</h2>
+        </header>
+
+        <!-- STATS SUMMARY -->
+        <div class="stats-summary">
+            <div class="stat-card">
+                <div class="stat-label">Total Users</div>
+                <div class="stat-value" id="totalUsers">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Active Users</div>
+                <div class="stat-value" id="activeUsers">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Avg Points</div>
+                <div class="stat-value" id="avgPoints">0</div>
+            </div>
+        </div>
+
+        <!-- USERS CONTAINER -->
+        <div class="users-container">
+            <div class="users-header">
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="Search by name or email...">
+                </div>
+            </div>
+
+            <!-- TOOLBAR BUTTONS -->
+            <div class="toolbar-buttons">
+                <button class="btn-toolbar" onclick="viewAnalytics()"><i data-lucide="bar-chart-3"></i>
+                    Analytics</button>
+                <button class="btn-toolbar" onclick="viewAuditLogs()"><i data-lucide="history"></i> Audit Logs</button>
+                <button class="btn-toolbar" onclick="exportUsers()"><i data-lucide="download"></i> Export CSV</button>
+                <button class="btn-toolbar" onclick="openBulkActionsModal()"><i data-lucide="layers"></i> Bulk
+                    Actions</button>
+            </div>
+
+            <!-- TABS -->
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('users', this)"><i data-lucide="users"></i>
+                    Users</button>
+                <button class="tab-btn" onclick="switchTab('analytics', this)"><i data-lucide="pie-chart"></i>
+                    Analytics</button>
+                <button class="tab-btn" onclick="switchTab('audit', this)"><i data-lucide="log"></i> Audit Logs</button>
+            </div>
+
+            <!-- USERS TAB -->
+            <div id="usersTab" class="tab-content active">
+                <!-- USERS TABLE -->
+                <div class="users-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 30px;"><input type="checkbox" id="selectAllCheckbox"
+                                        onchange="toggleSelectAll(this)"></th>
+                                <th>Name / Email</th>
+                                <th>Level</th>
+                                <th>Total Points</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTableBody">
+                            <!-- Users will be loaded here -->
+                        </tbody>
+                    </table>
+                    <div id="noUsers" class="no-users">No users found</div>
+                </div>
+
+                <!-- BULK ACTIONS -->
+                <div id="bulkActionsPanel" class="bulk-actions hidden">
+                    <span class="bulk-count"><span id="selectedCount">0</span> selected</span>
+                    <button class="btn-sm btn-ban" onclick="bulkBanUsers()"><i data-lucide="ban"></i> Ban</button>
+                    <button class="btn-sm btn-reset" onclick="bulkUnbanUsers()"
+                        style="background: rgba(20, 241, 178, 0.2); color: #14f1b2;"><i data-lucide="check"></i>
+                        Unban</button>
+                    <button class="btn-sm btn-lock" onclick="bulkLockUsers()"><i data-lucide="lock"></i> Lock</button>
+                    <button class="btn-sm btn-reset" onclick="bulkUnlockUsers()"
+                        style="background: rgba(100, 150, 255, 0.2); color: #6496ff;"><i data-lucide="unlock"></i>
+                        Unlock</button>
+                    <button class="btn-sm btn-reset" onclick="bulkResetProgress()"><i data-lucide="refresh-cw"></i>
+                        Reset</button>
+                    <button class="btn-sm" onclick="clearSelection()"
+                        style="background: rgba(100, 100, 100, 0.3); color: #aaa;"><i data-lucide="x"></i>
+                        Clear</button>
+                </div>
+            </div>
+
+            <!-- ANALYTICS TAB -->
+            <div id="analyticsTab" class="tab-content">
+                <div class="analytics-grid" id="analyticsGrid">
+                    <!-- Analytics cards ... -->
+                    <div class="analytics-card">
+                        <div class="analytics-label">Total Users</div>
+                        <div class="analytics-value" id="analyticsTotal">0</div>
+                    </div>
+                    <div class="analytics-card">
+                        <div class="analytics-label">Active Users</div>
+                        <div class="analytics-value" id="analyticsActive">0</div>
+                    </div>
+                    <div class="analytics-card">
+                        <div class="analytics-label">Banned Users</div>
+                        <div class="analytics-value" id="analyticsBanned">0</div>
+                    </div>
+                    <div class="analytics-card">
+                        <div class="analytics-label">Locked Users</div>
+                        <div class="analytics-value" id="analyticsLocked">0</div>
+                    </div>
+                </div>
+
+                <div class="analytics-grid" style="margin-top: 20px;">
+                    <div class="analytics-card">
+                        <div class="analytics-label">Average XP</div>
+                        <div class="analytics-value" id="analyticsAvgXP">0</div>
+                    </div>
+                    <div class="analytics-card">
+                        <div class="analytics-label">Challenges Solved</div>
+                        <div class="analytics-value" id="analyticsChallenges">0</div>
+                    </div>
+                    <div class="analytics-card">
+                        <div class="analytics-label">Signups Today</div>
+                        <div class="analytics-value" id="analyticsTodaySignups">0</div>
+                    </div>
+                    <div class="analytics-card">
+                        <div class="analytics-label">Logins Today</div>
+                        <div class="analytics-value" id="analyticsTodayLogins">0</div>
+                    </div>
+                </div>
+
+                <div class="analytics-charts">
+                    <div class="chart-container">
+                        <h4>User Growth (7 Days)</h4>
+                        <canvas id="growthChart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <h4>User Status Distribution</h4>
+                        <canvas id="statusChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AUDIT LOGS TAB -->
+            <div id="auditTab" class="tab-content">
+                <div class="users-table">
+                    <table class="audit-table">
+                        <thead>
+                            <tr>
+                                <th>Action</th>
+                                <th>Admin</th>
+                                <th>Target User</th>
+                                <th>Time</th>
+                                <th>Details</th>
+                            </tr>
+                        </thead>
+                        <tbody id="auditLogsBody">
+                            <!-- Audit logs will be loaded here -->
+                        </tbody>
+                    </table>
+                    <div id="noAuditLogs" class="no-users" style="display: none;">No audit logs found</div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- NOTIFICATION CONTAINER -->
+    <div class="notification-container" id="notificationContainer"></div>
+
+    <!-- EDIT USER MODAL -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span>Edit User</span>
+                <button class="close-btn" onclick="closeEditModal()">×</button>
+            </div>
+            <form id="editForm">
+                <div class="form-group">
+                    <label>Name</label>
+                    <input type="text" id="editName" required>
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="editEmail" required>
+                </div>
+                <div class="form-group">
+                    <label>Level</label>
+                    <input type="number" id="editLevel" min="1" max="100" required>
+                </div>
+                <div class="form-group">
+                    <label>Points (Challenge XP)</label>
+                    <input type="number" id="editXP" min="0" required>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" onclick="closeEditModal()">Cancel</button>
+                    <button type="submit" class="btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- DELETE CONFIRMATION MODAL -->
+    <div id="deleteModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span>Delete User</span>
+                <button class="close-btn" onclick="closeDeleteModal()">×</button>
+            </div>
+            <p style="color: #ccc; margin-bottom: 20px;">
+                Are you sure you want to delete <strong id="deleteUserName"></strong>? This cannot be undone.
+            </p>
+            <div class="form-actions">
+                <button class="btn-secondary" onclick="closeDeleteModal()">Cancel</button>
+                <button class="btn-delete" onclick="confirmDelete()">Delete User</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PROFESSIONAL CONFIRMATION DIALOG -->
+    <div id="confirmDialog" class="confirm-modal">
+        <div class="confirm-content">
+            <div class="confirm-header">
+                <span class="confirm-icon" id="confirmIcon">⚠️</span>
+                <h3 class="confirm-title" id="confirmTitle">Confirm Action</h3>
+            </div>
+            <p class="confirm-message" id="confirmMessage"></p>
+            <div class="confirm-actions">
+                <button class="btn-confirm-cancel" onclick="cancelConfirm()">Cancel</button>
+                <button class="btn-confirm-action" id="confirmButton" onclick="executeConfirm()">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ACTIVITY HISTORY MODAL -->
+    <div id="activityModal" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <span>Login History - <span id="userNameDisplay"></span></span>
+                <button class="close-btn" onclick="closeActivityModal()">×</button>
+            </div>
+            <div class="history-list" id="historyList">
+                <!-- Login history will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- MESSAGE MODAL -->
+    <div id="messageModal" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <span>Send Message - <span id="messageUserName"></span></span>
+                <button class="close-btn" onclick="closeMessageModal()">×</button>
+            </div>
+            <div id="userMessagesContainer" class="message-box"></div>
+            <form id="messageForm">
+                <div class="form-group">
+                    <label>Message</label>
+                    <textarea id="messageText"
+                        style="width: 100%; height: 100px; padding: 10px; border-radius: 6px; border: 1px solid rgba(20, 241, 178, 0.3); background: rgba(20, 241, 178, 0.1); color: #fff;"
+                        required></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" onclick="closeMessageModal()">Cancel</button>
+                    <button type="submit" class="btn-primary">Send Message</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- BULK ACTIONS MODAL -->
+    <div id="bulkActionsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span>Bulk Actions</span>
+                <button class="close-btn" onclick="closeBulkActionsModal()">×</button>
+            </div>
+            <div class="form-group">
+                <label>Select Action:</label>
+                <select id="bulkActionSelect" class="form-group-select">
+                    <option value="">-- Choose Action --</option>
+                    <option value="ban">Ban Selected Users</option>
+                    <option value="unban">Unban Selected Users</option>
+                    <option value="lock">Lock Selected Users</option>
+                    <option value="unlock">Unlock Selected Users</option>
+                    <option value="reset">Reset Progress</option>
+                </select>
+            </div>
+            <div class="form-actions">
+                <button class="btn-secondary" onclick="closeBulkActionsModal()">Cancel</button>
+                <button class="btn-primary" onclick="executeBulkAction()">Execute Action</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        let allUsers = [];
+        let editingUserId = null;
+        let deletingUserId = null;
+        let confirmCallback = null;
+
+        // ===== NOTIFICATION SYSTEM =====
+        function showNotification(title, message, type = 'success') {
+            const container = document.getElementById('notificationContainer');
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+
+            let icon = '✓';
+            if (type === 'error') icon = '✕';
+            if (type === 'info') icon = 'ℹ';
+
+            notification.innerHTML = `
+                <div class="notification-icon">${icon}</div>
+                <div class="notification-content">
+                    <div class="notification-title">${title}</div>
+                    <div class="notification-message">${message}</div>
+                </div>
+                <button class="notification-close" onclick="this.parentElement.remove()">×</button>
+            `;
+
+            container.appendChild(notification);
+
+            // Auto-remove after 5 seconds
+            setTimeout(() => {
+                notification.classList.add('removing');
+                setTimeout(() => notification.remove(), 300);
+            }, 5000);
+        }
+
+        // ===== CONFIRMATION DIALOG =====
+        function showConfirm(title, message, icon = '⚠️', actionText = 'Confirm', isDanger = false, callback) {
+            document.getElementById('confirmTitle').textContent = title;
+            document.getElementById('confirmIcon').textContent = icon;
+            document.getElementById('confirmMessage').innerHTML = message;
+
+            const btn = document.getElementById('confirmButton');
+            btn.textContent = actionText;
+            btn.classList.toggle('danger', isDanger);
+
+            confirmCallback = callback;
+            document.getElementById('confirmDialog').classList.add('show');
+        }
+
+        function cancelConfirm() {
+            document.getElementById('confirmDialog').classList.remove('show');
+            confirmCallback = null;
+        }
+
+        async function executeConfirm() {
+            if (confirmCallback) {
+                await confirmCallback();
+            }
+            cancelConfirm();
+        }
+
+        // Setup confirm dialog event handlers after DOM loads
+        window.addEventListener('DOMContentLoaded', function () {
+            const confirmDialog = document.getElementById('confirmDialog');
+            const confirmContent = document.querySelector('.confirm-content');
+            const cancelBtn = document.querySelector('.btn-confirm-cancel');
+            const confirmBtn = document.getElementById('confirmButton');
+
+            // Close confirm dialog when clicking outside
+            if (confirmDialog) {
+                confirmDialog.addEventListener('click', function (e) {
+                    if (e.target === this) {
+                        cancelConfirm();
+                    }
+                });
+            }
+
+            // Prevent closing dialog when clicking on content
+            if (confirmContent) {
+                confirmContent.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                });
+            }
+
+            // Add explicit click handlers to buttons
+            if (cancelBtn) {
+                cancelBtn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    cancelConfirm();
+                });
+            }
+
+            if (confirmBtn) {
+                confirmBtn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    executeConfirm();
+                });
+            }
+        });
+
+        // ===== USER MANAGEMENT FUNCTIONS =====
+        // Load all users
+        async function loadUsers() {
+            try {
+                const res = await fetch('/admin/api/users');
+                const data = await res.json();
+
+                if (data.success) {
+                    allUsers = data.users;
+                    displayUsers(allUsers);
+                    updateStats(allUsers);
+                }
+            } catch (error) {
+                console.error('Error loading users:', error);
+                showNotification('Error', 'Failed to load users', 'error');
+            }
+        }
+
+        // Display users in table
+        function displayUsers(users) {
+            const tbody = document.getElementById('usersTableBody');
+            const noUsers = document.getElementById('noUsers');
+
+            if (users.length === 0) {
+                tbody.innerHTML = '';
+                noUsers.style.display = 'block';
+                return;
+            }
+
+            noUsers.style.display = 'none';
+            tbody.innerHTML = users.map(user => {
+                const statusClass = user.status === 'banned' ? 'status-banned' :
+                    (user.is_locked ? 'status-locked' :
+                        (user.total_score > 0 ? 'status-active' : 'status-inactive'));
+                const statusText = user.status === 'banned' ? 'Banned' :
+                    (user.is_locked ? 'Locked' :
+                        (user.total_score > 0 ? 'Active' : 'Inactive'));
+
+                return `
+                    <tr>
+                        <td class="checkbox-cell">
+                            <input type="checkbox" class="userCheckbox" value="${user.id}" 
+                                   onchange="updateBulkSelection()">
+                        </td>
+                        <td>
+                            <div class="user-name">${user.name}</div>
+                            <div class="user-email">${user.email}</div>
+                        </td>
+                        <td class="stats-cell">${user.level}</td>
+                        <td class="stats-cell">${user.total_score}</td>
+                        <td class="stats-cell">
+                            <span class="status-badge ${statusClass}">${statusText}</span>
+                        </td>
+                        <td>
+                            <div class="actions">
+                                <button class="btn-sm btn-edit" onclick="openEditModal(${user.id}, '${user.name.replace(/'/g, "\\'")}', '${user.email}', ${user.level}, ${user.xp})" title="Edit">
+                                    <i data-lucide="edit-2"></i>
+                                </button>
+                                <button class="btn-sm btn-history" onclick="viewLoginHistory(${user.id}, '${user.name}')" title="History">
+                                    <i data-lucide="clock"></i>
+                                </button>
+                                <button class="btn-sm ${user.status === 'banned' ? 'btn-reset' : 'btn-ban'}" 
+                                        onclick="${user.status === 'banned' ? `unbanUser(${user.id})` : `banUser(${user.id}, '${user.name}')`}"
+                                        title="${user.status === 'banned' ? 'Unban' : 'Ban'}">
+                                    <i data-lucide="${user.status === 'banned' ? 'check' : 'x'}"></i>
+                                </button>
+                                <button class="btn-sm ${user.is_locked ? 'btn-reset' : 'btn-lock'}" 
+                                        onclick="${user.is_locked ? `unlockUser(${user.id})` : `lockUser(${user.id}, '${user.name}')`}"
+                                        title="${user.is_locked ? 'Unlock' : 'Lock'}">
+                                    <i data-lucide="${user.is_locked ? 'unlock' : 'lock'}"></i>
+                                </button>
+                                <button class="btn-sm btn-reset" onclick="resetUserProgress(${user.id}, '${user.name}')" title="Reset">
+                                    <i data-lucide="refresh-cw"></i>
+                                </button>
+                                <button class="btn-sm btn-delete" onclick="openDeleteModal(${user.id}, '${user.name}')" title="Delete">
+                                    <i data-lucide="trash-2"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            lucide.createIcons();
+        }
+
+        // Update statistics
+        function updateStats(users) {
+            document.getElementById('totalUsers').textContent = users.length;
+
+            // Count active users only if they have points (total_score > 0)
+            const activeCount = users.filter(u => u.total_score > 0).length;
+            document.getElementById('activeUsers').textContent = activeCount;
+
+            const avgPoints = users.length > 0
+                ? Math.round(users.reduce((sum, u) => sum + u.total_score, 0) / users.length)
+                : 0;
+            document.getElementById('avgPoints').textContent = avgPoints;
+        }
+
+        // Search functionality
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            const filtered = allUsers.filter(user =>
+                user.name.toLowerCase().includes(query) ||
+                user.email.toLowerCase().includes(query)
+            );
+            displayUsers(filtered);
+        });
+
+        // Open edit modal
+        function openEditModal(id, name, email, level, xp) {
+            editingUserId = id;
+            document.getElementById('editName').value = name;
+            document.getElementById('editEmail').value = email;
+            document.getElementById('editLevel').value = level;
+            document.getElementById('editXP').value = xp;
+            document.getElementById('editModal').classList.add('show');
+        }
+
+        // Close edit modal
+        function closeEditModal() {
+            document.getElementById('editModal').classList.remove('show');
+            editingUserId = null;
+        }
+
+        // Save user changes
+        document.getElementById('editForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            try {
+                const res = await fetch(`/admin/api/users/${editingUserId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: document.getElementById('editName').value,
+                        email: document.getElementById('editEmail').value,
+                        level: parseInt(document.getElementById('editLevel').value),
+                        xp: parseInt(document.getElementById('editXP').value)
+                    })
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    closeEditModal();
+                    loadUsers();
+                    showNotification('Success', 'User updated successfully', 'success');
+                } else {
+                    showNotification('Error', data.error || 'Failed to update user', 'error');
+                }
+            } catch (error) {
+                showNotification('Error', 'Failed to update user: ' + error.message, 'error');
+            }
+        });
+
+        // Open delete modal
+        function openDeleteModal(id, name) {
+            deletingUserId = id;
+            document.getElementById('deleteUserName').textContent = name;
+            document.getElementById('deleteModal').classList.add('show');
+        }
+
+        // Close delete modal
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').classList.remove('show');
+            deletingUserId = null;
+        }
+
+        // Confirm delete
+        async function confirmDelete() {
+            try {
+                const res = await fetch(`/admin/api/users/${deletingUserId}`, {
+                    method: 'DELETE'
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    closeDeleteModal();
+                    loadUsers();
+                    showNotification('Success', 'User deleted successfully', 'success');
+                } else {
+                    showNotification('Error', data.error || 'Failed to delete user', 'error');
+                }
+            } catch (error) {
+                showNotification('Error', 'Failed to delete user: ' + error.message, 'error');
+            }
+        }
+
+        // Reset user progress
+        async function resetUserProgress(id, name) {
+            showConfirm(
+                'Reset Progress',
+                `Reset all progress and points for <strong>${name}</strong>? This action cannot be undone.`,
+                '↻',
+                'Reset Progress',
+                true,
+                async () => {
+                    try {
+                        console.log(`[DEBUG] Resetting progress for user ${id}...`);
+                        const res = await fetch(`/admin/api/users/${id}/reset-progress`, {
+                            method: 'POST'
+                        });
+
+                        console.log(`[DEBUG] Reset response status: ${res.status}`);
+                        const data = await res.json();
+                        console.log(`[DEBUG] Reset response data:`, data);
+
+                        if (data.success) {
+                            console.log(`[DEBUG] Reset successful, reloading users...`);
+                            await loadUsers();
+                            showNotification('Success', 'User progress reset successfully', 'success');
+                        } else {
+                            console.error(`[ERROR] Reset failed: ${data.error}`);
+                            showNotification('Error', data.error || 'Failed to reset progress', 'error');
+                        }
+                    } catch (error) {
+                        console.error(`[ERROR] Reset error:`, error);
+                        showNotification('Error', 'Failed to reset progress: ' + error.message, 'error');
+                    }
+                }
+            );
+        }
+
+        // ===== ENTERPRISE FEATURES =====
+
+        // Tab Switching
+        function switchTab(tabName, btn) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+
+            document.getElementById(tabName + 'Tab').classList.add('active');
+            btn.classList.add('active');
+
+            if (tabName === 'analytics') {
+                loadAnalytics();
+            } else if (tabName === 'audit') {
+                loadAuditLogs();
+            }
+        }
+
+        // Bulk Selection
+        function toggleSelectAll(checkbox) {
+            document.querySelectorAll('.userCheckbox').forEach(cb => {
+                cb.checked = checkbox.checked;
+            });
+            updateBulkSelection();
+        }
+
+        function updateBulkSelection() {
+            const selected = document.querySelectorAll('.userCheckbox:checked').length;
+            const panel = document.getElementById('bulkActionsPanel');
+            const count = document.getElementById('selectedCount');
+
+            count.textContent = selected;
+            if (selected > 0) {
+                panel.classList.remove('hidden');
+            } else {
+                panel.classList.add('hidden');
+                document.getElementById('selectAllCheckbox').checked = false;
+            }
+        }
+
+        function clearSelection() {
+            document.querySelectorAll('.userCheckbox').forEach(cb => cb.checked = false);
+            document.getElementById('selectAllCheckbox').checked = false;
+            updateBulkSelection();
+        }
+
+        function getSelectedUserIds() {
+            return Array.from(document.querySelectorAll('.userCheckbox:checked')).map(cb => parseInt(cb.value));
+        }
+
+        // User Status Management
+        async function banUser(userId, userName) {
+            showConfirm(
+                'Ban User',
+                `Ban <strong>${userName}</strong> from the platform?`,
+                '🚫',
+                'Ban User',
+                true,
+                async () => {
+                    try {
+                        const res = await fetch(`/admin/api/users/${userId}/ban`, { method: 'POST' });
+                        const data = await res.json();
+                        if (data.success) {
+                            loadUsers();
+                            showNotification('Success', `${userName} has been banned`, 'success');
+                        } else {
+                            showNotification('Error', data.error, 'error');
+                        }
+                    } catch (error) {
+                        showNotification('Error', 'Failed to ban user: ' + error.message, 'error');
+                    }
+                }
+            );
+        }
+
+        async function unbanUser(userId) {
+            try {
+                const res = await fetch(`/admin/api/users/${userId}/unban`, { method: 'POST' });
+                const data = await res.json();
+                if (data.success) {
+                    loadUsers();
+                    showNotification('Success', 'User unbanned successfully', 'success');
+                } else {
+                    showNotification('Error', data.error, 'error');
+                }
+            } catch (error) {
+                showNotification('Error', 'Failed to unban user: ' + error.message, 'error');
+            }
+        }
+
+        async function lockUser(userId, userName) {
+            showConfirm(
+                'Lock Account',
+                `Lock account for <strong>${userName}</strong>? They won't be able to login.`,
+                '🔒',
+                'Lock Account',
+                true,
+                async () => {
+                    try {
+                        const res = await fetch(`/admin/api/users/${userId}/lock`, { method: 'POST' });
+                        const data = await res.json();
+                        if (data.success) {
+                            loadUsers();
+                            showNotification('Success', 'Account locked', 'success');
+                        } else {
+                            showNotification('Error', data.error, 'error');
+                        }
+                    } catch (error) {
+                        showNotification('Error', 'Failed to lock account: ' + error.message, 'error');
+                    }
+                }
+            );
+        }
+
+        async function unlockUser(userId) {
+            try {
+                const res = await fetch(`/admin/api/users/${userId}/unlock`, { method: 'POST' });
+                const data = await res.json();
+                if (data.success) {
+                    loadUsers();
+                    showNotification('Success', 'Account unlocked', 'success');
+                } else {
+                    showNotification('Error', data.error, 'error');
+                }
+            } catch (error) {
+                showNotification('Error', 'Failed to unlock account: ' + error.message, 'error');
+            }
+        }
+
+        // Activity History
+        async function viewLoginHistory(userId, userName) {
+            try {
+                const res = await fetch(`/admin/api/users/${userId}/login-history`);
+                const data = await res.json();
+
+                if (data.success) {
+                    const historyList = document.getElementById('historyList');
+                    document.getElementById('userNameDisplay').textContent = userName;
+
+                    if (data.history.length === 0) {
+                        historyList.innerHTML = '<div class="history-item">No login history found</div>';
+                    } else {
+                        historyList.innerHTML = data.history.map(item => `
+                            <div class="history-item">
+                                <div><strong>Login:</strong> ${new Date(item.login_time).toLocaleString()}</div>
+                                ${item.logout_time ? `<div><strong>Logout:</strong> ${new Date(item.logout_time).toLocaleString()}</div>` : ''}
+                                <div class="history-time"><strong>IP:</strong> ${item.ip_address}</div>
+                            </div>
+                        `).join('');
+                    }
+
+                    document.getElementById('activityModal').classList.add('show');
+                }
+            } catch (error) {
+                showNotification('Error', 'Failed to load history: ' + error.message, 'error');
+            }
+        }
+
+        function closeActivityModal() {
+            document.getElementById('activityModal').classList.remove('show');
+        }
+
+        let growthChart = null;
+        let statusChart = null;
+
+        async function loadAnalytics() {
+            try {
+                const res = await fetch('/admin/api/analytics/summary');
+                const data = await res.json();
+
+                if (data.success) {
+                    const stats = data.analytics;
+                    const updateText = (id, val) => {
+                        const el = document.getElementById(id);
+                        if (el) el.textContent = val;
+                    };
+
+                    updateText('analyticsTotal', stats.total_users);
+                    updateText('analyticsActive', stats.active_users);
+                    updateText('analyticsBanned', stats.banned_users);
+                    updateText('analyticsLocked', stats.locked_users);
+                    updateText('analyticsAvgXP', stats.avg_xp);
+                    updateText('analyticsChallenges', stats.total_challenges);
+                    updateText('analyticsTodaySignups', stats.today_signups);
+                    updateText('analyticsTodayLogins', stats.today_logins);
+
+                    // Render Charts
+                    renderGrowthChart(stats.growth_labels, stats.growth_data);
+                    renderStatusChart(stats.status_dist);
+                }
+            } catch (error) {
+                showNotification('Error', 'Failed to load analytics: ' + error.message, 'error');
+            }
+        }
+
+        function renderGrowthChart(labels, data) {
+            const canvas = document.getElementById('growthChart');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            if (growthChart) growthChart.destroy();
+
+            growthChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'New Users',
+                        data: data,
+                        borderColor: '#14f1b2',
+                        backgroundColor: 'rgba(20, 241, 178, 0.08)',
+                        borderWidth: 2.5,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 5,
+                        pointBackgroundColor: '#14f1b2',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointHoverRadius: 7,
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: '#14f1b2'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: Math.max(...data) + 1,
+                            ticks: { color: '#888', font: { size: 11 } },
+                            grid: { color: 'rgba(255, 255, 255, 0.03)', drawBorder: false }
+                        },
+                        x: {
+                            ticks: { color: '#888', font: { size: 11 } },
+                            grid: { display: false, drawBorder: false }
+                        }
+                    },
+                    plugins: {
+                        filler: { propagate: true },
+                        legend: { display: false }
+                    }
+                }
+            });
+        }
+
+        function renderStatusChart(dist) {
+            const canvas = document.getElementById('statusChart');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            if (statusChart) statusChart.destroy();
+
+            // Define color mapping for each status
+            const colorMap = {
+                'Active': '#14f1b2',      // Cyan green
+                'Inactive': '#888888',   // Gray
+                'Banned': '#ff3e3e',     // Red
+                'Locked': '#ffb82e'      // Orange
+            };
+
+            const labels = Object.keys(dist);
+            const colors = labels.map(label => colorMap[label] || '#7000ff');
+
+            statusChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: Object.values(dist),
+                        backgroundColor: colors,
+                        borderWidth: 0,
+                        borderColor: 'rgba(10, 15, 20, 0.5)',
+                        hoverOffset: 12
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: '#aaa',
+                                font: { size: 11, weight: '500' },
+                                padding: 12,
+                                boxWidth: 12
+                            }
+                        }
+                    },
+                    cutout: '68%'
+                }
+            });
+        }
+
+        function viewAnalytics() {
+            switchTab('analytics', document.querySelectorAll('.tab-btn')[1]);
+        }
+
+        // Audit Logs
+        async function loadAuditLogs() {
+            try {
+                const res = await fetch('/admin/api/audit-logs');
+                const data = await res.json();
+
+                if (data.success) {
+                    const tbody = document.getElementById('auditLogsBody');
+                    const noLogs = document.getElementById('noAuditLogs');
+
+                    if (data.logs.length === 0) {
+                        tbody.innerHTML = '';
+                        noLogs.style.display = 'block';
+                    } else {
+                        noLogs.style.display = 'none';
+                        tbody.innerHTML = data.logs.map(log => `
+                            <tr>
+                                <td><span class="audit-action">${log.action}</span></td>
+                                <td>${log.admin_email}</td>
+                                <td>${log.target_user || 'N/A'}</td>
+                                <td class="audit-time">${new Date(log.timestamp).toLocaleString()}</td>
+                                <td class="audit-detail-cell">${log.details || '-'}</td>
+                            </tr>
+                        `).join('');
+                    }
+                }
+            } catch (error) {
+                showNotification('Error', 'Failed to load audit logs: ' + error.message, 'error');
+            }
+        }
+
+        function viewAuditLogs() {
+            switchTab('audit', document.querySelectorAll('.tab-btn')[2]);
+        }
+
+        // Export
+        async function exportUsers() {
+            try {
+                const res = await fetch('/admin/api/export/users');
+                const data = await res.json();
+
+                if (data.success) {
+                    const blob = new Blob([data.csv], { type: 'text/csv' });
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = data.filename;
+                    a.click();
+                    showNotification('Success', 'Users exported as CSV', 'success');
+                }
+            } catch (error) {
+                showNotification('Error', 'Failed to export users: ' + error.message, 'error');
+            }
+        }
+
+        // Bulk Actions
+        function openBulkActionsModal() {
+            const selected = getSelectedUserIds();
+            if (selected.length === 0) {
+                showNotification('Info', 'Please select users first', 'info');
+                return;
+            }
+            document.getElementById('bulkActionsModal').classList.add('show');
+        }
+
+        function closeBulkActionsModal() {
+            document.getElementById('bulkActionsModal').classList.remove('show');
+        }
+
+        async function executeBulkAction() {
+            const action = document.getElementById('bulkActionSelect').value;
+            const userIds = getSelectedUserIds();
+
+            if (!action) {
+                showNotification('Error', 'Please select an action', 'error');
+                return;
+            }
+
+            closeBulkActionsModal();
+
+            try {
+                let endpoint = '';
+                let method = 'POST';
+
+                if (action === 'ban') {
+                    endpoint = '/admin/api/bulk/ban-users';
+                } else if (action === 'unban') {
+                    endpoint = '/admin/api/bulk/unban-users';
+                } else if (action === 'lock') {
+                    endpoint = '/admin/api/bulk/lock-users';
+                } else if (action === 'unlock') {
+                    endpoint = '/admin/api/bulk/unlock-users';
+                } else if (action === 'reset') {
+                    endpoint = '/admin/api/bulk/reset-progress';
+                } else {
+                    showNotification('Error', 'Action not implemented', 'error');
+                    return;
+                }
+
+                const res = await fetch(endpoint, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_ids: userIds })
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    loadUsers();
+                    clearSelection();
+                    showNotification('Success', data.message, 'success');
+                } else {
+                    showNotification('Error', data.error, 'error');
+                }
+            } catch (error) {
+                showNotification('Error', 'Failed to execute action: ' + error.message, 'error');
+            }
+        }
+
+        function bulkBanUsers() {
+            document.getElementById('bulkActionSelect').value = 'ban';
+            openBulkActionsModal();
+        }
+
+        function bulkUnbanUsers() {
+            document.getElementById('bulkActionSelect').value = 'unban';
+            openBulkActionsModal();
+        }
+
+        function bulkLockUsers() {
+            document.getElementById('bulkActionSelect').value = 'lock';
+            openBulkActionsModal();
+        }
+
+        function bulkUnlockUsers() {
+            document.getElementById('bulkActionSelect').value = 'unlock';
+            openBulkActionsModal();
+        }
+
+        function bulkResetProgress() {
+            document.getElementById('bulkActionSelect').value = 'reset';
+            openBulkActionsModal();
+        }
+
+        // Load users on page load
+        loadUsers();
+    </script>
+
+</body>
+
+</html>

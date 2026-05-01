@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Quizzes - Hacker Portal</title>
+
+    <link rel="stylesheet" href="/static/css/base.css">
+    <link rel="stylesheet" href="/static/css/dashboard.css">
+    <style>
+        .quizzes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 25px;
+            padding: 30px;
+        }
+
+        .quiz-card {
+            background: linear-gradient(135deg, rgba(20, 241, 178, 0.08) 0%, rgba(10, 13, 18, 0.95) 100%);
+            border: 1.5px solid rgba(20, 241, 178, 0.25);
+            border-radius: 16px;
+            padding: 24px;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            backdrop-filter: blur(10px);
+            cursor: pointer;
+            position: relative;
+        }
+
+        .quiz-card:hover:not(.locked) {
+            transform: translateY(-5px);
+            border-color: rgba(20, 241, 178, 0.6);
+            box-shadow: 0 10px 30px rgba(20, 241, 178, 0.2);
+        }
+
+        .quiz-card.locked {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: linear-gradient(135deg, rgba(100, 100, 100, 0.08) 0%, rgba(50, 50, 50, 0.95) 100%);
+            border-color: rgba(150, 150, 150, 0.3);
+        }
+
+        .quiz-card.locked:hover {
+            transform: none;
+            box-shadow: none;
+        }
+
+        .lock-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .quiz-card.locked .lock-overlay {
+            opacity: 1;
+        }
+
+        .lock-icon {
+            font-size: 48px;
+            color: #fff;
+            text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .quiz-title {
+            color: #14f1b2;
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .quiz-card.locked .quiz-title {
+            color: #999;
+        }
+
+        .quiz-meta {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .meta-badge {
+            font-size: 11px;
+            padding: 4px 10px;
+            border-radius: 4px;
+            background: rgba(20, 241, 178, 0.1);
+            border: 1px solid rgba(20, 241, 178, 0.3);
+            color: #14f1b2;
+        }
+
+        .quiz-card.locked .meta-badge {
+            background: rgba(100, 100, 100, 0.2);
+            border-color: rgba(100, 100, 100, 0.4);
+            color: #999;
+        }
+
+        .quiz-description {
+            color: #aaa;
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            flex-grow: 1;
+        }
+
+        .quiz-card.locked .quiz-description {
+            color: #777;
+        }
+
+        .quiz-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: auto;
+        }
+
+        .quiz-points {
+            color: #14f1b2;
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .quiz-card.locked .quiz-points {
+            color: #999;
+        }
+
+        .btn-start-quiz {
+            padding: 10px 20px;
+            background: #14f1b2;
+            color: #000;
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .btn-start-quiz:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(20, 241, 178, 0.4);
+        }
+
+        .btn-start-quiz.locked {
+            background: #999;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .btn-start-quiz.locked:hover {
+            transform: none;
+            box-shadow: none;
+        }
+
+        .unlock-message {
+            font-size: 12px;
+            color: #ff9999;
+            margin-top: 10px;
+            text-align: center;
+            font-style: italic;
+        }
+    </style>
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body class="dashboard-body">
+
+    <aside class="sidebar">
+        <div class="brand">
+            <span class="shield"><i data-lucide="shield"></i></span>
+            <div>
+                <h2>Hacker Portal</h2>
+                <p>Learn & Conquer</p>
+            </div>
+        </div>
+
+        <nav class="menu">
+            <a href="/user/dashboard?email={{EMAIL}}">
+                <i data-lucide="layout-grid"></i> Dashboard
+            </a>
+            <a href="/user/tutorials?email={{EMAIL}}">
+                <i data-lucide="book-open"></i> Tutorials
+            </a>
+            <a href="/user/tutorials/saved?email={{EMAIL}}">
+                <i data-lucide="star"></i> Saved Tutorials
+            </a>
+            <a href="/user/challenges?email={{EMAIL}}">
+                <i data-lucide="target"></i> Challenges
+            </a>
+            <a class="active" href="/user/quizzes?email={{EMAIL}}">
+                <i data-lucide="help-circle"></i> Quizzes
+            </a>
+            <a href="/user/attempt-history?email={{EMAIL}}">
+                <i data-lucide="history"></i> Attempt History
+            </a>
+            <a href="/user/leaderboard?email={{EMAIL}}">
+                <i data-lucide="trophy"></i> Leaderboard
+            </a>
+            <a href="/user/friends?email={{EMAIL}}">
+                <i data-lucide="users"></i> Friends
+            </a>
+            <a href="/user/progress?email={{EMAIL}}">
+                <i data-lucide="trending-up"></i> Progress Graph
+            </a>
+            <a href="/user/profile?email={{EMAIL}}">
+                <i data-lucide="user"></i> Profile
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <a class="logout" href="/">
+                <i data-lucide="log-out"></i> Logout
+            </a>
+        </div>
+    </aside>
+
+    <main class="dashboard-main">
+        <header class="topbar">
+            <h2>Available Quizzes</h2>
+            <div class="top-icons">
+                <div class="profile-chip">
+                    👤 {{USERNAME}} <small>Level {{LEVEL}}</small>
+                </div>
+            </div>
+        </header>
+
+        <div id="quizzesGrid" class="quizzes-grid">
+            <!-- Quizzes will be loaded here -->
+            <p style="color: #14f1b2;">Loading quizzes...</p>
+        </div>
+    </main>
+
+    <script>
+        lucide.createIcons();
+        const email = new URLSearchParams(window.location.search).get('email');
+
+        async function loadQuizzes() {
+            try {
+                const response = await fetch('/user/api/quizzes?email=' + email);
+                const data = await response.json();
+
+                const grid = document.getElementById('quizzesGrid');
+                if (!data.quizzes || data.quizzes.length === 0) {
+                    grid.innerHTML = '<p style="color: #aaa; grid-column: 1/-1; text-align: center;">No quizzes available yet.</p>';
+                    return;
+                }
+
+                grid.innerHTML = data.quizzes.map(quiz => {
+                    const lockedClass = quiz.is_locked ? 'locked' : '';
+                    const lockedDisabled = quiz.is_locked ? 'disabled' : '';
+                    const onClickHandler = quiz.is_locked ? '' : `onclick="window.location.href='/user/quizzes/${quiz.id}?email=${email}'"`;
+                    const buttonHref = quiz.is_locked ? '#' : `/user/quizzes/${quiz.id}?email=${email}`;
+                    
+                    return `
+              <div class="quiz-card ${lockedClass}" ${onClickHandler}>
+                  ${quiz.is_locked ? '<div class="lock-overlay"><div class="lock-icon">🔒</div></div>' : ''}
+                  <h3 class="quiz-title">${quiz.title}</h3>
+                  <div class="quiz-meta">
+                      <span class="meta-badge">${quiz.category}</span>
+                      <span class="meta-badge">${quiz.difficulty}</span>
+                      <span class="meta-badge">${quiz.time_limit ? quiz.time_limit + 'm' : 'Untimed'}</span>
+                  </div>
+                  <p class="quiz-description">${quiz.description || 'Test your knowledge with this quiz.'}</p>
+                  <div class="quiz-footer">
+                      <span class="quiz-points">⭐ ${quiz.points} XP</span>
+                      <a href="${buttonHref}" class="btn-start-quiz ${quiz.is_locked ? 'locked' : ''}" ${quiz.is_locked ? 'onclick="event.preventDefault();"' : ''}>
+                          ${quiz.is_locked ? '🔒 Locked' : 'Start Quiz'}
+                      </a>
+                  </div>
+                  ${quiz.is_locked ? '<div class="unlock-message">Complete the first quiz to unlock</div>' : ''}
+              </div>
+          `;
+                }).join('');
+            } catch (error) {
+                console.error('Error loading quizzes:', error);
+                document.getElementById('quizzesGrid').innerHTML = '<p style="color: #ff6464;">Failed to load quizzes.</p>';
+            }
+        }
+
+        loadQuizzes();
+    </script>
+</body>
+
+</html>

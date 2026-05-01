@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecureTrust Bank - SQL Injection Learning Lab</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            min-height: 100vh;
+        }
+        
+        .navbar {
+            background: white;
+            border-bottom: 1px solid #ddd;
+            padding: 15px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #1e3a5f;
+        }
+        
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+        }
+        
+        .nav-links a {
+            color: #666;
+            text-decoration: none;
+            font-size: 0.95em;
+            transition: color 0.3s;
+        }
+        
+        .nav-links a:hover {
+            color: #4a90e2;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 40px auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            padding: 0 20px;
+        }
+        
+        .info-section {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .info-section h2 {
+            color: #1e3a5f;
+            margin-bottom: 20px;
+            font-size: 1.2em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .info-section h3 {
+            color: #4a90e2;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            font-size: 1em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .info-section p {
+            color: #555;
+            line-height: 1.6;
+            margin-bottom: 15px;
+            font-size: 0.95em;
+        }
+        
+        .code-block {
+            background: #f8f8f8;
+            border-left: 3px solid #4a90e2;
+            padding: 12px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+            color: #333;
+            overflow-x: auto;
+            border-radius: 4px;
+        }
+        
+        .login-box {
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .login-box h2 {
+            color: #1e3a5f;
+            margin-bottom: 10px;
+            text-align: center;
+            font-size: 1.4em;
+        }
+        
+        .login-box .subtitle {
+            color: #999;
+            text-align: center;
+            margin-bottom: 25px;
+            font-size: 0.95em;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+            font-size: 0.95em;
+        }
+        
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+        
+        input[type="text"]:focus,
+        input[type="password"]:focus {
+            outline: none;
+            border-color: #4a90e2;
+            box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 12px;
+            background: #1e3a5f;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin-top: 10px;
+        }
+        
+        .btn:hover {
+            background: #152a45;
+        }
+        
+        .sql-box {
+            background: #fffacd;
+            border-left: 3px solid #ff9800;
+            padding: 15px;
+            margin-top: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+            color: #333;
+            word-break: break-all;
+            overflow-x: auto;
+            border-radius: 4px;
+        }
+        
+        .sql-label {
+            font-weight: bold;
+            color: #ff9800;
+            margin-bottom: 8px;
+        }
+        
+        .tips {
+            background: #fef5e7;
+            border-left: 3px solid #f39c12;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 4px;
+        }
+        
+        .tips h3 {
+            color: #f39c12;
+            margin-bottom: 12px;
+            font-size: 0.95em;
+        }
+        
+        .tips ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .tips li {
+            color: #666;
+            margin-bottom: 8px;
+            padding-left: 20px;
+            position: relative;
+            font-size: 0.9em;
+        }
+        
+        .tips li:before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            color: #f39c12;
+            font-weight: bold;
+        }
+        
+        code {
+            background: #f0f0f0;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div class="logo">
+            <div class="logo-icon">🛡️</div>
+            <span>SecureTrust Bank</span>
+        </div>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="#" style="color: #4a90e2;">Banking</a>
+            <a href="#" style="color: #999;">Support</a>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="info-section">
+            <h2>📚 SQL Injection Learning Lab</h2>
+            <p>Welcome! This is an educational challenge to learn how SQL Injection attacks work. Let's understand the vulnerability step by step.</p>
+            
+            <h3>❓ WHAT IS SQL INJECTION?</h3>
+            <p>SQL Injection happens when user input is directly inserted into SQL queries without proper validation. An attacker can break the query logic to bypass authentication or access unauthorized data.</p>
+            
+            <h3>🔍 HOW IT WORKS HERE</h3>
+            <p><strong>Normal Query:</strong></p>
+            <div class="code-block">SELECT * FROM users WHERE username='jsmith' AND password='pass123'</div>
+            
+            <p><strong>Injected Query:</strong> If username is: <code>jsmith' OR '1'='1</code></p>
+            <div class="code-block">SELECT * FROM users WHERE username='jsmith' OR '1'='1' AND password='anything'</div>
+            
+            <p>Since <code>'1'='1'</code> is ALWAYS TRUE, it bypasses the password check!</p>
+        </div>
+        
+        <div class="login-box">
+            <h2>Welcome Back</h2>
+            <p class="subtitle">Sign in to access your account</p>
+            
+            {% if message %}
+                <div style="padding: 12px; background: #ffe6e6; border-left: 3px solid #e74c3c; color: #c0392b; border-radius: 4px; margin-bottom: 15px; text-align: center;">
+                    {{ message }}
+                </div>
+            {% endif %}
+            
+            <form method="POST">
+                <div class="form-group">
+                    <label for="username">USERNAME</label>
+                    <input type="text" id="username" name="username" placeholder="e.g., jsmith' OR '1'='1" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">PASSWORD</label>
+                    <input type="password" id="password" name="password" placeholder="Any password (e.g., 'test')" required>
+                </div>
+                
+                <button type="submit" class="btn">SIGN IN</button>
+            </form>
+            
+            {% if query_visible %}
+                <div class="sql-box">
+                    <div class="sql-label">🔍 Executed SQL Query:</div>
+                    {{ sql_query }}
+                </div>
+            {% endif %}
+            
+            <div class="tips">
+                <h3>💡 Try These Payloads:</h3>
+                <ul>
+                    <li>Username: <code>' OR '1'='1</code> (any password)</li>
+                    <li>Username: <code>admin' --</code> (any password)</li>
+                    <li>Username: <code>' OR 1=1 --</code> (any password)</li>
+                    <li>Or valid creds: <code>admin</code> / <code>admin123</code></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

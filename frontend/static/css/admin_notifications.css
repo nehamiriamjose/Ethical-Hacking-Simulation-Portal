@@ -1,0 +1,184 @@
+/* ===============================
+   ADMIN NOTIFICATIONS
+================================ */
+
+.notification-create {
+  padding: 20px;
+}
+
+/* ---------- Create Button ---------- */
+.create-btn {
+  background: linear-gradient(135deg, #00ffb3, #00c2ff);
+  color: #000;
+  border: none;
+  padding: 12px 20px;
+  font-size: 15px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  box-shadow: 0 0 15px rgba(0, 255, 179, 0.6);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.create-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 25px rgba(0, 255, 179, 0.9);
+}
+
+/* ---------- Notification Form ---------- */
+.notification-form {
+  margin-top: 25px;
+  background: rgba(0, 0, 0, 0.55);
+  padding: 20px;
+  border-radius: 14px;
+  max-width: 600px;
+  display: none;
+  flex-direction: column;
+  gap: 14px;
+  border: 1px solid rgba(0, 255, 200, 0.25);
+  box-shadow: 0 0 30px rgba(0, 255, 200, 0.15);
+}
+
+.notification-form.show {
+  display: flex;
+  animation: fadeSlide 0.3s ease;
+}
+
+@keyframes fadeSlide {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ---------- Inputs ---------- */
+.notification-form input,
+.notification-form textarea,
+.notification-form select {
+  background: #0b1e22;
+  border: 1px solid rgba(0, 255, 200, 0.35);
+  color: #eaffff;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+}
+
+.notification-form textarea {
+  min-height: 90px;
+  resize: vertical;
+}
+
+.notification-form input::placeholder,
+.notification-form textarea::placeholder {
+  color: #8fbfc4;
+}
+
+/* ---------- Submit Button ---------- */
+.notification-form button {
+  background: linear-gradient(135deg, #00ffa6, #00d9ff);
+  color: #000;
+  font-weight: 700;
+  border: none;
+  padding: 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: box-shadow 0.2s ease;
+}
+
+.notification-form button:hover {
+  box-shadow: 0 0 20px rgba(0, 255, 200, 0.8);
+}
+
+/* ---------- Notifications List ---------- */
+.notifications-list {
+  margin-top: 25px;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.notification-card {
+  background: rgba(0, 0, 0, 0.6);
+  border-left: 4px solid #00ffd5;
+  padding: 18px 20px;
+  border-radius: 14px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.notification-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 18px rgba(0, 255, 213, 0.25);
+}
+
+.notification-card h4 {
+  margin-bottom: 6px;
+}
+
+/* ---------- Action Buttons ---------- */
+.notif-actions {
+  margin-top: 14px;
+  display: flex;
+  gap: 14px;
+}
+
+.notif-btn {
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+/* Edit */
+.edit-btn {
+  background: rgba(0, 255, 213, 0.15);
+  color: #00ffd5;
+  border: 1px solid #00ffd5;
+}
+
+.edit-btn:hover {
+  background: #00ffd5;
+  color: #000;
+}
+
+/* Delete */
+.delete-btn {
+  background: rgba(255, 92, 92, 0.15);
+  color: #ff5c5c;
+  border: 1px solid #ff5c5c;
+}
+
+.delete-btn:hover {
+  background: #ff5c5c;
+  color: #000;
+}
+
+/* ---------- Layout Fix ---------- */
+.dashboard-main {
+  overflow-x: hidden;
+}
+
+.editor-textarea {
+    width: 100%;
+    margin-bottom: 14px;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #1f2937;
+    background: #121821;
+    color: #fff;
+    font-family: inherit;
+    font-size: 14px;
+    min-height: 90px;
+    resize: none;
+}

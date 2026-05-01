@@ -1,0 +1,13 @@
+{
+    "python.defaultInterpreterPath": "${workspaceFolder}\\venv\\Scripts\\python.exe",
+    "python.analysis.extraPaths": [
+        "${workspaceFolder}\\challenges\\brute-force",
+        "${workspaceFolder}\\challenges\\command-injection",
+        "${workspaceFolder}\\challenges\\csrf-challenge",
+        "${workspaceFolder}\\challenges\\file-upload-vulnerability",
+        "${workspaceFolder}\\challenges\\idor-challenge",
+        "${workspaceFolder}\\challenges\\lfi-challenge",
+        "${workspaceFolder}\\challenges\\ssti-challenge",
+        "${workspaceFolder}\\challenges\\xss-challenge"
+    ]
+}

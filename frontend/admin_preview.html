@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Challenge Preview</title>
+    <link rel="stylesheet" href="/static/css/base.css">
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: transparent;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            display: none;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, #00d4aa 0%, #00a085 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logo-icon svg {
+            width: 28px;
+            height: 28px;
+            fill: white;
+        }
+
+        .logo-text {
+            color: white;
+            font-size: 22px;
+            font-weight: 700;
+        }
+
+        .logo-text span {
+            color: #00d4aa;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .back-btn {
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            border-radius: 6px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        .content {
+            flex: 1;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            width: 100%;
+            height: 100%;
+        }
+
+        .preview-container {
+            flex: 1;
+            background: transparent;
+            border-radius: 0;
+            overflow: hidden;
+            box-shadow: none;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+        }
+
+        .preview-title {
+            display: none;
+        }
+
+        .preview-content {
+            flex: 1;
+            overflow: auto;
+        }
+
+        #previewFrame {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .error-container {
+            display: none;
+            padding: 40px;
+            text-align: center;
+            flex: 1;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .error-container.show {
+            display: flex;
+        }
+
+        .error-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        .error-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .error-message {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 20px;
+            max-width: 500px;
+            line-height: 1.6;
+        }
+
+        .error-code {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            color: #d32f2f;
+            font-size: 14px;
+            margin-bottom: 20px;
+            text-align: left;
+            max-width: 600px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .retry-btn {
+            padding: 12px 30px;
+            background: #00d4aa;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .retry-btn:hover {
+            background: #00a085;
+            transform: translateY(-2px);
+        }
+
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            flex: 1;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .loading-spinner.show {
+            display: flex;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(0, 212, 170, 0.2);
+            border-top-color: #00d4aa;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .loading-text {
+            font-size: 16px;
+            color: #666;
+        }
+
+        .tips {
+            margin-top: 20px;
+            padding: 20px;
+            background: rgba(0, 212, 170, 0.1);
+            border: 1px solid rgba(0, 212, 170, 0.3);
+            border-radius: 8px;
+            color: #333;
+        }
+
+        .tips h3 {
+            margin-bottom: 10px;
+            color: #00a085;
+        }
+
+        .tips ul {
+            margin-left: 20px;
+        }
+
+        .tips li {
+            margin-bottom: 8px;
+            line-height: 1.5;
+        }
+
+        /* Flag Submission Modal */
+        .flag-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .flag-modal.show {
+            display: flex;
+        }
+
+        .flag-modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .flag-modal h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+
+        .flag-modal label {
+            display: block;
+            color: #555;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .flag-modal input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            margin-bottom: 20px;
+            font-family: monospace;
+            box-sizing: border-box;
+        }
+
+        .flag-modal input:focus {
+            outline: none;
+            border-color: #00d4aa;
+            box-shadow: 0 0 8px rgba(0, 212, 170, 0.3);
+        }
+
+        .flag-modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .flag-modal-buttons button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .submit-flag-btn {
+            background: #00d4aa;
+            color: #000;
+        }
+
+        .submit-flag-btn:hover {
+            background: #00a085;
+            transform: translateY(-2px);
+        }
+
+        .cancel-flag-btn {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .cancel-flag-btn:hover {
+            background: #e0e0e0;
+        }
+
+        .flag-submit-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            padding: 15px 25px;
+            background: #00d4aa;
+            color: #000;
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+            z-index: 1000;
+            display: block;
+            box-shadow: 0 4px 12px rgba(0, 212, 170, 0.3);
+        }
+
+        .flag-submit-btn.show {
+            display: block;
+        }
+
+        .flag-submit-btn:hover {
+            background: #00a085;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 16px rgba(0, 212, 170, 0.4);
+        }
+
+        .flag-status {
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-weight: 600;
+            display: none;
+        }
+
+        .flag-status.show {
+            display: block;
+        }
+
+        .flag-status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .flag-status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+
+</head>
+<body>
+    <header class="header">
+        <div class="logo">
+            <div class="logo-icon">
+                <svg viewBox="0 0 24 24">
+                    <path
+                        d="M12 2L2 7v10l10 5 10-5V7L12 2zm0 2.18l6.9 3.45-6.9 3.45-6.9-3.45L12 4.18zM4 8.63l7 3.5v7.24l-7-3.5V8.63zm9 10.74V12.13l7-3.5v7.24l-7 3.5z" />
+                </svg>
+            </div>
+            <div class="logo-text">Ethical Hacking <span>Portal</span></div>
+        </div>
+        <div class="controls">
+            <button class="back-btn" onclick="goBack()">← Back</button>
+        </div>
+    </header>
+
+    <div class="content">
+        <div class="preview-container">
+            <div class="preview-title">Challenge Preview</div>
+            <div class="preview-content">
+                <div class="loading-spinner show">
+                    <div class="spinner"></div>
+                    <div class="loading-text">Loading preview... Please wait.</div>
+                </div>
+
+                <iframe id="previewFrame" style="display: none;"></iframe>
+
+                <div class="error-container">
+                    <div class="error-icon">⚠️</div>
+                    <div class="error-title" id="errorTitle">Unable to Load Preview</div>
+                    <div class="error-message" id="errorMessage">The preview is currently unavailable.</div>
+                    <div class="error-code" id="errorCode" style="display: none;"></div>
+                    <div class="action-buttons">
+                        <button class="retry-btn" onclick="retryPreview()">🔄 Retry</button>
+                        <button class="back-btn back-btn-error" onclick="goBack()">← Go Back</button>
+                    </div>
+                    <div class="tips">
+                        <h3>Troubleshooting Tips:</h3>
+                        <ul>
+                            <li>✓ Make sure Docker Desktop is running on your system</li>
+                            <li>✓ Check that the Docker image exists: <code data-image>sql-injection-lab:latest</code></li>
+                            <li>✓ Ensure your firewall allows Docker container connections</li>
+                            <li>✓ Try refreshing the page if the error persists</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Flag Submission Modal -->
+    <div class="flag-modal" id="flagModal">
+        <div class="flag-modal-content">
+            <h2>🚩 Submit Flag</h2>
+            <div class="flag-status" id="flagStatus"></div>
+            <label for="flagInput">Enter the flag you discovered:</label>
+            <input type="text" id="flagInput" placeholder="FLAG{...}" />
+            <div class="flag-modal-buttons">
+                <button class="cancel-flag-btn" onclick="closeFlagModal()">Cancel</button>
+                <button class="submit-flag-btn" onclick="submitFlag()">Submit Flag</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Flag Submit Button (appears when challenge is loaded) -->
+    <button class="flag-submit-btn" id="flagSubmitBtn" onclick="openFlagModal()">📤 Submit Flag</button>
+
+    <script>
+        // Get challenge ID from URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const challengeId = urlParams.get('id') || localStorage.getItem('previewChallengeId');
+        let currentContainerId = null; // Store container ID globally
+        let previewCallCount = 0;  // Track how many times loadPreview is called
+
+        function showLoading() {
+            document.querySelector('.loading-spinner').classList.add('show');
+            document.querySelector('.error-container').classList.remove('show');
+            document.getElementById('previewFrame').style.display = 'none';
+            document.getElementById('flagSubmitBtn').classList.remove('show');
+        }
+
+        function showError(title, message, errorCode = null, dockerImage = null, isSuccess = false) {
+            document.querySelector('.loading-spinner').classList.remove('show');
+            document.querySelector('.error-container').classList.add('show');
+            document.getElementById('previewFrame').style.display = 'none';
+            document.getElementById('flagSubmitBtn').classList.remove('show');
+            document.getElementById('errorTitle').textContent = title;
+            document.getElementById('errorMessage').textContent = message;
+            
+            const retryBtn = document.querySelector('.retry-btn');
+            const backBtn = document.querySelector('.back-btn-error');
+            
+            if (isSuccess) {
+                // Hide troubleshooting tips and retry button for success
+                retryBtn.style.display = 'none';
+                document.querySelector('.tips').style.display = 'none';
+                document.getElementById('errorCode').style.display = 'none';
+                // Change back button text to "Exit Challenge"
+                if (backBtn) {
+                    backBtn.textContent = '← Exit Challenge';
+                }
+            } else {
+                // Show everything for error
+                retryBtn.style.display = 'block';
+                document.querySelector('.tips').style.display = 'block';
+                if (errorCode) {
+                    document.getElementById('errorCode').style.display = 'block';
+                    document.getElementById('errorCode').textContent = errorCode;
+                } else {
+                    document.getElementById('errorCode').style.display = 'none';
+                }
+                // Reset back button text
+                if (backBtn) {
+                    backBtn.textContent = '← Go Back';
+                }
+            }
+            
+            if (dockerImage) {
+                document.querySelector('[data-image]').textContent = dockerImage;
+            }
+        }
+
+        function showFrame(url) {
+            document.querySelector('.loading-spinner').classList.remove('show');
+            document.querySelector('.error-container').classList.remove('show');
+            const previewFrame = document.getElementById('previewFrame');
+            previewFrame.src = url;
+            previewFrame.style.display = 'block';
+            
+            // Wait for iframe to load, then hide unwanted elements
+            previewFrame.onload = function() {
+                try {
+                    const iframeDoc = previewFrame.contentDocument || previewFrame.contentWindow.document;
+                    if (iframeDoc) {
+                        // Hide header and navigation elements
+                        const headers = iframeDoc.querySelectorAll('.header, .navbar, nav, header');
+                        headers.forEach(el => el.style.display = 'none');
+                        
+                        // Hide logo and branding sections
+                        const logos = iframeDoc.querySelectorAll('.logo, .brand, .branding');
+                        logos.forEach(el => el.style.display = 'none');
+                        
+                        // Hide links sections
+                        const links = iframeDoc.querySelectorAll('.header-links, .nav-links');
+                        links.forEach(el => el.style.display = 'none');
+                        
+                        console.log('✅ Hide header elements injected');
+                    }
+                } catch (e) {
+                    console.warn('Could not modify iframe styles:', e.message);
+                }
+            };
+            
+            // Show the submit flag button
+            document.getElementById('flagSubmitBtn').classList.add('show');
+        }
+
+        function openFlagModal() {
+            document.getElementById('flagModal').classList.add('show');
+            document.getElementById('flagInput').focus();
+            document.getElementById('flagStatus').classList.remove('show');
+        }
+
+        function closeFlagModal() {
+            document.getElementById('flagModal').classList.remove('show');
+            document.getElementById('flagInput').value = '';
+            document.getElementById('flagStatus').classList.remove('show');
+        }
+
+        async function submitFlag() {
+            const flag = document.getElementById('flagInput').value.trim();
+            const statusDiv = document.getElementById('flagStatus');
+
+            if (!flag) {
+                statusDiv.textContent = 'Please enter a flag';
+                statusDiv.className = 'flag-status show error';
+                return;
+            }
+
+            try {
+                statusDiv.textContent = '🔍 Verifying flag...';
+                statusDiv.className = 'flag-status show';
+
+                const response = await fetch(`/admin/api/challenges/${challengeId}/verify-flag`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        flag: flag,
+                        container_id: currentContainerId
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    statusDiv.textContent = '✅ ' + data.message;
+                    statusDiv.className = 'flag-status show success';
+                    
+                    // Close modal after delay and show success message
+                    setTimeout(() => {
+                        closeFlagModal();
+                        const containerStatus = data.container_stopped 
+                            ? '✅ Container has been stopped and removed.' 
+                            : '⚠️ Container stop message: ' + data.message;
+                        showError('🎉 Flag Correct!', `You earned ${data.points} points!\n\n${containerStatus}`, null, null, true);
+                        // Hide the submit button
+                        document.getElementById('flagSubmitBtn').classList.remove('show');
+                    }, 1500);
+                } else {
+                    statusDiv.textContent = data.error || 'Flag verification failed';
+                    statusDiv.className = 'flag-status show error';
+                }
+            } catch (error) {
+                statusDiv.textContent = 'Error: ' + error.message;
+                statusDiv.className = 'flag-status show error';
+                console.error('Flag submission error:', error);
+            }
+        }
+
+        async function loadPreview() {
+            previewCallCount++;
+            console.log(`[LOAD-PREVIEW] Call #${previewCallCount} started for challenge_id=${challengeId}`, flush=true);
+            
+            // Prevent duplicate simultaneous requests
+            if (window.isLoadingPreview) {
+                console.log(`[LOAD-PREVIEW] Call #${previewCallCount} BLOCKED - already loading`);
+                return;
+            }
+
+            if (!challengeId) {
+                showError('No Challenge Selected', 'Please select a challenge from the admin dashboard to preview.');
+                return;
+            }
+
+            window.isLoadingPreview = true;  // Set the lock
+
+            try {
+                console.log(`[LOAD-PREVIEW] Call #${previewCallCount} - Making fetch request to preview endpoint`, flush=true);
+                const response = await fetch(`/admin/challenges/${challengeId}/preview`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({})
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Store the container ID for flag submission
+                    currentContainerId = data.container_id;
+                    console.log(`[LOAD-PREVIEW] Call #${previewCallCount} - Container started: ${data.container_name}`, flush=true);
+
+                    // Give container a moment to be ready (2 second delay)
+                    console.log(`[LOAD-PREVIEW] Call #${previewCallCount} - Waiting 2 seconds for container to be ready`, flush=true);
+                    setTimeout(() => {
+                        console.log(`[LOAD-PREVIEW] Call #${previewCallCount} - Showing simulation`, flush=true);
+                        showFrame(data.access_url);
+                    }, 2000);
+                } else {
+                    const errorMsg = data.error || 'Unknown error occurred';
+                    console.log(`[LOAD-PREVIEW] Call #${previewCallCount} - Error: ${errorMsg}`, flush=true);
+                    showError(
+                        'Preview Failed to Start',
+                        errorMsg.includes('Docker daemon') 
+                            ? 'Docker is not running. Please start Docker Desktop and try again.'
+                            : 'The challenge container failed to start. ' + errorMsg,
+                        errorMsg,
+                        data.docker_image
+                    );
+                }
+            } catch (error) {
+                console.log(`[LOAD-PREVIEW] Call #${previewCallCount} - Exception: ${error.message}`, flush=true);
+                showError(
+                    'Connection Error',
+                    'Failed to connect to the preview server. Please ensure the backend is running.',
+                    error.message
+                );
+            } finally {
+                window.isLoadingPreview = false;  // Release the lock
+                console.log(`[LOAD-PREVIEW] Call #${previewCallCount} - Completed`, flush=true);
+            }
+        }
+
+        function retryPreview() {
+            loadPreview();
+        }
+
+        function goBack() {
+            window.history.back();
+        }
+
+        // Store challenge ID in localStorage for reload
+        if (challengeId) {
+            localStorage.setItem('previewChallengeId', challengeId);
+        }
+
+        // Load preview on page load
+        window.addEventListener('load', loadPreview);
+
+        // Close modal when clicking outside of it
+        document.getElementById('flagModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeFlagModal();
+            }
+        });
+
+        // Allow pressing Enter to submit flag
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && document.getElementById('flagModal').classList.contains('show')) {
+                submitFlag();
+            }
+        });
+    </script>
+</body>
+</html>

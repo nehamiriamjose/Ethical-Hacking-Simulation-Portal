@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offensive Security - Why It Matters</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 50px;
+        }
+
+        h1 {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        .subtitle {
+            font-size: 20px;
+            opacity: 0.9;
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 50px;
+        }
+
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .card h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .card p {
+            color: #4a5568;
+            line-height: 1.8;
+        }
+
+        .icon {
+            font-size: 40px;
+            margin-bottom: 15px;
+        }
+
+        .intro-section {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .intro-section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        .intro-section p {
+            color: #4a5568;
+            line-height: 1.8;
+            margin-bottom: 15px;
+        }
+
+        .cta-section {
+            text-align: center;
+            margin-top: 50px;
+        }
+
+        button {
+            background: white;
+            color: #667eea;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 0 10px;
+        }
+
+        button:hover {
+            background: #f7fafc;
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 32px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔓 Offensive Security Testing</h1>
+            <p class="subtitle">Account Takeover & Money Transfer Lab</p>
+        </header>
+
+        <div class="intro-section">
+            <h2>What is Offensive Security Testing?</h2>
+            <p>Offensive security (ethical hacking) involves simulating attacks on systems to find vulnerabilities BEFORE malicious actors do. It's like testing your home's security by finding the weakest locks—ethically.</p>
+        </div>
+
+        <div class="content">
+            <div class="card">
+                <div class="icon">🎯</div>
+                <h2>Why It Matters</h2>
+                <p>Find bugs before attackers. Prevent financial loss. Meet compliance requirements. Protect user data. Stay ahead of threats.</p>
+            </div>
+
+            <div class="card">
+                <div class="icon">💼</div>
+                <h2>Real-World Risk</h2>
+                <p>Account takeover and unauthorized money transfers cost organizations millions annually. Banks lose $16B+ to fraud yearly.</p>
+            </div>
+
+            <div class="card">
+                <div class="icon">🛡️</div>
+                <h2>Learn to Defend</h2>
+                <p>By understanding attack methods, you become better at preventing them. Knowledge is your strongest defense.</p>
+            </div>
+        </div>
+
+        <div class="intro-section">
+            <h2>In This Lab</h2>
+            <p><strong>Objective:</strong> Exploit multiple vulnerabilities to gain unauthorized access and transfer money illegally.</p>
+            <p><strong>Vulnerabilities:</strong></p>
+            <ul style="margin-left: 20px; color: #4a5568; line-height: 1.8;">
+                <li><strong>SQL Injection:</strong> Bypass authentication via SQL comments</li>
+                <li><strong>Broken Authorization:</strong> Transfer money from any account</li>
+                <li><strong>Weak Session Management:</strong> Sessions easily hijacked</li>
+                <li><strong>No CSRF Protection:</strong> Automatic request forgery</li>
+                <li><strong>Information Disclosure:</strong> All accounts visible publicly</li>
+            </ul>
+            <p style="margin-top: 15px;"><strong>Flag:</strong> FLAG{SQL_Injection_Money_Transfer_Combined_Attack}</p>
+        </div>
+
+        <div class="cta-section">
+            <button onclick="window.location.href='/login'">🔐 Start the Challenge</button>
+            <button onclick="window.location.href='/exploit'">📖 View Exploit Guide</button>
+        </div>
+    </div>
+</body>
+</html>

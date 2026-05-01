@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Create Notification</title>
+
+  <link rel="stylesheet" href="/static/css/base.css">
+  <link rel="stylesheet" href="/static/css/dashboard.css">
+  <link rel="stylesheet" href="/static/css/admin_dashboard.css">
+  <link rel="stylesheet" href="/static/css/admin_create_notification.css">
+  <link rel="stylesheet" href="/static/css/admin_create_notification.css">
+
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    /* Loading Overlay */
+    .loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(5, 7, 11, 0.9);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease-in-out;
+    }
+
+    .loading-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 4px solid rgba(0, 234, 255, 0.2);
+      border-top-color: #00eaff;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* Page Transition Animations */
+    .sidebar {
+      animation: slideInLeft 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+
+    main {
+      animation: slideInRight 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+
+    @keyframes slideInLeft {
+      from {
+        opacity: 0;
+        transform: translateX(-50px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    @keyframes slideInRight {
+      from {
+        opacity: 0;
+        transform: translateX(50px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .notification-form {
+      animation: fadeInUp 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s forwards;
+      opacity: 0;
+    }
+  </style>
+</head>
+
+<body class="dashboard-body">
+
+  <!-- LOADING OVERLAY -->
+  <div id="loadingOverlay" class="loading-overlay">
+    <div class="spinner"></div>
+  </div>
+
+  <!-- ================= SIDEBAR ================= -->
+  <aside class="sidebar">
+    <div class="brand">
+      <span class="shield">
+        <i data-lucide="shield"></i>
+      </span>
+      <div>
+        <h2>Hacker Portal</h2>
+        <p>Learn & Conquer</p>
+      </div>
+    </div>
+
+    <nav class="menu">
+      <a href="/admin/dashboard"><i data-lucide="layout-grid"></i> Dashboard</a>
+      <a href="/admin/users"><i data-lucide="users"></i> User Management</a>
+      <a href="/admin/challenges"><i data-lucide="target"></i> Challenges</a>
+      <a href="/admin/tutorials"><i data-lucide="book-open"></i> Tutorials</a>
+      <a href="/admin/quizzes"><i data-lucide="help-circle"></i> Quizzes</a>
+      <a href="/admin/leaderboard"><i data-lucide="trophy"></i> Leaderboard</a>
+      <a href="/admin/sandbox"><i data-lucide="cpu"></i> Sandbox Monitor</a>
+      <a href="/admin/notifications" class="active"><i data-lucide="bell"></i> Notifications</a>
+      <a href="/admin/analytics"><i data-lucide="bar-chart-2"></i> Analytics</a>
+    </nav>
+
+    <a class="logout" href="/"><i data-lucide="log-out"></i> Logout</a>
+  </aside>
+
+  <!-- ================= MAIN ================= -->
+  <main class="dashboard-main">
+
+    <header class="topbar">
+      <h2>Create Notification</h2>
+    </header>
+
+    <button class="create-btn" id="toggleFormBtn">
+      Create Notification
+    </button>
+    <center>
+      <form class="notification-form glow" id="notificationForm" method="post" action="/admin/notifications/create">
+
+        <div class="form-group">
+          <label>Title</label>
+          <input type="text" name="title" required>
+        </div>
+
+        <div class="form-group">
+          <label>Message</label>
+          <textarea name="message" rows="5" required></textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Target</label>
+            <select name="target" required>
+              <option value="all">all</option>
+              <option value="user">user</option>
+              <option value="admin">admin</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Status</label>
+            <select name="status" required>
+              <option value="available">available</option>
+              <option value="coming_soon">coming soon</option>
+            </select>
+          </div>
+        </div>
+
+        <button type="submit" class="primary-btn">
+          <i data-lucide="send"></i> Create
+        </button>
+
+      </form>
+    </center>
+  </main>
+
+  <script src="/static/js/admin_create_notification.js"></script>
+  <script>
+    lucide.createIcons();
+  </script>
+
+  <script>
+    // Loading animation on sidebar navigation
+    document.querySelectorAll('.sidebar a').forEach(link => {
+      link.addEventListener('click', function (e) {
+        if (this.href.includes('/admin/') && !this.href.endsWith('#')) {
+          document.getElementById('loadingOverlay').classList.add('active');
+        }
+      });
+    });
+  </script>
+
+</body>
+
+</html>

@@ -1,0 +1,27 @@
+.app-body {
+  display: flex;
+  min-height: 100vh;
+  background: #020c0f;
+}
+
+.sidebar {
+  width: 260px;
+  height: 100vh;
+}
+
+.menu {
+  overflow-y: auto;
+  flex: 1;
+}
+
+.main-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.page-content {
+  flex: 1;
+  padding: 24px;
+  overflow-y: auto;
+}

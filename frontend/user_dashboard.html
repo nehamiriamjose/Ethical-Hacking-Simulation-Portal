@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>User Dashboard</title>
+
+  <!-- STYLES -->
+  <link rel="stylesheet" href="/static/css/base.css">
+  <link rel="stylesheet" href="/static/css/dashboard.css">
+
+  <!-- LUCIDE ICONS (REQUIRED) -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body class="dashboard-body">
+
+  <!-- ================= SIDEBAR ================= -->
+  <aside class="sidebar">
+    <div class="brand">
+      <span class="shield">
+        <i data-lucide="shield"></i>
+      </span>
+      <div>
+        <h2>Hacker Portal</h2>
+        <p>Learn & Conquer</p>
+      </div>
+    </div>
+
+    <nav class="menu">
+      <a class="active" href="/user/dashboard?email={{EMAIL}}">
+        <i data-lucide="layout-grid"></i>
+        Dashboard
+      </a>
+
+      <a href="/user/tutorials?email={{EMAIL}}">
+        <i data-lucide="book-open"></i>
+        Tutorials
+      </a>
+
+      <a href="/user/tutorials/saved?email={{EMAIL}}">
+        <i data-lucide="star"></i>
+        Saved Tutorials
+      </a>
+
+      <a href="/user/challenges?email={{EMAIL}}">
+        <i data-lucide="target"></i>
+        Challenges
+      </a>
+
+      <a href="/user/quizzes?email={{EMAIL}}">
+        <i data-lucide="help-circle"></i>
+        Quizzes
+      </a>
+
+      <a href="/user/attempt-history?email={{EMAIL}}">
+        <i data-lucide="history"></i>
+        Attempt History
+      </a>
+
+      <a href="/user/leaderboard?email={{EMAIL}}">
+        <i data-lucide="trophy"></i>
+        Leaderboard
+      </a>
+
+      <a href="/user/friends?email={{EMAIL}}">
+        <i data-lucide="users"></i>
+        Friends
+      </a>
+
+      <a href="/user/progress?email={{EMAIL}}">
+        <i data-lucide="trending-up"></i>
+        Progress Graph
+      </a>
+
+      <a href="/user/profile?email={{EMAIL}}">
+        <i data-lucide="user"></i>
+        Profile
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <a class="logout" href="/">
+        <i data-lucide="log-out"></i>
+        Logout
+      </a>
+    </div>
+  </aside>
+
+  <!-- ================= MAIN ================= -->
+  <main class="dashboard-main">
+
+    <header class="topbar">
+      <h2>Dashboard</h2>
+      <div class="top-icons">
+        <div class="notif-wrapper">
+          <button id="notifBell" class="icon-btn" type="button">
+            <i data-lucide="bell"></i>
+          </button>
+          <div id="notifPanel" class="notif-panel">
+            <div class="notif-header">Notifications</div>
+            <div id="notifList" class="notif-list">
+              <!-- notifications will load here -->
+            </div>
+          </div>
+        </div>
+        <div class="profile-chip">
+          👤 {{USERNAME}} <small>Level {{LEVEL}}</small>
+        </div>
+      </div>
+    </header>
+
+    <!-- ================= WELCOME ================= -->
+    <section class="welcome-card glow">
+      <div>
+        <h1>Welcome back, {{USERNAME}}!</h1>
+        <p>Level {{LEVEL}} • Rank #{{RANK}}</p>
+      </div>
+    </section>
+
+    <!-- ================= GRID ================= -->
+    <section class="dashboard-grid">
+
+      <!-- AI RECOMMENDATION -->
+      <div class="card glow large" id="recommendationCard">
+        <h3>✨ Recommended for You</h3>
+        <h4 id="recTitle">Loading...</h4>
+        <p id="recDesc">Fetching personalized recommendations...</p>
+
+        <div class="hint" id="recHint">
+          Based on your current level, we're preparing a challenge for you.
+        </div>
+
+        <button class="primary-btn" id="recBtn" onclick="startRecommendedChallenge()">Start Now →</button>
+      </div>
+
+    </section>
+
+    <!-- ================= STATS ================= -->
+    <section class="stats-section">
+      <div class="stats-row">
+        <div class="stat glow">
+          <div class="stat-icon">🎯</div>
+          <h2 id="statChallenges">{{CHALLENGES}}</h2>
+          <span>Challenges Solved</span>
+        </div>
+
+        <div class="stat glow">
+          <div class="stat-icon">🏆</div>
+          <h2 id="statRank">#{{RANK}}</h2>
+          <span>Global Rank</span>
+        </div>
+
+        <div class="stat glow">
+          <div class="stat-icon">⭐</div>
+          <h2 id="statLevel">{{LEVEL}}</h2>
+          <span>Current Level</span>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- 🔥 LUCIDE INITIALIZATION (CRITICAL) -->
+  <script>
+    lucide.createIcons();
+  </script>
+  <script src="/static/js/user_notifications.js"></script>
+
+  <script>
+    function startRecommendedChallenge() {
+      const email = new URLSearchParams(window.location.search).get('email');
+      window.location.href = `/user/challenges?email=${email}`;
+    }
+
+    // Load dashboard stats - runs when DOM is complete
+    function loadDashboardStats() {
+      const email = new URLSearchParams(window.location.search).get('email');
+      console.log('📊 Loading dashboard stats for:', email);
+      
+      fetch(`/user/api/dashboard?email=${email}`)
+        .then(response => response.json())
+        .then(data => {
+          console.log('📊 Dashboard API Response:', data);
+          
+          if (data.success) {
+            console.log(`📚 Tutorials completed: ${data.tutorials_completed || 0}`);
+            console.log(`❓ Quizzes completed: ${data.quizzes_completed || 0}`);
+          } else {
+            console.error('❌ API returned success=false');
+          }
+        })
+        .catch(error => {
+          console.error('❌ Error loading dashboard stats:', error);
+        });
+    }
+
+    // Load stats when DOM is ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', loadDashboardStats);
+    } else {
+      loadDashboardStats();
+    }
+  </script>
+</body>
+
+</html>

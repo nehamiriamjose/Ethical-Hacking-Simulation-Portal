@@ -1,0 +1,141 @@
+/* ===============================
+   ADMIN LEADERBOARD STYLES
+   =============================== */
+
+.admin-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+  margin-bottom: 40px;
+}
+
+.stat-card {
+  background: rgba(0, 255, 255, 0.04);
+  border-radius: 14px;
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 0 18px rgba(0, 255, 255, 0.12);
+  transition: transform 0.2s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-4px);
+}
+
+.stat-card i {
+  width: 36px;
+  height: 36px;
+  color: #00eaff;
+}
+
+.stat-card p {
+  margin: 0;
+  font-size: 14px;
+  color: #8fdcff;
+}
+
+.stat-card h3 {
+  margin: 6px 0 0;
+  font-size: 26px;
+  color: #ffffff;
+}
+
+/* Highlight top scorer */
+.highlight-gold {
+  box-shadow: 0 0 22px rgba(255, 215, 0, 0.4);
+}
+
+.highlight-gold i {
+  color: gold;
+}
+
+/* ===============================
+   PODIUM SECTION
+   =============================== */
+
+.leaderboard-podium {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 30px;
+  margin-top: 20px;
+}
+
+.podium-card {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 18px;
+  padding: 28px 20px;
+  text-align: center;
+  box-shadow: 0 0 20px rgba(0, 255, 255, 0.12);
+}
+
+.podium-card h4 {
+  margin: 14px 0 6px;
+  font-size: 18px;
+  color: #ffffff;
+}
+
+.podium-card .score {
+  font-size: 32px;
+  font-weight: bold;
+  margin: 8px 0;
+}
+
+.podium-card small {
+  display: block;
+  font-size: 13px;
+  color: #9fdfff;
+  margin-top: 4px;
+}
+
+.medal {
+  font-size: 34px;
+  display: inline-block;
+  margin-bottom: 6px;
+}
+
+/* ===============================
+   GOLD / SILVER / BRONZE
+   =============================== */
+
+.gold {
+  border: 1px solid rgba(255, 215, 0, 0.5);
+  box-shadow: 0 0 28px rgba(255, 215, 0, 0.45);
+}
+
+.gold .score {
+  color: gold;
+}
+
+.silver {
+  border: 1px solid rgba(192, 192, 192, 0.5);
+  box-shadow: 0 0 22px rgba(192, 192, 192, 0.35);
+}
+
+.silver .score {
+  color: silver;
+}
+
+.bronze {
+  border: 1px solid rgba(205, 127, 50, 0.5);
+  box-shadow: 0 0 22px rgba(205, 127, 50, 0.35);
+}
+
+.bronze .score {
+  color: #cd7f32;
+}
+
+/* ===============================
+   RESPONSIVE
+   =============================== */
+
+@media (max-width: 1200px) {
+  .admin-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .leaderboard-podium {
+    grid-template-columns: 1fr;
+  }
+}

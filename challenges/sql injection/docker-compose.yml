@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  sql-injection-lab:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5001:5001"
+    container_name: sql-injection-lab
+    environment:
+      - FLASK_APP=app.py
+      - FLASK_ENV=production

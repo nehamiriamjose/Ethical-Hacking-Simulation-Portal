@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>User Profile</title>
+
+  <!-- GLOBAL -->
+  <link rel="stylesheet" href="/static/css/base.css">
+  <link rel="stylesheet" href="/static/css/dashboard.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- PROFILE -->
+  <link rel="stylesheet" href="/static/css/profile.css">
+
+  <style>
+    .delete-confirmation {
+      margin-top: 20px;
+      padding: 20px;
+      background: linear-gradient(135deg, rgba(211, 47, 47, 0.08), rgba(244, 67, 54, 0.08));
+      border: 2px solid #d32f2f;
+      border-radius: 10px;
+      animation: slideDown 0.3s ease-out;
+    }
+
+    .delete-confirmation.slideOut {
+      animation: slideUp 0.3s ease-in forwards;
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      to {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+    }
+
+    .confirmation-message {
+      color: #fff;
+    }
+
+    .confirmation-message p {
+      margin: 10px 0;
+      font-size: 14px;
+    }
+
+    .confirmation-message p:first-child {
+      font-size: 16px;
+      margin-bottom: 15px;
+    }
+
+    .confirmation-buttons {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .confirmation-buttons button {
+      flex: 1;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .danger-btn {
+      background: linear-gradient(135deg, #d32f2f, #e53935);
+      color: white;
+    }
+
+    .danger-btn:hover {
+      background: linear-gradient(135deg, #c62828, #d32f2f);
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(211, 47, 47, 0.3);
+    }
+
+    .cancel-btn {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .cancel-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+      border-color: rgba(255, 255, 255, 0.5);
+    }
+  </style>
+</head>
+
+<body class="dashboard-body">
+
+  <!-- ================= SIDEBAR ================= -->
+  <aside class="sidebar">
+    <div class="brand">
+      <span class="shield">
+        <i data-lucide="shield"></i>
+      </span>
+      <div>
+        <h2>Hacker Portal</h2>
+        <p>Learn & Conquer</p>
+      </div>
+    </div>
+    <nav class="menu">
+      <a href="/user/dashboard?email={{EMAIL}}">
+        <i data-lucide="layout-grid"></i>
+        Dashboard
+      </a>
+
+      <a href="/user/tutorials?email={{EMAIL}}">
+        <i data-lucide="book-open"></i>
+        Tutorials
+      </a>
+
+      <a href="/user/tutorials/saved?email={{EMAIL}}">
+        <i data-lucide="star"></i>
+        Saved Tutorials
+      </a>
+
+      <a href="/user/challenges?email={{EMAIL}}">
+        <i data-lucide="target"></i>
+        Challenges
+      </a>
+
+      <a href="/user/quizzes?email={{EMAIL}}">
+        <i data-lucide="help-circle"></i>
+        Quizzes
+      </a>
+
+      <a href="/user/attempt-history?email={{EMAIL}}">
+        <i data-lucide="history"></i>
+        Attempt History
+      </a>
+
+      <a href="/user/leaderboard?email={{EMAIL}}">
+        <i data-lucide="trophy"></i>
+        Leaderboard
+      </a>
+
+      <a href="/user/friends?email={{EMAIL}}">
+        <i data-lucide="users"></i>
+        Friends
+      </a>
+
+      <a href="/user/progress?email={{EMAIL}}">
+        <i data-lucide="trending-up"></i>
+        Progress Graph
+      </a>
+
+      <a class="active" href="/user/profile?email={{EMAIL}}">
+        <i data-lucide="user"></i>
+        Profile
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <a class="logout" href="/">
+        <i data-lucide="log-out"></i>
+        Logout
+      </a>
+    </div>
+  </aside>
+
+  <!-- ================= MAIN ================= -->
+  <main class="dashboard-main">
+
+    <header class="topbar">
+      <h2>Profile</h2>
+      <div class="top-icons">
+        <div class="notif-wrapper">
+          <button id="notifBell" class="icon-btn" type="button">
+            <i data-lucide="bell"></i>
+          </button>
+          <div id="notifPanel" class="notif-panel">
+            <div class="notif-header">Notifications</div>
+            <div id="notifList" class="notif-list">
+              <!-- notifications will load here -->
+            </div>
+          </div>
+        </div>
+        <div class="profile-chip">
+          👤 {{USERNAME}} <small>Level {{LEVEL}}</small>
+        </div>
+      </div>
+    </header>
+
+    <!-- ================= PROFILE CONTENT ================= -->
+    <section class="profile-page">
+
+      <h3 class="section-title">Profile & Progress</h3>
+
+      <div class="profile-grid">
+
+        <!-- LEFT PROFILE CARD -->
+        <div class="profile-card glow">
+
+          <div class="avatar">{{AVATAR_HTML}}</div>
+
+          <h3 class="username">{{USERNAME}}</h3>
+          <p class="level-text">Level {{LEVEL}} – Intermediate Hacker</p>
+
+          <span class="rank-chip">Rank #{{RANK}}</span>
+
+          <ul class="profile-info">
+            <li>📧 {{EMAIL}}</li>
+            <li>🏆 {{XP}} Total Points</li>
+            <li>🎯 {{CHALLENGES}} Challenges Solved</li>
+          </ul>
+
+          <a href="/user/edit-profile?email={{EMAIL}}">
+            <button class="primary-btn">✏️ Edit Profile</button>
+          </a>
+
+          <br><br>
+
+          <a href="/user/change-password?email={{EMAIL}}">
+            <button class="outline-btn">🔒 Change Password</button>
+          </a>
+
+          <br><br>
+
+          <button id="deleteAccountBtn" class="outline-btn danger-btn">🗑️ Delete Account</button>
+
+          <div id="deleteConfirmation" class="delete-confirmation" style="display: none;">
+            <div class="confirmation-message">
+              <p>⚠️ <strong>Are you sure?</strong></p>
+              <p>Deleting your account is permanent and cannot be undone. All your data will be lost.</p>
+              <div class="confirmation-buttons">
+                <button id="confirmDelete" class="danger-btn">Yes, Delete Account</button>
+                <button id="cancelDelete" class="cancel-btn">Cancel</button>
+              </div>
+            </div>
+          </div>
+
+
+        </div>
+
+        <!-- RIGHT SIDE -->
+        <div class="profile-right">
+
+          <!-- STATS -->
+          <div class="profile-stats">
+
+            <div class="stat glow">
+              <span>Total Points</span>
+              <h2>{{XP}}</h2>
+            </div>
+
+            <div class="stat glow">
+              <span>Challenges</span>
+              <h2>{{CHALLENGES}}</h2>
+            </div>
+
+            <div class="stat glow">
+              <span>Badges</span>
+              <h2>0</h2>
+            </div>
+
+            <div class="stat glow">
+              <span>Rank</span>
+              <h2>#{{RANK}}</h2>
+            </div>
+
+          </div>
+
+          <!-- GRAPH -->
+          <div class="card glow chart-card">
+            <h3><i data-lucide="bar-chart-2"></i> Learning Progress</h3>
+            <canvas id="progressChart" style="max-height: 250px;"></canvas>
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+  </main>
+  <script>
+    lucide.createIcons();
+
+    const email = new URLSearchParams(window.location.search).get('email');
+    let progressChart = null;
+
+    // Refresh Progress Chart with Latest Data
+    function refreshProgressChart() {
+      const ctx = document.getElementById('progressChart');
+      if (!ctx) return;
+
+      // Fetch user progress data
+      fetch(`/api/user/profile?email=${encodeURIComponent(email)}`)
+        .then(res => res.json())
+        .then(data => {
+          console.log('API Response:', data); // Debug log
+          if (data.success && data.user) {
+            // Create progress data from user stats
+            const progressData = [
+              { name: 'Tutorials', count: data.user.tutorials_completed || 0, max: 50 },
+              { name: 'Challenges', count: data.user.challenges_solved || 0, max: 20 },
+              { name: 'Quizzes', count: data.user.quizzes_completed || 0, max: 10 }
+            ];
+
+            // Calculate percentage
+            const chartData = progressData.map(item => {
+              return Math.min((item.count / item.max) * 100, 100);
+            });
+
+            console.log('Chart Data:', chartData); // Debug log
+
+            // If chart already exists, update it
+            if (progressChart) {
+              progressChart.data.datasets[0].data = chartData;
+              progressChart.update('active'); // Smooth animation update
+            } else {
+              // Create new chart
+              progressChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                  labels: ['Tutorials', 'Challenges', 'Quizzes'],
+                  datasets: [{
+                    label: 'Progress (%)',
+                    data: chartData,
+                    backgroundColor: [
+                      'rgba(76, 175, 80, 0.8)',
+                      'rgba(33, 150, 243, 0.8)',
+                      'rgba(255, 193, 7, 0.8)'
+                    ],
+                    borderColor: [
+                      'rgba(76, 175, 80, 1)',
+                      'rgba(33, 150, 243, 1)',
+                      'rgba(255, 193, 7, 1)'
+                    ],
+                    borderWidth: 2,
+                    borderRadius: 8
+                  }]
+                },
+                options: {
+                  indexAxis: 'y',
+                  responsive: true,
+                  maintainAspectRatio: true,
+                  animation: {
+                    duration: 750
+                  },
+                  plugins: {
+                    legend: {
+                      display: true,
+                      labels: {
+                        color: '#00d9ff',
+                        font: { size: 12, weight: 'bold' }
+                      }
+                    }
+                  },
+                  scales: {
+                    x: {
+                      beginAtZero: true,
+                      max: 100,
+                      ticks: {
+                        color: '#00d9ff',
+                        font: { size: 11 },
+                        callback: function(value) {
+                          return value + '%';
+                        }
+                      },
+                      grid: {
+                        color: 'rgba(0, 217, 255, 0.1)'
+                      }
+                    },
+                    y: {
+                      ticks: {
+                        color: '#00d9ff',
+                        font: { size: 12, weight: 'bold' }
+                      },
+                      grid: {
+                        display: false
+                      }
+                    }
+                  }
+                }
+              });
+            }
+          } else {
+            console.error('Invalid data structure:', data);
+          }
+        })
+        .catch(err => console.error('Error loading progress data:', err));
+    }
+
+    // Initialize chart on page load
+    window.addEventListener('load', function() {
+      refreshProgressChart();
+      // Auto-refresh chart every 5 seconds to catch updates in real-time
+      setInterval(refreshProgressChart, 5000);
+    });
+
+    // Delete Account Confirmation
+    const deleteAccountBtn = document.getElementById('deleteAccountBtn');
+    const deleteConfirmation = document.getElementById('deleteConfirmation');
+    const confirmDelete = document.getElementById('confirmDelete');
+    const cancelDelete = document.getElementById('cancelDelete');
+
+    deleteAccountBtn.addEventListener('click', function (e) {
+      e.preventDefault();
+      deleteConfirmation.style.display = 'block';
+    });
+
+    cancelDelete.addEventListener('click', function () {
+      deleteConfirmation.classList.add('slideOut');
+      setTimeout(() => {
+        deleteConfirmation.style.display = 'none';
+        deleteConfirmation.classList.remove('slideOut');
+      }, 300);
+    });
+
+    confirmDelete.addEventListener('click', function () {
+      // Make a request to delete the account
+      fetch(`/user/delete-account?email=${email}`, {
+        method: 'GET',
+      })
+        .then(response => {
+          // Redirect to login page after successful deletion
+          window.location.href = '/user/login';
+        })
+        .catch(error => {
+          console.error('Error deleting account:', error);
+          alert('Error deleting account. Please try again.');
+        });
+    });
+
+
+  </script>
+  <script src="/static/js/user_notifications.js"></script>
+</body>
+
+</html>

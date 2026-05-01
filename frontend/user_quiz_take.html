@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Take Quiz - Hacker Portal</title>
+    <link rel="stylesheet" href="/static/css/base.css">
+    <link rel="stylesheet" href="/static/css/dashboard.css">
+    <style>
+        .quiz-container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+
+        .quiz-header {
+            background: linear-gradient(135deg, rgba(20, 241, 178, 0.1) 0%, rgba(10, 13, 18, 0.95) 100%);
+            border: 1px solid rgba(20, 241, 178, 0.3);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .quiz-info h1 {
+            color: #14f1b2;
+            margin-bottom: 10px;
+        }
+
+        .quiz-timer {
+            font-size: 24px;
+            font-weight: 700;
+            color: #14f1b2;
+            font-family: monospace;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: 1px solid rgba(20, 241, 178, 0.2);
+        }
+
+        .question-card {
+            background: rgba(20, 241, 178, 0.05);
+            border: 1px solid rgba(20, 241, 178, 0.2);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 25px;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .question-text {
+            font-size: 18px;
+            color: #fff;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            background: rgba(10, 13, 18, 0.5);
+            border: 1px solid rgba(20, 241, 178, 0.2);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: #ccc;
+        }
+
+        .option-item:hover {
+            border-color: #14f1b2;
+            background: rgba(20, 241, 178, 0.1);
+        }
+
+        .option-item.selected {
+            background: rgba(20, 241, 178, 0.2);
+            border-color: #14f1b2;
+            color: #14f1b2;
+        }
+
+        .option-item input {
+            display: none;
+        }
+
+        .quiz-controls {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 40px;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+        }
+
+        .btn-primary {
+            background: #14f1b2;
+            color: #000;
+        }
+
+        .btn-primary:disabled {
+            background: #666;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: #14f1b2;
+            border: 1px solid #14f1b2;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            margin-bottom: 40px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #14f1b2;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Results View */
+        .results-card {
+            text-align: center;
+            padding: 50px;
+        }
+
+        .score-display {
+            font-size: 64px;
+            color: #14f1b2;
+            margin: 20px 0;
+            font-weight: 800;
+        }
+    </style>
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body class="dashboard-body">
+
+    <aside class="sidebar">
+        <div class="brand">
+            <span class="shield"><i data-lucide="shield"></i></span>
+            <div>
+                <h2>Hacker Portal</h2>
+                <p>Learn & Conquer</p>
+            </div>
+        </div>
+         <nav class="menu">
+            <a href="/user/dashboard?email={{EMAIL}}">
+                <i data-lucide="layout-grid"></i> Dashboard
+            </a>
+            <a href="/user/tutorials?email={{EMAIL}}">
+                <i data-lucide="book-open"></i> Tutorials
+            </a>
+            <a href="/user/tutorials/saved?email={{EMAIL}}">
+                <i data-lucide="star"></i> Saved Tutorials
+            </a>
+            <a href="/user/challenges?email={{EMAIL}}">
+                <i data-lucide="target"></i> Challenges
+            </a>
+            <a class="active" href="/user/quizzes?email={{EMAIL}}">
+                <i data-lucide="help-circle"></i> Quizzes
+            </a>
+            <a href="/user/attempt-history?email={{EMAIL}}">
+                <i data-lucide="history"></i> Attempt History
+            </a>
+            <a href="/user/leaderboard?email={{EMAIL}}">
+                <i data-lucide="trophy"></i> Leaderboard
+            </a>
+            <a href="/user/friends?email={{EMAIL}}">
+                <i data-lucide="users"></i> Friends
+            </a>
+            <a href="/user/progress?email={{EMAIL}}">
+                <i data-lucide="trending-up"></i> Progress Graph
+            </a>
+            <a href="/user/profile?email={{EMAIL}}">
+                <i data-lucide="user"></i> Profile
+            </a>
+        </nav>
+
+
+        <div class="sidebar-footer">
+            <a class="logout" href="/">
+                <i data-lucide="log-out"></i> Logout
+            </a>
+        </div>
+    </aside>
+
+    <main class="dashboard-main">
+        <div class="quiz-container">
+            <div id="quizView">
+                <div class="quiz-header">
+                    <div class="quiz-info">
+                        <h1 id="quizTitle">Loading Quiz...</h1>
+                        <p id="quizMeta"></p>
+                    </div>
+                    <div id="timer" class="quiz-timer" style="display: none;">00:00</div>
+                </div>
+
+                <div class="progress-bar">
+                    <div id="progressFill" class="progress-fill"></div>
+                </div>
+
+                <div id="questionContainer"></div>
+
+                <div class="quiz-controls">
+                    <button id="prevBtn" class="btn btn-secondary" style="visibility: hidden;">Previous</button>
+                    <button id="nextBtn" class="btn btn-primary">Next Question</button>
+                </div>
+            </div>
+
+            <div id="resultsView" style="display: none;" class="question-card results-card">
+                <h1 id="resultTitle">Quiz Completed!</h1>
+                <div id="scoreValue" class="score-display">0%</div>
+                <p id="resultMessage" style="margin-bottom: 30px;"></p>
+                <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+                    <button onclick="window.location.reload()" class="btn btn-secondary">Try Again</button>
+                    <button onclick="window.location.href='/user/quizzes?email={{EMAIL}}'" class="btn btn-primary">Back to Quizzes</button>
+                    <button id="viewProfileBtn" onclick="window.location.href='/user/profile?email={{EMAIL}}'" class="btn btn-primary" style="display: none; background: #14f1b2; color: #000;">📊 View Updated Profile</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        lucide.createIcons();
+        const quizId = '{{QUIZ_ID}}';
+        const email = '{{EMAIL}}';
+        let quizData = null;
+        let currentQuestionIndex = 0;
+        let userAnswers = {};
+        let timeLeft = null;
+        let timerInterval = null;
+
+        async function loadQuiz() {
+            try {
+                const preview = new URLSearchParams(window.location.search).get('preview') || 'false';
+                const resp = await fetch(`/user/api/quizzes/${quizId}?email=${encodeURIComponent(email)}&preview=${preview}`);
+                quizData = await resp.json();
+
+                document.getElementById('quizTitle').textContent = quizData.title;
+                document.getElementById('quizMeta').textContent = `${quizData.questions.length} Questions • ${quizData.points} XP`;
+
+                if (quizData.time_limit) {
+                    timeLeft = quizData.time_limit * 60;
+                    startTimer();
+                }
+
+                renderQuestion();
+            } catch (err) {
+                console.error(err);
+                alert('Error loading quiz');
+            }
+        }
+
+        function startTimer() {
+            const timerEl = document.getElementById('timer');
+            timerEl.style.display = 'block';
+
+            timerInterval = setInterval(() => {
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    submitQuiz();
+                    return;
+                }
+
+                timeLeft--;
+                const mins = Math.floor(timeLeft / 60);
+                const secs = timeLeft % 60;
+                timerEl.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+
+                if (timeLeft < 60) timerEl.style.color = '#ef4444';
+            }, 1000);
+        }
+
+        function renderQuestion() {
+            const question = quizData.questions[currentQuestionIndex];
+            const container = document.getElementById('questionContainer');
+            const progress = ((currentQuestionIndex) / quizData.questions.length) * 100;
+            document.getElementById('progressFill').style.width = `${progress}%`;
+
+            container.innerHTML = `
+            <div class="question-card">
+                <div class="question-text">${currentQuestionIndex + 1}. ${question.text}</div>
+                <div class="options-list">
+                    ${question.options.map(opt => `
+                        <div class="option-item ${userAnswers[question.id] == opt.id ? 'selected' : ''}" 
+                             onclick="selectOption(${question.id}, ${opt.id})">
+                            <i data-lucide="${userAnswers[question.id] == opt.id ? 'check-circle' : 'circle'}" style="width: 18px; margin-right: 15px;"></i>
+                            ${opt.text}
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+
+            lucide.createIcons();
+
+            // Update buttons
+            document.getElementById('prevBtn').style.visibility = currentQuestionIndex > 0 ? 'visible' : 'hidden';
+            document.getElementById('nextBtn').textContent = currentQuestionIndex === quizData.questions.length - 1 ? 'Finish Quiz' : 'Next Question';
+        }
+
+        function selectOption(qId, optId) {
+            userAnswers[qId] = optId;
+            renderQuestion();
+        }
+
+        document.getElementById('prevBtn').onclick = () => {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                renderQuestion();
+            }
+        };
+
+        document.getElementById('nextBtn').onclick = () => {
+            if (currentQuestionIndex < quizData.questions.length - 1) {
+                currentQuestionIndex++;
+                renderQuestion();
+            } else {
+                submitQuiz();
+            }
+        };
+
+        async function submitQuiz() {
+            clearInterval(timerInterval);
+
+            // Show loading
+            const quizView = document.getElementById('quizView');
+            quizView.style.opacity = '0.5';
+            quizView.style.pointerEvents = 'none';
+
+            try {
+                const response = await fetch('/user/api/quizzes/submit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: email,
+                        quizId: quizId,
+                        userAnswers: userAnswers
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // Finalize progress bar
+                    document.getElementById('progressFill').style.width = '100%';
+
+                    // Show Results
+                    document.getElementById('quizView').style.display = 'none';
+                    document.getElementById('resultsView').style.display = 'block';
+                    document.getElementById('scoreValue').textContent = `${result.percentage}%`;
+                    document.getElementById('scoreValue').style.color = result.passed ? '#14f1b2' : '#ef4444';
+
+                    document.getElementById('resultTitle').textContent = result.passed ? '🎉 Congratulations!' : '😟 Better Luck Next Time';
+                    document.getElementById('resultMessage').textContent = result.passed ?
+                        `You passed the quiz, scored ${result.correct_count}/${result.total_questions}, and earned ${result.xp_earned} XP! The next quiz has been unlocked. ✨` :
+                        `You scored ${result.percentage}%, but you need ${quizData.passing_score}% to pass.`;
+                    
+                    // Show profile button only when quiz is passed
+                    if (result.passed) {
+                        document.getElementById('viewProfileBtn').style.display = 'inline-block';
+                    }
+                } else {
+                    alert('Error submitting quiz: ' + (result.detail || 'Unknown error'));
+                    quizView.style.opacity = '1';
+                    quizView.style.pointerEvents = 'auto';
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Connection error. Please try again.');
+                quizView.style.opacity = '1';
+                quizView.style.pointerEvents = 'auto';
+            }
+        }
+
+        loadQuiz();
+    </script>
+</body>
+
+</html>
